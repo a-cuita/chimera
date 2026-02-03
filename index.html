@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CHIMERA - Scout Mode</title>
+    <title>CHIMERA - Unified Tracking</title>
     <style>
         * {
             margin: 0;
@@ -21,61 +21,32 @@
             min-height: 100vh;
         }
         
-        .mockup-container {
-            text-align: center;
-        }
-        
-        h1 {
-            color: #2D5F3F;
-            margin-bottom: 30px;
-            font-size: 24px;
-        }
-        
-        /* Mobile View */
-        .mobile-view {
-            width: 375px;
+        .container {
+            width: 100%;
+            max-width: 375px;
             background: white;
             border-radius: 20px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             overflow: hidden;
-            border: 12px solid #1a1a1a;
         }
         
         /* Header */
         .header {
-            background: white;
+            background: #2D5F3F;
+            color: white;
             padding: 16px;
-            border-bottom: 1px solid #E0E0E0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            text-align: center;
         }
         
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .back-arrow {
+        .header h1 {
             font-size: 20px;
-            cursor: pointer;
-            color: #2D5F3F;
-        }
-        
-        .page-title {
-            font-size: 16px;
             font-weight: 600;
-            color: #1a1a1a;
         }
         
-        .mode-badge {
-            background: #E8F3ED;
-            color: #2D5F3F;
-            padding: 4px 12px;
-            border-radius: 12px;
+        .header .subtitle {
             font-size: 12px;
-            font-weight: 600;
+            opacity: 0.9;
+            margin-top: 4px;
         }
         
         /* Content */
@@ -83,195 +54,218 @@
             padding: 20px;
         }
         
-        /* Social Proof Banner */
-        .social-proof {
-            background: linear-gradient(135deg, #E8F3ED 0%, #C8E6D0 100%);
-            border-radius: 8px;
+        /* Messages */
+        .message {
             padding: 12px;
-            margin-bottom: 16px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-        }
-        
-        .proof-item {
-            text-align: center;
-        }
-        
-        .proof-number {
-            font-size: 18px;
-            font-weight: 700;
-            color: #2D5F3F;
-        }
-        
-        .proof-label {
-            font-size: 10px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        /* Gamification Badge */
-        .achievement-badge {
-            background: white;
-            border: 2px solid #2D5F3F;
             border-radius: 8px;
-            padding: 10px;
             margin-bottom: 16px;
+            display: none;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+        
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+        
+        .message.show {
+            display: block;
+        }
+        
+        /* Status Display */
+        .status-box {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .status-row {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 12px;
+            padding: 8px 0;
         }
         
-        .badge-icon {
-            font-size: 28px;
-        }
-        
-        .badge-text {
-            flex: 1;
-            text-align: left;
-        }
-        
-        .badge-title {
+        .status-label {
             font-size: 13px;
-            font-weight: 600;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .status-value {
+            font-size: 18px;
+            color: #1f2937;
+            font-weight: 700;
+        }
+        
+        .status-value.tracking {
             color: #2D5F3F;
         }
         
-        .badge-subtitle {
-            font-size: 11px;
-            color: #666;
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 12px;
         }
         
-        /* Location */
-        .location-section {
+        .btn-primary {
+            background: #2D5F3F;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #234a31;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(45, 95, 63, 0.3);
+        }
+        
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #2D5F3F;
+            border: 2px solid #2D5F3F;
+        }
+        
+        .btn-secondary:hover {
+            background: #E8F3ED;
+        }
+        
+        .btn:disabled {
+            background: #d1d5db;
+            color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Photo Button */
+        .photo-section {
             margin-bottom: 16px;
         }
         
-        .location-label {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #888;
-            margin-bottom: 8px;
+        .photo-btn {
+            width: 100%;
+            padding: 14px;
+            border: 2px dashed #d1d5db;
+            background: #fafafa;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s;
         }
         
-        .location-text {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1a1a1a;
+        .photo-btn:hover {
+            border-color: #2D5F3F;
+            background: #f5f5f5;
         }
         
-        .gps-status {
-            font-size: 11px;
-            color: #999;
-            font-style: italic;
-            margin-top: 4px;
+        .photo-btn::before {
+            content: "📸 ";
+            font-size: 18px;
         }
         
-        /* Map Preview with Street Segments */
-        .map-container {
-            background: #2d3329;
-            border-radius: 12px;
-            height: 180px;
-            margin-bottom: 20px;
-            position: relative;
-            overflow: hidden;
+        .photo-input {
+            display: none;
         }
         
-        .map-grid {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: 
-                repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(245, 245, 240, 0.1) 19px, rgba(245, 245, 240, 0.1) 20px),
-                repeating-linear-gradient(90deg, transparent, transparent 19px, rgba(245, 245, 240, 0.1) 19px, rgba(245, 245, 240, 0.1) 20px);
-        }
-        
-        /* Street segments */
-        .street {
-            position: absolute;
-            border-radius: 2px;
-            opacity: 0.6;
-        }
-        
-        .street.current {
-            opacity: 1;
-            box-shadow: 0 0 12px rgba(6, 182, 212, 0.6);
-            border: 2px solid #06b6d4;
-        }
-        
-        /* CPUE colors */
-        .cpue-1 { background: #10b981; }
-        .cpue-2 { background: #34d399; }
-        .cpue-4 { background: #fbbf24; }
-        .cpue-6 { background: #f97316; }
-        .cpue-7 { background: #ef4444; }
-        .cpue-8 { background: #dc2626; }
-        
-        .map-marker {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 32px;
-            z-index: 10;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-        }
-        
-        .map-legend {
-            position: absolute;
-            bottom: 8px;
-            left: 8px;
-            right: 8px;
-            background: rgba(0,0,0,0.7);
-            border-radius: 6px;
-            padding: 8px;
-            font-size: 11px;
-            color: #fff;
-        }
-        
-        .legend-title {
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-        
-        .nearby-scouts {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        
-        .scout-pill {
-            background: rgba(6, 182, 212, 0.3);
-            color: #06b6d4;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 10px;
-            font-weight: 600;
-        }
-        
-        /* Rating Section */
-        .rating-section {
-            margin-bottom: 20px;
-        }
-        
-        .rating-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 16px;
+        .photo-count {
             text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 8px;
         }
         
+        /* Checkboxes */
+        .checkbox-section {
+            margin-bottom: 20px;
+        }
+        
+        .checkbox-section h3 {
+            font-size: 16px;
+            color: #1f2937;
+            margin-bottom: 12px;
+        }
+        
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .checkbox-option:hover {
+            border-color: #2D5F3F;
+            background: #f0f9f4;
+        }
+        
+        .checkbox-option input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+        }
+        
+        .checkbox-option label {
+            font-size: 15px;
+            color: #1f2937;
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        /* Forms */
+        .form-section {
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .form-section.show {
+            display: block;
+        }
+        
+        .form-section h3 {
+            font-size: 16px;
+            color: #1f2937;
+            margin-bottom: 12px;
+        }
+        
+        /* Scout Rating Slider */
         .rating-scale {
             display: flex;
             justify-content: space-between;
             margin-bottom: 12px;
             font-size: 12px;
-            color: #888;
+            color: #6b7280;
         }
         
         .slider-container {
@@ -322,267 +316,247 @@
         .rating-description {
             text-align: center;
             font-size: 14px;
-            color: #666;
+            color: #6b7280;
         }
         
-        /* Photo Section */
-        .photo-section {
-            margin-bottom: 20px;
-        }
-        
-        .photo-label {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 12px;
-        }
-        
-        .photo-btn {
-            width: 100%;
-            padding: 16px;
-            border: 2px dashed #E0E0E0;
-            background: #FAFAFA;
+        /* Collection Bags */
+        .bag-entry {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
             border-radius: 8px;
-            font-size: 14px;
-            color: #666;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: block;
-        }
-        
-        .photo-btn:hover {
-            border-color: #2D5F3F;
-            background: #F5F5F5;
-        }
-        
-        .photo-btn::before {
-            content: "📸 ";
-            font-size: 20px;
-        }
-        
-        .photo-input {
-            display: none;
-        }
-        
-        .photo-preview {
-            margin-top: 12px;
-            border-radius: 8px;
-            max-width: 100%;
-            display: none;
-        }
-        
-        /* Buttons */
-        .btn-primary {
-            width: 100%;
-            padding: 16px;
-            background: #2D5F3F;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 12px;
-        }
-        
-        .btn-primary:hover {
-            background: #234a31;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(45, 95, 63, 0.3);
-        }
-        
-        .btn-primary:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .action-divider {
-            text-align: center;
-            color: #999;
-            font-size: 13px;
-            margin: 16px 0;
-        }
-        
-        .btn-secondary {
-            width: 100%;
-            padding: 14px;
-            background: white;
-            color: #2D5F3F;
-            border: 2px solid #2D5F3F;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .btn-secondary:hover {
-            background: #E8F3ED;
-        }
-        
-        /* Success/Error Messages */
-        .message {
             padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            display: none;
-            text-align: center;
+            margin-bottom: 12px;
+        }
+        
+        .bag-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .bag-number {
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
+            color: #1f2937;
         }
         
-        .message.success {
-            background: #d1fae5;
-            color: #065f46;
-            border: 1px solid #10b981;
+        .remove-bag {
+            color: #dc2626;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 4px 8px;
         }
         
-        .message.error {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #ef4444;
+        .bag-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
         }
         
-        .message.show {
-            display: block;
+        .add-bag-btn {
+            width: 100%;
+            padding: 10px;
+            background: #f9fafb;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            color: #6b7280;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .add-bag-btn:hover {
+            border-color: #2D5F3F;
+            color: #2D5F3F;
+        }
+        
+        /* Hidden class */
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
 <body>
-    <div class="mockup-container">
-        <h1>CHIMERA Scout Mode (iPhone) - v2</h1>
+    <div class="container">
+        <div class="header">
+            <h1>🌍 CHIMERA Tracker</h1>
+            <div class="subtitle">Scout & Collection Mode</div>
+        </div>
         
-        <div class="mobile-view">
-            <div class="header">
-                <div class="header-left">
-                    <span class="back-arrow">←</span>
-                    <div class="page-title">CHIMERA</div>
+        <div class="content">
+            <!-- Message Display -->
+            <div class="message" id="message"></div>
+            
+            <!-- SCREEN 1: Pre-Tracking -->
+            <div id="preTrackingScreen">
+                <div class="status-box">
+                    <div class="status-row">
+                        <span class="status-label">Status</span>
+                        <span class="status-value">Ready to Track</span>
+                    </div>
                 </div>
-                <span class="mode-badge">Scout Mode</span>
+                
+                <button class="btn btn-primary" id="startTrackingBtn">
+                    🎯 Start Tracking
+                </button>
+                
+                <p style="text-align: center; color: #6b7280; font-size: 13px; margin-top: 12px;">
+                    Track your location, then choose Scout or Collect when done.
+                </p>
             </div>
             
-            <div class="content">
-                <!-- Success/Error Message -->
-                <div class="message" id="message"></div>
-                
-                <!-- Social Proof Banner -->
-                <div class="social-proof">
-                    <div class="proof-item">
-                        <div class="proof-number">12</div>
-                        <div class="proof-label">Scouts Today</div>
+            <!-- SCREEN 2: Active Tracking -->
+            <div id="activeTrackingScreen" class="hidden">
+                <div class="status-box">
+                    <div class="status-row">
+                        <span class="status-label">📍 Tracking</span>
+                        <span class="status-value tracking">Active</span>
                     </div>
-                    <div class="proof-item">
-                        <div class="proof-number">47</div>
-                        <div class="proof-label">This Week</div>
+                    <div class="status-row">
+                        <span class="status-label">⏱️ Duration</span>
+                        <span class="status-value" id="durationDisplay">00:00</span>
                     </div>
-                    <div class="proof-item">
-                        <div class="proof-number">Top 10%</div>
-                        <div class="proof-label">Your Rank</div>
+                    <div class="status-row">
+                        <span class="status-label">📏 Distance</span>
+                        <span class="status-value" id="distanceDisplay">0.00 mi</span>
                     </div>
                 </div>
                 
-                <!-- Gamification Badge -->
-                <div class="achievement-badge">
-                    <div class="badge-icon">🏆</div>
-                    <div class="badge-text">
-                        <div class="badge-title">Streak: 7 days!</div>
-                        <div class="badge-subtitle">You've scouted every day this week</div>
+                <div class="photo-section">
+                    <label for="photoInput" class="photo-btn">Take Photo</label>
+                    <input type="file" id="photoInput" class="photo-input" accept="image/*" capture="environment">
+                    <div class="photo-count" id="photoCount">0 photos captured</div>
+                </div>
+                
+                <button class="btn btn-danger" id="stopTrackingBtn">
+                    ⏹️ Stop Tracking
+                </button>
+            </div>
+            
+            <!-- SCREEN 3: Post-Tracking Selection -->
+            <div id="postTrackingScreen" class="hidden">
+                <div class="status-box">
+                    <div class="status-row">
+                        <span class="status-label">Session Complete</span>
+                        <span class="status-value">✓</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">Duration</span>
+                        <span class="status-value" id="finalDuration">00:00</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">Distance</span>
+                        <span class="status-value" id="finalDistance">0.00 mi</span>
                     </div>
                 </div>
                 
-                <div class="location-section">
-                    <div class="location-label">📍 Current Location</div>
-                    <div class="location-text" id="locationText">Getting your location...</div>
-                    <div class="gps-status" id="gpsStatus">Requesting GPS permission...</div>
-                </div>
-                
-                <div class="map-container">
-                    <div class="map-grid"></div>
-                    
-                    <!-- Street segments showing actual CPUE data -->
-                    <div class="street cpue-8" style="left: 10%; top: 10%; width: 60%; height: 8px;"></div>
-                    <div class="street cpue-7" style="left: 15%; top: 35%; width: 45%; height: 8px;"></div>
-                    <div class="street cpue-4 current" style="left: 25%; top: 55%; width: 50%; height: 10px;"></div>
-                    <div class="street cpue-2" style="left: 70%; top: 25%; width: 8px; height: 50%;"></div>
-                    <div class="street cpue-1" style="left: 45%; top: 75%; width: 30%; height: 6px;"></div>
-                    
-                    <div class="map-marker">📍</div>
-                    
-                    <div class="map-legend">
-                        <div class="legend-title">Recent Scouts Nearby:</div>
-                        <div class="nearby-scouts">
-                            <span class="scout-pill">2 blocks N (6/10)</span>
-                            <span class="scout-pill">1 block E (4/10)</span>
-                            <span class="scout-pill">3 blocks W (7/10)</span>
-                        </div>
+                <div class="checkbox-section">
+                    <h3>What did you do?</h3>
+                    <div class="checkbox-option">
+                        <input type="checkbox" id="scoutCheck">
+                        <label for="scoutCheck">🔍 Scouted (rated litter)</label>
+                    </div>
+                    <div class="checkbox-option">
+                        <input type="checkbox" id="collectCheck">
+                        <label for="collectCheck">🗑️ Collected (picked up litter)</label>
                     </div>
                 </div>
                 
-                <div class="rating-section">
-                    <div class="rating-title">How bad is the litter here?</div>
-                    
+                <!-- Scout Form -->
+                <div class="form-section" id="scoutForm">
+                    <h3>Scout Report</h3>
                     <div class="rating-scale">
                         <span>0 - Clean</span>
                         <span>10 - Worst Ever</span>
                     </div>
-                    
                     <div class="slider-container">
-                        <input type="range" min="0" max="10" value="0" class="slider" id="litterRating">
+                        <input type="range" min="0" max="10" value="5" class="slider" id="litterRating">
                     </div>
-                    
-                    <div class="rating-value" id="ratingValue">0</div>
-                    <div class="rating-description" id="ratingDescription">Pristine, no visible litter</div>
+                    <div class="rating-value" id="ratingValue">5</div>
+                    <div class="rating-description" id="ratingDescription">Moderate litter density</div>
                 </div>
                 
-                <div class="photo-section">
-                    <div class="photo-label">Add Photo (optional)</div>
-                    <label for="photoInput" class="photo-btn">Take Photo</label>
-                    <input type="file" id="photoInput" class="photo-input" accept="image/*" capture="environment">
-                    <img id="photoPreview" class="photo-preview" alt="Photo preview">
+                <!-- Collection Form -->
+                <div class="form-section" id="collectionForm">
+                    <h3>Collection Report</h3>
+                    <div id="bagsContainer"></div>
+                    <button class="add-bag-btn" id="addBagBtn">+ Add Bag</button>
                 </div>
                 
-                <button class="btn-primary" id="submitBtn">Submit Scout Report</button>
+                <button class="btn btn-primary" id="submitBtn" disabled>
+                    Submit Report
+                </button>
                 
-                <div class="action-divider">Want to clean this up?</div>
-                
-                <button class="btn-secondary">Start Collection</button>
+                <button class="btn btn-secondary" id="cancelBtn">
+                    Cancel
+                </button>
             </div>
         </div>
     </div>
     
     <script>
         // ==========================================
-        // CONFIGURATION - PASTE YOUR APPS SCRIPT URL HERE
+        // CONFIGURATION
         // ==========================================
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyYDes-8_o0DVZOpAqT04C2Xc51LJ5nGqCZWOuopOicZ7WP3UaI0W1U-1l88Km9Qhn2/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/library/d/18fOrM_ZjRKm4DhsR0T9P9Vq7kpdaPhPhDZs_musSG9sWJR13jran8ciI/1';
+        const GPS_INTERVAL = 10000; // 10 seconds
         
         // ==========================================
-        // STATE MANAGEMENT
+        // STATE
         // ==========================================
-        let currentLocation = {
-            latitude: null,
-            longitude: null,
-            address: 'Location unavailable'
+        let sessionState = {
+            sessionId: null,
+            isTracking: false,
+            startTime: null,
+            gpsPoints: [],
+            photos: [],
+            totalDistance: 0,
+            durationTimer: null,
+            gpsTimer: null
         };
         
-        let capturedPhoto = null;
+        let bags = [];
+        let bagCounter = 0;
         
         // ==========================================
         // DOM ELEMENTS
         // ==========================================
-        const slider = document.getElementById('litterRating');
-        const valueDisplay = document.getElementById('ratingValue');
-        const descriptionDisplay = document.getElementById('ratingDescription');
-        const locationText = document.getElementById('locationText');
-        const gpsStatus = document.getElementById('gpsStatus');
-        const photoInput = document.getElementById('photoInput');
-        const photoPreview = document.getElementById('photoPreview');
+        const preTrackingScreen = document.getElementById('preTrackingScreen');
+        const activeTrackingScreen = document.getElementById('activeTrackingScreen');
+        const postTrackingScreen = document.getElementById('postTrackingScreen');
+        
+        const startTrackingBtn = document.getElementById('startTrackingBtn');
+        const stopTrackingBtn = document.getElementById('stopTrackingBtn');
         const submitBtn = document.getElementById('submitBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        
+        const durationDisplay = document.getElementById('durationDisplay');
+        const distanceDisplay = document.getElementById('distanceDisplay');
+        const finalDuration = document.getElementById('finalDuration');
+        const finalDistance = document.getElementById('finalDistance');
+        
+        const photoInput = document.getElementById('photoInput');
+        const photoCount = document.getElementById('photoCount');
+        
+        const scoutCheck = document.getElementById('scoutCheck');
+        const collectCheck = document.getElementById('collectCheck');
+        const scoutForm = document.getElementById('scoutForm');
+        const collectionForm = document.getElementById('collectionForm');
+        
+        const litterRating = document.getElementById('litterRating');
+        const ratingValue = document.getElementById('ratingValue');
+        const ratingDescription = document.getElementById('ratingDescription');
+        
+        const bagsContainer = document.getElementById('bagsContainer');
+        const addBagBtn = document.getElementById('addBagBtn');
+        
         const messageDiv = document.getElementById('message');
         
         // ==========================================
-        // RATING SLIDER
+        // RATING DESCRIPTIONS
         // ==========================================
         const descriptions = {
             0: 'Pristine, no visible litter',
@@ -598,59 +572,127 @@
             10: 'Worst ever seen, like a landfill'
         };
         
-        slider.addEventListener('input', function() {
-            const value = this.value;
-            valueDisplay.textContent = value;
-            descriptionDisplay.textContent = descriptions[value];
-        });
+        // ==========================================
+        // UTILITIES
+        // ==========================================
+        function generateSessionId() {
+            return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = 'message show ' + type;
+            setTimeout(() => messageDiv.classList.remove('show'), 5000);
+        }
+        
+        function showScreen(screen) {
+            preTrackingScreen.classList.add('hidden');
+            activeTrackingScreen.classList.add('hidden');
+            postTrackingScreen.classList.add('hidden');
+            screen.classList.remove('hidden');
+        }
+        
+        function formatDuration(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            // Haversine formula for distance in miles
+            const R = 3959; // Earth radius in miles
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
         
         // ==========================================
-        // GPS LOCATION CAPTURE
+        // GPS TRACKING
         // ==========================================
-        function getLocation() {
+        function captureGPSPoint() {
             if (!navigator.geolocation) {
-                showMessage('GPS not supported on this device', 'error');
-                gpsStatus.textContent = 'GPS not available';
+                showMessage('GPS not supported', 'error');
                 return;
             }
             
-            gpsStatus.textContent = 'Getting location...';
-            
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    currentLocation.latitude = position.coords.latitude;
-                    currentLocation.longitude = position.coords.longitude;
+                    const point = {
+                        timestamp: new Date().toISOString(),
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    };
                     
-                    // Display coordinates
-                    locationText.textContent = `${currentLocation.latitude.toFixed(6)}, ${currentLocation.longitude.toFixed(6)}`;
-                    gpsStatus.textContent = 'GPS locked ✓';
+                    // Calculate distance from last point
+                    if (sessionState.gpsPoints.length > 0) {
+                        const lastPoint = sessionState.gpsPoints[sessionState.gpsPoints.length - 1];
+                        const distance = calculateDistance(
+                            lastPoint.latitude,
+                            lastPoint.longitude,
+                            point.latitude,
+                            point.longitude
+                        );
+                        sessionState.totalDistance += distance;
+                        distanceDisplay.textContent = sessionState.totalDistance.toFixed(2) + ' mi';
+                    }
                     
-                    // Optional: Reverse geocode to get street address
-                    // This would require an additional API, so keeping it simple for now
+                    sessionState.gpsPoints.push(point);
                 },
                 (error) => {
-                    let errorMsg = 'Unable to get location';
-                    switch(error.code) {
-                        case error.PERMISSION_DENIED:
-                            errorMsg = 'Location permission denied';
-                            break;
-                        case error.POSITION_UNAVAILABLE:
-                            errorMsg = 'Location unavailable';
-                            break;
-                        case error.TIMEOUT:
-                            errorMsg = 'Location request timeout';
-                            break;
-                    }
-                    gpsStatus.textContent = errorMsg;
-                    showMessage(errorMsg, 'error');
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
+                    console.error('GPS error:', error);
                 }
             );
         }
+        
+        function updateDuration() {
+            if (!sessionState.isTracking) return;
+            const elapsed = Math.floor((Date.now() - sessionState.startTime) / 1000);
+            durationDisplay.textContent = formatDuration(elapsed);
+        }
+        
+        // ==========================================
+        // TRACKING CONTROLS
+        // ==========================================
+        startTrackingBtn.addEventListener('click', function() {
+            sessionState.sessionId = generateSessionId();
+            sessionState.isTracking = true;
+            sessionState.startTime = Date.now();
+            sessionState.gpsPoints = [];
+            sessionState.photos = [];
+            sessionState.totalDistance = 0;
+            
+            // Capture initial GPS point
+            captureGPSPoint();
+            
+            // Start GPS tracking every 10 seconds
+            sessionState.gpsTimer = setInterval(captureGPSPoint, GPS_INTERVAL);
+            
+            // Start duration timer
+            sessionState.durationTimer = setInterval(updateDuration, 1000);
+            
+            showScreen(activeTrackingScreen);
+            showMessage('Tracking started! GPS capturing every 10 seconds.', 'success');
+        });
+        
+        stopTrackingBtn.addEventListener('click', function() {
+            sessionState.isTracking = false;
+            clearInterval(sessionState.gpsTimer);
+            clearInterval(sessionState.durationTimer);
+            
+            // Capture final GPS point
+            captureGPSPoint();
+            
+            // Update final stats
+            const totalSeconds = Math.floor((Date.now() - sessionState.startTime) / 1000);
+            finalDuration.textContent = formatDuration(totalSeconds);
+            finalDistance.textContent = sessionState.totalDistance.toFixed(2) + ' mi';
+            
+            showScreen(postTrackingScreen);
+        });
         
         // ==========================================
         // PHOTO CAPTURE
@@ -659,103 +701,196 @@
             const file = e.target.files[0];
             if (!file) return;
             
-            // Show preview
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                photoPreview.src = event.target.result;
-                photoPreview.style.display = 'block';
-                capturedPhoto = event.target.result; // Store base64
-            };
-            reader.readAsDataURL(file);
+            navigator.geolocation.getCurrentPosition((position) => {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const photo = {
+                        timestamp: new Date().toISOString(),
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        data: event.target.result
+                    };
+                    sessionState.photos.push(photo);
+                    photoCount.textContent = sessionState.photos.length + ' photo' + (sessionState.photos.length !== 1 ? 's' : '') + ' captured';
+                    showMessage('Photo captured!', 'success');
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            // Reset input for next photo
+            photoInput.value = '';
         });
         
         // ==========================================
-        // FORM SUBMISSION
+        // CHECKBOX LOGIC
+        // ==========================================
+        function updateFormVisibility() {
+            const scoutChecked = scoutCheck.checked;
+            const collectChecked = collectCheck.checked;
+            
+            if (scoutChecked) {
+                scoutForm.classList.add('show');
+            } else {
+                scoutForm.classList.remove('show');
+            }
+            
+            if (collectChecked) {
+                collectionForm.classList.add('show');
+                if (bags.length === 0) {
+                    addBag(); // Add first bag automatically
+                }
+            } else {
+                collectionForm.classList.remove('show');
+            }
+            
+            submitBtn.disabled = !(scoutChecked || collectChecked);
+        }
+        
+        scoutCheck.addEventListener('change', updateFormVisibility);
+        collectCheck.addEventListener('change', updateFormVisibility);
+        
+        // ==========================================
+        // RATING SLIDER
+        // ==========================================
+        litterRating.addEventListener('input', function() {
+            const value = this.value;
+            ratingValue.textContent = value;
+            ratingDescription.textContent = descriptions[value];
+        });
+        
+        // ==========================================
+        // BAG MANAGEMENT
+        // ==========================================
+        function addBag() {
+            bagCounter++;
+            const bagId = 'bag_' + bagCounter;
+            
+            const bagDiv = document.createElement('div');
+            bagDiv.className = 'bag-entry';
+            bagDiv.id = bagId;
+            bagDiv.innerHTML = `
+                <div class="bag-header">
+                    <span class="bag-number">Bag ${bagCounter}</span>
+                    <span class="remove-bag" onclick="removeBag('${bagId}')">Remove</span>
+                </div>
+                <input type="number" class="bag-input" placeholder="Weight in lbs" step="0.1" min="0">
+            `;
+            
+            bagsContainer.appendChild(bagDiv);
+            bags.push(bagId);
+        }
+        
+        function removeBag(bagId) {
+            document.getElementById(bagId).remove();
+            bags = bags.filter(id => id !== bagId);
+        }
+        
+        addBagBtn.addEventListener('click', addBag);
+        
+        // ==========================================
+        // SUBMISSION
         // ==========================================
         submitBtn.addEventListener('click', async function() {
-            // Validation
-            if (!currentLocation.latitude || !currentLocation.longitude) {
-                showMessage('Waiting for GPS location...', 'error');
-                return;
-            }
-            
-            // Check if Apps Script URL is configured
             if (APPS_SCRIPT_URL === 'PASTE_YOUR_APPS_SCRIPT_URL_HERE') {
-                showMessage('⚠️ Apps Script URL not configured. See setup instructions.', 'error');
+                showMessage('Apps Script URL not configured', 'error');
                 return;
             }
             
-            // Disable button and show loading
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
             
-            // Prepare data
+            // Collect bag data
+            const bagData = [];
+            if (collectCheck.checked) {
+                const bagInputs = bagsContainer.querySelectorAll('.bag-input');
+                bagInputs.forEach(input => {
+                    const weight = parseFloat(input.value) || 0;
+                    if (weight > 0) {
+                        bagData.push(weight);
+                    }
+                });
+            }
+            
+            const totalSeconds = Math.floor((Date.now() - sessionState.startTime) / 1000);
+            
             const data = {
+                sessionId: sessionState.sessionId,
                 timestamp: new Date().toISOString(),
-                latitude: currentLocation.latitude,
-                longitude: currentLocation.longitude,
-                rating: slider.value,
-                location: locationText.textContent,
-                photo: capturedPhoto || ''
+                gpsPoints: sessionState.gpsPoints,
+                photos: sessionState.photos,
+                duration: totalSeconds,
+                distance: sessionState.totalDistance,
+                scoutData: scoutCheck.checked ? {
+                    rating: parseInt(litterRating.value)
+                } : null,
+                collectionData: collectCheck.checked ? {
+                    bags: bagData,
+                    totalWeight: bagData.reduce((sum, w) => sum + w, 0)
+                } : null
             };
             
             try {
-                // Submit to Google Apps Script
-                const response = await fetch(APPS_SCRIPT_URL, {
+                await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // Important for Apps Script
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
                 
-                // Since we use no-cors, we can't read the response
-                // But if we get here without error, it likely worked
-                showMessage('✓ Scout report submitted successfully!', 'success');
+                showMessage('✓ Report submitted successfully!', 'success');
                 
-                // Reset form
-                slider.value = 0;
-                valueDisplay.textContent = '0';
-                descriptionDisplay.textContent = descriptions[0];
-                photoInput.value = '';
-                photoPreview.style.display = 'none';
-                capturedPhoto = null;
-                
-                // Re-enable button
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit Scout Report';
-                
-                // Refresh location for next submission
-                setTimeout(getLocation, 1000);
+                // Reset and go back to start
+                setTimeout(() => {
+                    resetSession();
+                    showScreen(preTrackingScreen);
+                }, 2000);
                 
             } catch (error) {
                 console.error('Submission error:', error);
                 showMessage('Submission failed. Please try again.', 'error');
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit Scout Report';
+                submitBtn.textContent = 'Submit Report';
             }
         });
         
-        // ==========================================
-        // UTILITY FUNCTIONS
-        // ==========================================
-        function showMessage(text, type) {
-            messageDiv.textContent = text;
-            messageDiv.className = 'message show ' + type;
-            
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                messageDiv.classList.remove('show');
-            }, 5000);
-        }
-        
-        // ==========================================
-        // INITIALIZE ON PAGE LOAD
-        // ==========================================
-        window.addEventListener('load', function() {
-            getLocation();
+        cancelBtn.addEventListener('click', function() {
+            if (confirm('Are you sure? This will discard your tracking data.')) {
+                resetSession();
+                showScreen(preTrackingScreen);
+            }
         });
+        
+        function resetSession() {
+            sessionState = {
+                sessionId: null,
+                isTracking: false,
+                startTime: null,
+                gpsPoints: [],
+                photos: [],
+                totalDistance: 0,
+                durationTimer: null,
+                gpsTimer: null
+            };
+            
+            scoutCheck.checked = false;
+            collectCheck.checked = false;
+            litterRating.value = 5;
+            ratingValue.textContent = '5';
+            ratingDescription.textContent = descriptions[5];
+            
+            bagsContainer.innerHTML = '';
+            bags = [];
+            bagCounter = 0;
+            
+            durationDisplay.textContent = '00:00';
+            distanceDisplay.textContent = '0.00 mi';
+            photoCount.textContent = '0 photos captured';
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submit Report';
+            
+            updateFormVisibility();
+        }
     </script>
 </body>
 </html>
