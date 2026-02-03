@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>CHIMERA - Unified Tracking</title>
     <style>
         * {
@@ -14,7 +14,10 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: #F5F5F5;
-            padding: 20px;
+            padding: env(safe-area-inset-top, 20px) 
+                     env(safe-area-inset-right, 20px) 
+                     env(safe-area-inset-bottom, 20px) 
+                     env(safe-area-inset-left, 20px);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -81,6 +84,104 @@
             display: block;
         }
         
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 15px;
+            color: #1f2937;
+            background: white;
+        }
+        
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #2D5F3F;
+        }
+        
+        /* Safety Warnings */
+        .safety-container {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .safety-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .safety-icon {
+            font-size: 24px;
+        }
+        
+        .safety-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #92400e;
+        }
+        
+        .safety-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .safety-list li {
+            padding: 6px 0;
+            font-size: 14px;
+            color: #78350f;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        .safety-list li::before {
+            content: "•";
+            font-size: 18px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .safety-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 16px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .safety-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .safety-checkbox label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+            cursor: pointer;
+        }
+        
         /* Status Display */
         .status-box {
             background: #f9fafb;
@@ -111,6 +212,21 @@
         
         .status-value.tracking {
             color: #2D5F3F;
+        }
+        
+        /* Map Container */
+        .map-container {
+            width: 100%;
+            height: 250px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            border: 2px solid #e5e7eb;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
         }
         
         /* Buttons */
@@ -377,6 +493,16 @@
         .hidden {
             display: none !important;
         }
+        
+        /* Custom organization input */
+        .custom-org-input {
+            margin-top: 12px;
+            display: none;
+        }
+        
+        .custom-org-input.show {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -390,25 +516,64 @@
             <!-- Message Display -->
             <div class="message" id="message"></div>
             
-            <!-- SCREEN 1: Pre-Tracking -->
-            <div id="preTrackingScreen">
-                <div class="status-box">
-                    <div class="status-row">
-                        <span class="status-label">Status</span>
-                        <span class="status-value">Ready to Track</span>
+            <!-- SCREEN 1: Volunteer Info -->
+            <div id="volunteerInfoScreen">
+                <h2 style="font-size: 18px; margin-bottom: 16px; color: #1f2937;">Volunteer Information</h2>
+                
+                <div class="form-group">
+                    <label class="form-label">Organization</label>
+                    <select class="form-select" id="organizationSelect">
+                        <option value="">Select your organization</option>
+                        <option value="Baled It!">Baled It!</option>
+                        <option value="Help A Brother Out Foundation">Help A Brother Out Foundation</option>
+                        <option value="West Montgomery Action Committee">West Montgomery Action Committee</option>
+                        <option value="other">Add organization...</option>
+                    </select>
+                    <div class="custom-org-input" id="customOrgInput">
+                        <input type="text" class="form-input" id="customOrgText" placeholder="Enter organization name" style="margin-top: 12px;">
                     </div>
                 </div>
                 
-                <button class="btn btn-primary" id="startTrackingBtn">
-                    🎯 Start Tracking
-                </button>
+                <div class="form-group">
+                    <label class="form-label">Your Name</label>
+                    <input type="text" class="form-input" id="volunteerName" placeholder="Enter your name">
+                </div>
                 
-                <p style="text-align: center; color: #6b7280; font-size: 13px; margin-top: 12px;">
-                    Track your location, then choose Scout or Collect when done.
-                </p>
+                <button class="btn btn-primary" id="continueToSafetyBtn" disabled>
+                    Continue
+                </button>
             </div>
             
-            <!-- SCREEN 2: Active Tracking -->
+            <!-- SCREEN 2: Safety Warnings -->
+            <div id="safetyWarningsScreen" class="hidden">
+                <div class="safety-container">
+                    <div class="safety-header">
+                        <span class="safety-icon">⚠️</span>
+                        <h2 class="safety-title">Safety Guidelines</h2>
+                    </div>
+                    
+                    <ul class="safety-list">
+                        <li>Watch for traffic when crossing streets</li>
+                        <li>Wear gloves when handling litter</li>
+                        <li>Stay hydrated and take breaks as needed</li>
+                        <li>Work in pairs when possible</li>
+                        <li><strong>Do NOT operate a vehicle while tracking</strong></li>
+                        <li>Stay aware of your surroundings</li>
+                        <li>Watch for hazards (broken glass, sharp objects, wildlife)</li>
+                    </ul>
+                    
+                    <div class="safety-checkbox">
+                        <input type="checkbox" id="safetyAcknowledge">
+                        <label for="safetyAcknowledge">I understand and will follow these guidelines</label>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" id="startTrackingFromSafetyBtn" disabled>
+                    🎯 Start Tracking
+                </button>
+            </div>
+            
+            <!-- SCREEN 3: Active Tracking -->
             <div id="activeTrackingScreen" class="hidden">
                 <div class="status-box">
                     <div class="status-row">
@@ -425,6 +590,10 @@
                     </div>
                 </div>
                 
+                <div class="map-container">
+                    <div id="map"></div>
+                </div>
+                
                 <div class="photo-section">
                     <label for="photoInput" class="photo-btn">Take Photo</label>
                     <input type="file" id="photoInput" class="photo-input" accept="image/*" capture="environment">
@@ -436,7 +605,7 @@
                 </button>
             </div>
             
-            <!-- SCREEN 3: Post-Tracking Selection -->
+            <!-- SCREEN 4: Post-Tracking Selection -->
             <div id="postTrackingScreen" class="hidden">
                 <div class="status-box">
                     <div class="status-row">
@@ -502,6 +671,7 @@
         // CONFIGURATION
         // ==========================================
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyZSKDx1Z_cVeyNTQCRNqiWIhX8Caju1dUdcCLByxxIEvzDQXaYJNzcZxfW1TeTlZT/exec';
+        const GOOGLE_MAPS_API_KEY = 'AIzaSyDJ787jqop1-1IC0XEEXKBCHORz71gcfp0';
         const GPS_INTERVAL = 10000; // 10 seconds
         
         // ==========================================
@@ -515,7 +685,13 @@
             photos: [],
             totalDistance: 0,
             durationTimer: null,
-            gpsTimer: null
+            gpsTimer: null,
+            organization: '',
+            volunteerName: '',
+            map: null,
+            marker: null,
+            path: null,
+            pathCoordinates: []
         };
         
         let bags = [];
@@ -524,11 +700,20 @@
         // ==========================================
         // DOM ELEMENTS
         // ==========================================
-        const preTrackingScreen = document.getElementById('preTrackingScreen');
+        const volunteerInfoScreen = document.getElementById('volunteerInfoScreen');
+        const safetyWarningsScreen = document.getElementById('safetyWarningsScreen');
         const activeTrackingScreen = document.getElementById('activeTrackingScreen');
         const postTrackingScreen = document.getElementById('postTrackingScreen');
         
-        const startTrackingBtn = document.getElementById('startTrackingBtn');
+        const organizationSelect = document.getElementById('organizationSelect');
+        const customOrgInput = document.getElementById('customOrgInput');
+        const customOrgText = document.getElementById('customOrgText');
+        const volunteerName = document.getElementById('volunteerName');
+        const continueToSafetyBtn = document.getElementById('continueToSafetyBtn');
+        
+        const safetyAcknowledge = document.getElementById('safetyAcknowledge');
+        const startTrackingFromSafetyBtn = document.getElementById('startTrackingFromSafetyBtn');
+        
         const stopTrackingBtn = document.getElementById('stopTrackingBtn');
         const submitBtn = document.getElementById('submitBtn');
         const cancelBtn = document.getElementById('cancelBtn');
@@ -573,6 +758,21 @@
         };
         
         // ==========================================
+        // LOAD GOOGLE MAPS
+        // ==========================================
+        function loadGoogleMapsScript() {
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&callback=initMap`;
+            script.async = true;
+            script.defer = true;
+            document.head.appendChild(script);
+        }
+        
+        window.initMap = function() {
+            console.log('Google Maps loaded successfully');
+        };
+        
+        // ==========================================
         // UTILITIES
         // ==========================================
         function generateSessionId() {
@@ -586,7 +786,8 @@
         }
         
         function showScreen(screen) {
-            preTrackingScreen.classList.add('hidden');
+            volunteerInfoScreen.classList.add('hidden');
+            safetyWarningsScreen.classList.add('hidden');
             activeTrackingScreen.classList.add('hidden');
             postTrackingScreen.classList.add('hidden');
             screen.classList.remove('hidden');
@@ -599,7 +800,6 @@
         }
         
         function calculateDistance(lat1, lon1, lat2, lon2) {
-            // Haversine formula for distance in miles
             const R = 3959; // Earth radius in miles
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -609,6 +809,97 @@
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
             return R * c;
         }
+        
+        // ==========================================
+        // VOLUNTEER INFO SCREEN
+        // ==========================================
+        organizationSelect.addEventListener('change', function() {
+            if (this.value === 'other') {
+                customOrgInput.classList.add('show');
+                customOrgText.focus();
+            } else {
+                customOrgInput.classList.remove('show');
+            }
+            validateVolunteerInfo();
+        });
+        
+        customOrgText.addEventListener('input', validateVolunteerInfo);
+        volunteerName.addEventListener('input', validateVolunteerInfo);
+        
+        function validateVolunteerInfo() {
+            const orgSelected = organizationSelect.value !== '';
+            const orgValid = organizationSelect.value !== 'other' || customOrgText.value.trim() !== '';
+            const nameValid = volunteerName.value.trim() !== '';
+            
+            continueToSafetyBtn.disabled = !(orgSelected && orgValid && nameValid);
+        }
+        
+        continueToSafetyBtn.addEventListener('click', function() {
+            if (organizationSelect.value === 'other') {
+                sessionState.organization = customOrgText.value.trim();
+            } else {
+                sessionState.organization = organizationSelect.value;
+            }
+            sessionState.volunteerName = volunteerName.value.trim();
+            
+            showScreen(safetyWarningsScreen);
+        });
+        
+        // ==========================================
+        // SAFETY WARNINGS SCREEN
+        // ==========================================
+        safetyAcknowledge.addEventListener('change', function() {
+            startTrackingFromSafetyBtn.disabled = !this.checked;
+        });
+        
+        startTrackingFromSafetyBtn.addEventListener('click', function() {
+            sessionState.sessionId = generateSessionId();
+            sessionState.isTracking = true;
+            sessionState.startTime = Date.now();
+            sessionState.gpsPoints = [];
+            sessionState.photos = [];
+            sessionState.totalDistance = 0;
+            sessionState.pathCoordinates = [];
+            
+            // Initialize map
+            if (!sessionState.map) {
+                sessionState.map = new google.maps.Map(document.getElementById('map'), {
+                    zoom: 18,
+                    center: {lat: 32.3777, lng: -86.3006}, // Default center
+                    mapTypeId: 'roadmap',
+                    disableDefaultUI: false,
+                    zoomControl: true,
+                    mapTypeControl: false,
+                    streetViewControl: false
+                });
+                
+                sessionState.marker = new google.maps.Marker({
+                    map: sessionState.map,
+                    title: 'Your Location'
+                });
+                
+                sessionState.path = new google.maps.Polyline({
+                    path: sessionState.pathCoordinates,
+                    geodesic: true,
+                    strokeColor: '#2D5F3F',
+                    strokeOpacity: 1.0,
+                    strokeWeight: 4,
+                    map: sessionState.map
+                });
+            }
+            
+            // Capture initial GPS point
+            captureGPSPoint();
+            
+            // Start GPS tracking
+            sessionState.gpsTimer = setInterval(captureGPSPoint, GPS_INTERVAL);
+            
+            // Start duration timer
+            sessionState.durationTimer = setInterval(updateDuration, 1000);
+            
+            showScreen(activeTrackingScreen);
+            showMessage('Tracking started! GPS capturing every 10 seconds.', 'success');
+        });
         
         // ==========================================
         // GPS TRACKING
@@ -627,7 +918,14 @@
                         longitude: position.coords.longitude
                     };
                     
-                    // Calculate distance from last point
+                    // Update map
+                    const latLng = {lat: point.latitude, lng: point.longitude};
+                    sessionState.marker.setPosition(latLng);
+                    sessionState.map.setCenter(latLng);
+                    sessionState.pathCoordinates.push(latLng);
+                    sessionState.path.setPath(sessionState.pathCoordinates);
+                    
+                    // Calculate distance
                     if (sessionState.gpsPoints.length > 0) {
                         const lastPoint = sessionState.gpsPoints[sessionState.gpsPoints.length - 1];
                         const distance = calculateDistance(
@@ -644,6 +942,11 @@
                 },
                 (error) => {
                     console.error('GPS error:', error);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
                 }
             );
         }
@@ -657,36 +960,13 @@
         // ==========================================
         // TRACKING CONTROLS
         // ==========================================
-        startTrackingBtn.addEventListener('click', function() {
-            sessionState.sessionId = generateSessionId();
-            sessionState.isTracking = true;
-            sessionState.startTime = Date.now();
-            sessionState.gpsPoints = [];
-            sessionState.photos = [];
-            sessionState.totalDistance = 0;
-            
-            // Capture initial GPS point
-            captureGPSPoint();
-            
-            // Start GPS tracking every 10 seconds
-            sessionState.gpsTimer = setInterval(captureGPSPoint, GPS_INTERVAL);
-            
-            // Start duration timer
-            sessionState.durationTimer = setInterval(updateDuration, 1000);
-            
-            showScreen(activeTrackingScreen);
-            showMessage('Tracking started! GPS capturing every 10 seconds.', 'success');
-        });
-        
         stopTrackingBtn.addEventListener('click', function() {
             sessionState.isTracking = false;
             clearInterval(sessionState.gpsTimer);
             clearInterval(sessionState.durationTimer);
             
-            // Capture final GPS point
             captureGPSPoint();
             
-            // Update final stats
             const totalSeconds = Math.floor((Date.now() - sessionState.startTime) / 1000);
             finalDuration.textContent = formatDuration(totalSeconds);
             finalDistance.textContent = sessionState.totalDistance.toFixed(2) + ' mi';
@@ -717,7 +997,6 @@
                 reader.readAsDataURL(file);
             });
             
-            // Reset input for next photo
             photoInput.value = '';
         });
         
@@ -737,7 +1016,7 @@
             if (collectChecked) {
                 collectionForm.classList.add('show');
                 if (bags.length === 0) {
-                    addBag(); // Add first bag automatically
+                    addBag();
                 }
             } else {
                 collectionForm.classList.remove('show');
@@ -799,7 +1078,6 @@
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
             
-            // Collect bag data
             const bagData = [];
             if (collectCheck.checked) {
                 const bagInputs = bagsContainer.querySelectorAll('.bag-input');
@@ -816,6 +1094,8 @@
             const data = {
                 sessionId: sessionState.sessionId,
                 timestamp: new Date().toISOString(),
+                organization: sessionState.organization,
+                volunteerName: sessionState.volunteerName,
                 gpsPoints: sessionState.gpsPoints,
                 photos: sessionState.photos,
                 duration: totalSeconds,
@@ -839,10 +1119,9 @@
                 
                 showMessage('✓ Report submitted successfully!', 'success');
                 
-                // Reset and go back to start
                 setTimeout(() => {
                     resetSession();
-                    showScreen(preTrackingScreen);
+                    showScreen(volunteerInfoScreen);
                 }, 2000);
                 
             } catch (error) {
@@ -856,7 +1135,7 @@
         cancelBtn.addEventListener('click', function() {
             if (confirm('Are you sure? This will discard your tracking data.')) {
                 resetSession();
-                showScreen(preTrackingScreen);
+                showScreen(volunteerInfoScreen);
             }
         });
         
@@ -869,8 +1148,18 @@
                 photos: [],
                 totalDistance: 0,
                 durationTimer: null,
-                gpsTimer: null
+                gpsTimer: null,
+                organization: sessionState.organization,
+                volunteerName: sessionState.volunteerName,
+                map: sessionState.map,
+                marker: sessionState.marker,
+                path: sessionState.path,
+                pathCoordinates: []
             };
+            
+            if (sessionState.path) {
+                sessionState.path.setPath([]);
+            }
             
             scoutCheck.checked = false;
             collectCheck.checked = false;
@@ -891,6 +1180,13 @@
             
             updateFormVisibility();
         }
+        
+        // ==========================================
+        // INITIALIZE
+        // ==========================================
+        window.addEventListener('load', function() {
+            loadGoogleMapsScript();
+        });
     </script>
 </body>
 </html>
