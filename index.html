@@ -169,36 +169,6 @@
             margin-top: 4px;
         }
         
-        /* Get Location Button */
-        .get-location-btn {
-            width: 100%;
-            padding: 14px;
-            background: #2D5F3F;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 16px;
-        }
-        
-        .get-location-btn:hover {
-            background: #234a31;
-            transform: translateY(-1px);
-        }
-        
-        .get-location-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .get-location-btn::before {
-            content: "🎯 ";
-        }
-        
         /* Map Preview with Street Segments */
         .map-container {
             background: #2d3329;
@@ -477,11 +447,6 @@
         .message.show {
             display: block;
         }
-        
-        /* Hidden class */
-        .hidden {
-            display: none !important;
-        }
     </style>
 </head>
 <body>
@@ -528,12 +493,9 @@
                 
                 <div class="location-section">
                     <div class="location-label">📍 Current Location</div>
-                    <div class="location-text" id="locationText">Tap button to get location</div>
-                    <div class="gps-status" id="gpsStatus">Location not yet captured</div>
+                    <div class="location-text" id="locationText">Getting your location...</div>
+                    <div class="gps-status" id="gpsStatus">Requesting GPS permission...</div>
                 </div>
-                
-                <!-- Get Location Button (Shows until GPS locks) -->
-                <button class="get-location-btn" id="getLocationBtn">Get My Location</button>
                 
                 <div class="map-container">
                     <div class="map-grid"></div>
@@ -580,7 +542,7 @@
                     <img id="photoPreview" class="photo-preview" alt="Photo preview">
                 </div>
                 
-                <button class="btn-primary" id="submitBtn" disabled>Submit Scout Report</button>
+                <button class="btn-primary" id="submitBtn">Submit Scout Report</button>
                 
                 <div class="action-divider">Want to clean this up?</div>
                 
@@ -605,7 +567,6 @@
         };
         
         let capturedPhoto = null;
-        let locationLocked = false;
         
         // ==========================================
         // DOM ELEMENTS
@@ -615,7 +576,6 @@
         const descriptionDisplay = document.getElementById('ratingDescription');
         const locationText = document.getElementById('locationText');
         const gpsStatus = document.getElementById('gpsStatus');
-        const getLocationBtn = document.getElementById('getLocationBtn');
         const photoInput = document.getElementById('photoInput');
         const photoPreview = document.getElementById('photoPreview');
         const submitBtn = document.getElementById('submitBtn');
@@ -645,43 +605,34 @@
         });
         
         // ==========================================
-        // GPS LOCATION CAPTURE (User-Initiated)
+        // GPS LOCATION CAPTURE
         // ==========================================
-        getLocationBtn.addEventListener('click', function() {
+        function getLocation() {
             if (!navigator.geolocation) {
                 showMessage('GPS not supported on this device', 'error');
                 gpsStatus.textContent = 'GPS not available';
                 return;
             }
             
-            // Update button state
-            getLocationBtn.disabled = true;
-            getLocationBtn.textContent = 'Getting location...';
-            gpsStatus.textContent = 'Requesting GPS...';
+            gpsStatus.textContent = 'Getting location...';
             
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     currentLocation.latitude = position.coords.latitude;
                     currentLocation.longitude = position.coords.longitude;
-                    locationLocked = true;
                     
                     // Display coordinates
                     locationText.textContent = `${currentLocation.latitude.toFixed(6)}, ${currentLocation.longitude.toFixed(6)}`;
                     gpsStatus.textContent = 'GPS locked ✓';
                     
-                    // Hide the get location button
-                    getLocationBtn.classList.add('hidden');
-                    
-                    // Enable submit button
-                    submitBtn.disabled = false;
-                    
-                    showMessage('Location captured successfully!', 'success');
+                    // Optional: Reverse geocode to get street address
+                    // This would require an additional API, so keeping it simple for now
                 },
                 (error) => {
                     let errorMsg = 'Unable to get location';
                     switch(error.code) {
                         case error.PERMISSION_DENIED:
-                            errorMsg = 'Location permission denied. Please enable location in your browser settings.';
+                            errorMsg = 'Location permission denied';
                             break;
                         case error.POSITION_UNAVAILABLE:
                             errorMsg = 'Location unavailable';
@@ -692,10 +643,6 @@
                     }
                     gpsStatus.textContent = errorMsg;
                     showMessage(errorMsg, 'error');
-                    
-                    // Re-enable button for retry
-                    getLocationBtn.disabled = false;
-                    getLocationBtn.textContent = 'Retry Location';
                 },
                 {
                     enableHighAccuracy: true,
@@ -703,7 +650,7 @@
                     maximumAge: 0
                 }
             );
-        });
+        }
         
         // ==========================================
         // PHOTO CAPTURE
@@ -727,8 +674,8 @@
         // ==========================================
         submitBtn.addEventListener('click', async function() {
             // Validation
-            if (!locationLocked || !currentLocation.latitude || !currentLocation.longitude) {
-                showMessage('Please get your location first', 'error');
+            if (!currentLocation.latitude || !currentLocation.longitude) {
+                showMessage('Waiting for GPS location...', 'error');
                 return;
             }
             
@@ -779,8 +726,8 @@
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit Scout Report';
                 
-                // Keep location locked for rapid submissions
-                // User can keep submitting from same spot
+                // Refresh location for next submission
+                setTimeout(getLocation, 1000);
                 
             } catch (error) {
                 console.error('Submission error:', error);
@@ -802,6 +749,13 @@
                 messageDiv.classList.remove('show');
             }, 5000);
         }
+        
+        // ==========================================
+        // INITIALIZE ON PAGE LOAD
+        // ==========================================
+        window.addEventListener('load', function() {
+            getLocation();
+        });
     </script>
 </body>
 </html>
