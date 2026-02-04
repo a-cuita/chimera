@@ -520,7 +520,7 @@
             display: none !important;
         }
         
-        /* Custom organization input */
+       /* Custom organization input */
         .custom-org-input {
             margin-top: 12px;
             display: none;
@@ -528,6 +528,55 @@
         
         .custom-org-input.show {
             display: block;
+        }
+
+        /* Activity Feed */
+        .activity-feed {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .activity-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .activity-detail {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .activity-time {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 4px;
         }
     </style>
 </head>
@@ -548,6 +597,29 @@
                 <a href="feb_3_fieldtest.html" style="display: block; text-align: center; padding: 14px; background: #2D5F3F; color: white; text-decoration: none; font-weight: 600; border-radius: 10px; margin-bottom: 24px; font-size: 15px;">
                     📊 View Field Test Results
                 </a>
+                <!-- Activity Feed -->
+<div class="activity-feed" id="activityFeed">
+    <h3 style="font-size: 16px; color: #1f2937; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+        <span>📊</span> Recent Activity
+    </h3>
+    
+    <div class="activity-stats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+        <div class="stat-card" style="background: #f0f9f4; padding: 12px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 24px; font-weight: 700; color: #2D5F3F;" id="sessionsToday">-</div>
+            <div style="font-size: 12px; color: #6b7280;">Sessions Today</div>
+        </div>
+        <div class="stat-card" style="background: #fef3c7; padding: 12px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 24px; font-weight: 700; color: #92400e;" id="unvalidatedScouts">-</div>
+            <div style="font-size: 12px; color: #78350f;">Need Validation</div>
+        </div>
+    </div>
+    
+    <div class="activity-list" id="activityList" style="background: #f9fafb; border-radius: 8px; padding: 12px; max-height: 200px; overflow-y: auto;">
+        <div style="text-align: center; color: #9ca3af; font-size: 13px; padding: 20px;">
+            Loading activity...
+        </div>
+    </div>
+</div>
                 <h2 style="font-size: 18px; margin-bottom: 16px; color: #1f2937;">Volunteer Information</h2>
                 
                 <div class="form-group">
@@ -674,11 +746,11 @@
     <div class="rating-description" id="ratingDescription">Moderate litter density</div>
     
     <label class="notes-label">Notes (Optional)</label>
-    <textarea 
-        id="scoutNotes" 
-        class="notes-textarea" 
-        maxlength="500" 
-        placeholder="Describe location, landmarks, how to find this spot... For testing: use 'GF:' prefix for special codes"></textarea>
+ <textarea 
+    id="scoutNotes" 
+    class="notes-textarea" 
+    maxlength="500" 
+    placeholder="Describe this location - nearby landmarks, how to find it, notable features..."></textarea>
     <div class="char-counter"><span id="notesCounter">0</span> / 500 characters</div>
     <div class="notes-helper">Help others find and validate this location</div>
 </div>
@@ -707,7 +779,67 @@
         // ==========================================
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyZSKDx1Z_cVeyNTQCRNqiWIhX8Caju1dUdcCLByxxIEvzDQXaYJNzcZxfW1TeTlZT/exec';
         const GPS_INTERVAL = 10000; // 10 seconds
+        // ==========================================
+        // ACTIVITY FEED
+        // ==========================================
+        async function loadActivityFeed() {
+            try {
+                const response = await fetch(APPS_SCRIPT_URL);
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    const data = result.data;
+                    
+                    // Update stats
+                    document.getElementById('sessionsToday').textContent = data.sessionsToday;
+                    document.getElementById('unvalidatedScouts').textContent = data.unvalidatedScouts;
+                    
+                    // Build activity list
+                    const activityList = document.getElementById('activityList');
+                    
+                    if (data.recentActivity.length === 0) {
+                        activityList.innerHTML = '<div style="text-align: center; color: #9ca3af; font-size: 13px; padding: 20px;">No recent activity</div>';
+                    } else {
+                        let html = '';
+                        data.recentActivity.forEach(activity => {
+                            const icon = activity.type === 'scout' ? '🔍' : '🗑️';
+                            const timeAgo = getTimeAgo(new Date(activity.timestamp));
+                            
+                            html += `
+                                <div class="activity-item">
+                                    <div class="activity-icon">${icon}</div>
+                                    <div class="activity-content">
+                                        <div class="activity-name">${activity.volunteer}</div>
+                                        <div class="activity-detail">${activity.detail}</div>
+                                        <div class="activity-time">${timeAgo}</div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        activityList.innerHTML = html;
+                    }
+                }
+            } catch (error) {
+                console.error('Activity feed error:', error);
+                document.getElementById('activityList').innerHTML = '<div style="text-align: center; color: #dc2626; font-size: 13px; padding: 20px;">Failed to load activity</div>';
+            }
+        }
         
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            
+            if (seconds < 60) return 'just now';
+            if (seconds < 3600) return Math.floor(seconds / 60) + ' min ago';
+            if (seconds < 86400) return Math.floor(seconds / 3600) + ' hr ago';
+            if (seconds < 604800) return Math.floor(seconds / 86400) + ' days ago';
+            return Math.floor(seconds / 604800) + ' weeks ago';
+        }
+        
+        // Load activity feed when page loads
+        window.addEventListener('load', loadActivityFeed);
+        
+        // Refresh activity feed every 60 seconds
+        setInterval(loadActivityFeed, 60000);
         // ==========================================
         // STATE
         // ==========================================
