@@ -131,8 +131,8 @@
             text-align: center;
         }
         
-        /* Heatmap Button */
-        .heatmap-btn {
+        /* Map Button */
+        .map-btn {
             display: block;
             text-align: center;
             padding: 14px;
@@ -146,7 +146,7 @@
             transition: all 0.2s;
         }
         
-        .heatmap-btn:hover {
+        .map-btn:hover {
             background: #234a31;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(45, 95, 63, 0.3);
@@ -610,7 +610,7 @@
             display: block;
         }
         
-        /* Consent Checkboxes */
+        /* Radio Consent Section */
         .consent-section {
             background: #fef3c7;
             border: 2px solid #fbbf24;
@@ -626,28 +626,42 @@
             margin-bottom: 12px;
         }
         
-        .consent-option {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 10px;
+        .consent-question {
             background: white;
             border-radius: 6px;
-            margin-bottom: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
         }
         
-        .consent-option input[type="checkbox"] {
-            margin-top: 2px;
-            width: 18px;
-            height: 18px;
+        .consent-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .consent-options {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .radio-option input[type="radio"] {
+            width: 16px;
+            height: 16px;
             cursor: pointer;
         }
         
-        .consent-option label {
+        .radio-option label {
             font-size: 13px;
             color: #1f2937;
             cursor: pointer;
-            line-height: 1.5;
         }
     </style>
 </head>
@@ -693,9 +707,9 @@
                     </div>
                 </div>
                 
-                <!-- Heatmap Button -->
-                <a href="feb_3_fieldtest.html" class="heatmap-btn">
-                    🗺️ View Heatmap
+                <!-- Map Button -->
+                <a href="feb_3_fieldtest.html" class="map-btn">
+                    🗺️ View Field Test Map
                 </a>
                 
                 <!-- Instructions -->
@@ -754,12 +768,76 @@
                     </div>
                 </div>
                 
-                <button class="btn btn-primary" id="startTrackingFromSafetyBtn" disabled>
-                    🎯 Start Tracking
+                <h3 style="font-size: 16px; color: #1f2937; margin-bottom: 12px;">What would you like to do?</h3>
+                
+                <button class="btn btn-primary" id="scoutOnlyBtn" disabled>
+                    🔍 Scout: Rate Location
+                </button>
+                
+                <button class="btn btn-primary" id="collectTrackBtn" disabled>
+                    🗑️ Collect: Track Cleanup
                 </button>
             </div>
             
-            <!-- SCREEN 3: Active Tracking -->
+            <!-- SCREEN 3: Scout Only (Quick Rating) -->
+            <div id="scoutOnlyScreen" class="hidden">
+                <div class="status-box">
+                    <div class="status-row">
+                        <span class="status-label">📍 Location</span>
+                        <span class="status-value" id="scoutLocationStatus">Capturing...</span>
+                    </div>
+                </div>
+                
+                <h3 style="font-size: 16px; color: #1f2937; margin-bottom: 12px;">Rate This Location</h3>
+                
+                <div class="rating-scale">
+                    <span>0 - Clean</span>
+                    <span>10 - Worst Ever</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" min="0" max="10" value="5" class="slider" id="scoutOnlyRating">
+                </div>
+                <div class="rating-value" id="scoutOnlyRatingValue">5</div>
+                <div class="rating-description" id="scoutOnlyRatingDescription">Moderate litter density</div>
+                
+                <label class="notes-label">Notes (Optional)</label>
+                <textarea 
+                    id="scoutOnlyNotes" 
+                    class="notes-textarea" 
+                    maxlength="500" 
+                    placeholder="Describe this location - nearby landmarks, how to find it, notable features..."></textarea>
+                <div class="char-counter"><span id="scoutOnlyNotesCounter">0</span> / 500 characters</div>
+                <div class="notes-helper">Help others find and validate this location</div>
+                
+                <!-- Scout Only Consent -->
+                <div class="consent-section">
+                    <div class="consent-title">📢 Sharing Preferences (Required)</div>
+                    
+                    <div class="consent-question">
+                        <span class="consent-label">Include my session in the public Activity Feed?</span>
+                        <div class="consent-options">
+                            <div class="radio-option">
+                                <input type="radio" id="scoutOnlyFeedYes" name="scoutOnlyActivityFeed" value="yes">
+                                <label for="scoutOnlyFeedYes">Yes</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="scoutOnlyFeedNo" name="scoutOnlyActivityFeed" value="no">
+                                <label for="scoutOnlyFeedNo">No</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" id="submitScoutOnlyBtn" disabled>
+                    Submit Scout Report
+                </button>
+                
+                <button class="btn btn-secondary" id="cancelScoutOnlyBtn">
+                    Cancel
+                </button>
+            </div>
+            
+            <!-- SCREEN 4: Active Tracking (Collection) -->
             <div id="activeTrackingScreen" class="hidden">
                 <div class="status-box">
                     <div class="status-row">
@@ -787,7 +865,7 @@
                 </button>
             </div>
             
-            <!-- SCREEN 4: Post-Tracking Selection -->
+            <!-- SCREEN 5: Post-Tracking Selection -->
             <div id="postTrackingScreen" class="hidden">
                 <div class="status-box">
                     <div class="status-row">
@@ -804,18 +882,36 @@
                     </div>
                 </div>
                 
-                <!-- Consent Section -->
+                <!-- Consent Section (Required Radio Buttons) -->
                 <div class="consent-section">
                     <div class="consent-title">📢 Sharing Preferences (Required)</div>
                     
-                    <div class="consent-option">
-                        <input type="checkbox" id="activityFeedConsent">
-                        <label for="activityFeedConsent">Include my session in the public Activity Feed</label>
+                    <div class="consent-question">
+                        <span class="consent-label">Include my session in the public Activity Feed?</span>
+                        <div class="consent-options">
+                            <div class="radio-option">
+                                <input type="radio" id="activityFeedYes" name="activityFeed" value="yes">
+                                <label for="activityFeedYes">Yes</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="activityFeedNo" name="activityFeed" value="no">
+                                <label for="activityFeedNo">No</label>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="consent-option" id="photoConsentOption" style="display: none;">
-                        <input type="checkbox" id="photoConsent">
-                        <label for="photoConsent">My organization may use my photos for social media and promotional purposes</label>
+                    <div class="consent-question" id="photoConsentQuestion" style="display: none;">
+                        <span class="consent-label">My organization may use my photos for social media and promotional purposes?</span>
+                        <div class="consent-options">
+                            <div class="radio-option">
+                                <input type="radio" id="photoConsentYes" name="photoConsent" value="yes">
+                                <label for="photoConsentYes">Yes</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="photoConsentNo" name="photoConsent" value="no">
+                                <label for="photoConsentNo">No</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -957,7 +1053,8 @@
             organization: '',
             volunteerName: '',
             activityFeedConsent: false,
-            photoConsent: false
+            photoConsent: false,
+            mode: null // 'scout-only' or 'collect-track'
         };
         
         let bags = [];
@@ -968,6 +1065,7 @@
         // ==========================================
         const volunteerInfoScreen = document.getElementById('volunteerInfoScreen');
         const safetyWarningsScreen = document.getElementById('safetyWarningsScreen');
+        const scoutOnlyScreen = document.getElementById('scoutOnlyScreen');
         const activeTrackingScreen = document.getElementById('activeTrackingScreen');
         const postTrackingScreen = document.getElementById('postTrackingScreen');
         
@@ -978,7 +1076,8 @@
         const continueToSafetyBtn = document.getElementById('continueToSafetyBtn');
         
         const safetyAcknowledge = document.getElementById('safetyAcknowledge');
-        const startTrackingFromSafetyBtn = document.getElementById('startTrackingFromSafetyBtn');
+        const scoutOnlyBtn = document.getElementById('scoutOnlyBtn');
+        const collectTrackBtn = document.getElementById('collectTrackBtn');
         
         const stopTrackingBtn = document.getElementById('stopTrackingBtn');
         const submitBtn = document.getElementById('submitBtn');
@@ -991,10 +1090,6 @@
         
         const photoInput = document.getElementById('photoInput');
         const photoCount = document.getElementById('photoCount');
-        
-        const activityFeedConsent = document.getElementById('activityFeedConsent');
-        const photoConsent = document.getElementById('photoConsent');
-        const photoConsentOption = document.getElementById('photoConsentOption');
         
         const scoutCheck = document.getElementById('scoutCheck');
         const collectCheck = document.getElementById('collectCheck');
@@ -1009,6 +1104,16 @@
         const addBagBtn = document.getElementById('addBagBtn');
         
         const messageDiv = document.getElementById('message');
+        
+        // Scout Only elements
+        const scoutOnlyRating = document.getElementById('scoutOnlyRating');
+        const scoutOnlyRatingValue = document.getElementById('scoutOnlyRatingValue');
+        const scoutOnlyRatingDescription = document.getElementById('scoutOnlyRatingDescription');
+        const scoutOnlyNotes = document.getElementById('scoutOnlyNotes');
+        const scoutOnlyNotesCounter = document.getElementById('scoutOnlyNotesCounter');
+        const submitScoutOnlyBtn = document.getElementById('submitScoutOnlyBtn');
+        const cancelScoutOnlyBtn = document.getElementById('cancelScoutOnlyBtn');
+        const scoutLocationStatus = document.getElementById('scoutLocationStatus');
         
         // ==========================================
         // RATING DESCRIPTIONS
@@ -1043,6 +1148,7 @@
         function showScreen(screen) {
             volunteerInfoScreen.classList.add('hidden');
             safetyWarningsScreen.classList.add('hidden');
+            scoutOnlyScreen.classList.add('hidden');
             activeTrackingScreen.classList.add('hidden');
             postTrackingScreen.classList.add('hidden');
             screen.classList.remove('hidden');
@@ -1104,11 +1210,26 @@
         // SAFETY WARNINGS SCREEN
         // ==========================================
         safetyAcknowledge.addEventListener('change', function() {
-            startTrackingFromSafetyBtn.disabled = !this.checked;
+            scoutOnlyBtn.disabled = !this.checked;
+            collectTrackBtn.disabled = !this.checked;
         });
         
-        startTrackingFromSafetyBtn.addEventListener('click', function() {
+        // Scout Only Button
+        scoutOnlyBtn.addEventListener('click', function() {
             sessionState.sessionId = generateSessionId();
+            sessionState.mode = 'scout-only';
+            sessionState.startTime = Date.now();
+            sessionState.gpsPoints = [];
+            sessionState.photos = [];
+            
+            showScreen(scoutOnlyScreen);
+            captureScoutOnlyGPS();
+        });
+        
+        // Collect Track Button
+        collectTrackBtn.addEventListener('click', function() {
+            sessionState.sessionId = generateSessionId();
+            sessionState.mode = 'collect-track';
             sessionState.isTracking = true;
             sessionState.startTime = Date.now();
             sessionState.gpsPoints = [];
@@ -1126,6 +1247,115 @@
             
             showScreen(activeTrackingScreen);
             showMessage('Tracking started! GPS capturing every 10 seconds.', 'success');
+        });
+        
+        // ==========================================
+        // SCOUT ONLY FLOW
+        // ==========================================
+        function captureScoutOnlyGPS() {
+            if (!navigator.geolocation) {
+                showMessage('GPS not supported', 'error');
+                scoutLocationStatus.textContent = 'Not Available';
+                scoutLocationStatus.style.color = '#dc2626';
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const point = {
+                        timestamp: new Date().toISOString(),
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    };
+                    sessionState.gpsPoints.push(point);
+                    scoutLocationStatus.textContent = 'Captured';
+                    scoutLocationStatus.style.color = '#10b981';
+                },
+                (error) => {
+                    console.error('GPS error:', error);
+                    scoutLocationStatus.textContent = 'Error';
+                    scoutLocationStatus.style.color = '#dc2626';
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+        
+        scoutOnlyRating.addEventListener('input', function() {
+            const value = this.value;
+            scoutOnlyRatingValue.textContent = value;
+            scoutOnlyRatingDescription.textContent = descriptions[value];
+        });
+        
+        scoutOnlyNotes.addEventListener('input', function() {
+            scoutOnlyNotesCounter.textContent = this.value.length;
+        });
+        
+        // Scout Only Consent Validation
+        document.querySelectorAll('input[name="scoutOnlyActivityFeed"]').forEach(radio => {
+            radio.addEventListener('change', validateScoutOnlyConsent);
+        });
+        
+        function validateScoutOnlyConsent() {
+            const feedSelected = document.querySelector('input[name="scoutOnlyActivityFeed"]:checked');
+            submitScoutOnlyBtn.disabled = !feedSelected;
+        }
+        
+        submitScoutOnlyBtn.addEventListener('click', async function() {
+            submitScoutOnlyBtn.disabled = true;
+            submitScoutOnlyBtn.textContent = 'Submitting...';
+            
+            const activityFeedConsent = document.querySelector('input[name="scoutOnlyActivityFeed"]:checked').value === 'yes';
+            
+            const data = {
+                sessionId: sessionState.sessionId,
+                timestamp: new Date().toISOString(),
+                organization: sessionState.organization,
+                volunteerName: sessionState.volunteerName,
+                gpsPoints: sessionState.gpsPoints,
+                photos: [],
+                duration: 0,
+                distance: 0,
+                activityFeedConsent: activityFeedConsent,
+                photoConsent: false,
+                scoutData: {
+                    rating: parseInt(scoutOnlyRating.value),
+                    notes: scoutOnlyNotes.value.trim() || null
+                },
+                collectionData: null
+            };
+            
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                showMessage('✓ Scout report submitted successfully!', 'success');
+                
+                setTimeout(() => {
+                    resetSession();
+                    showScreen(volunteerInfoScreen);
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Submission error:', error);
+                showMessage('Submission failed. Please try again.', 'error');
+                submitScoutOnlyBtn.disabled = false;
+                submitScoutOnlyBtn.textContent = 'Submit Scout Report';
+            }
+        });
+        
+        cancelScoutOnlyBtn.addEventListener('click', function() {
+            if (confirm('Are you sure? This will discard your scout data.')) {
+                resetSession();
+                showScreen(volunteerInfoScreen);
+            }
         });
         
         // ==========================================
@@ -1193,9 +1423,9 @@
             
             // Show photo consent option if photos were taken
             if (sessionState.photos.length > 0) {
-                photoConsentOption.style.display = 'block';
+                document.getElementById('photoConsentQuestion').style.display = 'block';
             } else {
-                photoConsentOption.style.display = 'none';
+                document.getElementById('photoConsentQuestion').style.display = 'none';
             }
             
             showScreen(postTrackingScreen);
@@ -1249,11 +1479,35 @@
                 collectionForm.classList.remove('show');
             }
             
-            submitBtn.disabled = !(scoutChecked || collectChecked);
+            validatePostTrackingSubmit();
         }
         
         scoutCheck.addEventListener('change', updateFormVisibility);
         collectCheck.addEventListener('change', updateFormVisibility);
+        
+        // ==========================================
+        // POST-TRACKING CONSENT VALIDATION
+        // ==========================================
+        document.querySelectorAll('input[name="activityFeed"]').forEach(radio => {
+            radio.addEventListener('change', validatePostTrackingSubmit);
+        });
+        
+        document.querySelectorAll('input[name="photoConsent"]').forEach(radio => {
+            radio.addEventListener('change', validatePostTrackingSubmit);
+        });
+        
+        function validatePostTrackingSubmit() {
+            const scoutChecked = scoutCheck.checked;
+            const collectChecked = collectCheck.checked;
+            const activityFeedSelected = document.querySelector('input[name="activityFeed"]:checked');
+            const photoConsentSelected = sessionState.photos.length > 0 ? 
+                document.querySelector('input[name="photoConsent"]:checked') : true;
+            
+            const allConsentsGiven = activityFeedSelected && photoConsentSelected;
+            const activitySelected = scoutChecked || collectChecked;
+            
+            submitBtn.disabled = !(allConsentsGiven && activitySelected);
+        }
         
         // ==========================================
         // RATING SLIDER
@@ -1307,11 +1561,6 @@
         // SUBMISSION
         // ==========================================
         submitBtn.addEventListener('click', async function() {
-            if (APPS_SCRIPT_URL === 'PASTE_YOUR_APPS_SCRIPT_URL_HERE') {
-                showMessage('Apps Script URL not configured', 'error');
-                return;
-            }
-            
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
             
@@ -1329,8 +1578,9 @@
             const totalSeconds = Math.floor((Date.now() - sessionState.startTime) / 1000);
             
             // Capture consent preferences
-            sessionState.activityFeedConsent = activityFeedConsent.checked;
-            sessionState.photoConsent = photoConsent.checked;
+            const activityFeedConsent = document.querySelector('input[name="activityFeed"]:checked').value === 'yes';
+            const photoConsent = sessionState.photos.length > 0 ? 
+                document.querySelector('input[name="photoConsent"]:checked').value === 'yes' : false;
             
             const data = {
                 sessionId: sessionState.sessionId,
@@ -1341,8 +1591,8 @@
                 photos: sessionState.photos,
                 duration: totalSeconds,
                 distance: sessionState.totalDistance,
-                activityFeedConsent: sessionState.activityFeedConsent,
-                photoConsent: sessionState.photoConsent,
+                activityFeedConsent: activityFeedConsent,
+                photoConsent: photoConsent,
                 scoutData: scoutCheck.checked ? {
                     rating: parseInt(litterRating.value),
                     notes: scoutNotes.value.trim() || null
@@ -1394,6 +1644,7 @@
             sessionState.gpsTimer = null;
             sessionState.activityFeedConsent = false;
             sessionState.photoConsent = false;
+            sessionState.mode = null;
             
             scoutCheck.checked = false;
             collectCheck.checked = false;
@@ -1406,9 +1657,21 @@
             bags = [];
             bagCounter = 0;
             
-            activityFeedConsent.checked = false;
-            photoConsent.checked = false;
-            photoConsentOption.style.display = 'none';
+            // Reset scout only
+            scoutOnlyRating.value = 5;
+            scoutOnlyRatingValue.textContent = '5';
+            scoutOnlyRatingDescription.textContent = descriptions[5];
+            scoutOnlyNotes.value = '';
+            scoutOnlyNotesCounter.textContent = '0';
+            scoutLocationStatus.textContent = 'Capturing...';
+            scoutLocationStatus.style.color = '#1f2937';
+            
+            // Reset consents
+            document.querySelectorAll('input[name="activityFeed"]').forEach(r => r.checked = false);
+            document.querySelectorAll('input[name="photoConsent"]').forEach(r => r.checked = false);
+            document.querySelectorAll('input[name="scoutOnlyActivityFeed"]').forEach(r => r.checked = false);
+            
+            document.getElementById('photoConsentQuestion').style.display = 'none';
             
             durationDisplay.textContent = '00:00';
             distanceDisplay.textContent = '0.00 mi';
@@ -1416,6 +1679,8 @@
             
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submit Report';
+            submitScoutOnlyBtn.disabled = true;
+            submitScoutOnlyBtn.textContent = 'Submit Scout Report';
             
             updateFormVisibility();
         }
