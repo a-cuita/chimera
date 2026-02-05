@@ -1013,29 +1013,29 @@
                             }
                             itemHtml += ' - ' + timeAgo + '</div>';
                             
-                            // Validation substacks
+                          // Validation substacks
                             const val = activity.validation;
-                            const totalValidated = val.spotOn.length + val.under.length + val.over.length;
+                            const totalValidated = val.accurate.length + val.close.length + val.off.length;
                             
                             if (totalValidated > 0) {
                                 itemHtml += '<div style="margin-top: 8px; margin-left: 16px; padding: 8px; background: #f9fafb; border-radius: 6px; border-left: 3px solid #2D5F3F;">';
                                 itemHtml += '<div style="font-size: 11px; font-weight: 700; color: #2D5F3F; margin-bottom: 6px;">👀 SCOUT RATINGS VALIDATED 📈</div>';
                                 
-                                if (val.spotOn.length > 0) {
+                                if (val.accurate.length > 0) {
                                     itemHtml += '<div style="font-size: 11px; color: #059669; margin-bottom: 3px;">';
-                                    itemHtml += '<strong>Spot on:</strong> ' + val.spotOn.join(', ');
+                                    itemHtml += '<strong>Spot on:</strong> ' + val.accurate.join(', ');
                                     itemHtml += '</div>';
                                 }
                                 
-                                if (val.under.length > 0) {
+                                if (val.close.length > 0) {
                                     itemHtml += '<div style="font-size: 11px; color: #0284c7; margin-bottom: 3px;">';
-                                    itemHtml += '<strong>Under:</strong> ' + val.under.join(', ');
+                                    itemHtml += '<strong>Under:</strong> ' + val.close.join(', ');
                                     itemHtml += '</div>';
                                 }
                                 
-                                if (val.over.length > 0) {
+                                if (val.close.length > 0) {
                                     itemHtml += '<div style="font-size: 11px; color: #dc2626;">';
-                                    itemHtml += '<strong>Over:</strong> ' + val.over.join(', ');
+                                    itemHtml += '<strong>Over:</strong> ' + val.close.join(', ');
                                     itemHtml += '</div>';
                                 }
                                 
