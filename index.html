@@ -692,7 +692,7 @@
                     <div class="activity-stats">
                         <div class="stat-card" style="background: #f0f9f4;">
                             <div style="font-size: 24px; font-weight: 700; color: #2D5F3F;" id="sessionsToday">-</div>
-                            <div style="font-size: 12px; color: #6b7280;">Sessions Today</div>
+                            <div style="font-size: 12px; color: #6b7280;">Recent Collections</div>
                         </div>
                         <div class="stat-card" style="background: #fef3c7;">
                             <div style="font-size: 24px; font-weight: 700; color: #92400e;" id="unvalidatedScouts">-</div>
@@ -987,7 +987,7 @@
                     const data = result.data;
                     
                     // Update stats
-                    document.getElementById('sessionsToday').textContent = data.sessionsToday;
+                    document.getElementById('sessionsToday').textContent = data.totalCollections;
                     document.getElementById('unvalidatedScouts').textContent = data.unvalidatedScouts;
                     
                     // Build activity list
@@ -998,20 +998,51 @@
                     } else {
                         let html = '';
                         data.recentActivity.forEach(activity => {
-                            const icon = activity.type === 'scout' ? '🔍' : '🗑️';
                             const timeAgo = getTimeAgo(new Date(activity.timestamp));
                             
-                            // Create compact 1-line format
-                            let line = icon + ' ' + activity.volunteer + ' ' + activity.detail + ' - ' + timeAgo;
+                            // Main collection line
+                            let itemHtml = '<div class="activity-item" style="padding: 12px 0;">';
+                            itemHtml += '<div style="font-weight: 600; color: #1f2937;">🗑️ ' + activity.volunteer + '</div>';
+                            itemHtml += '<div style="font-size: 12px; color: #6b7280; margin-top: 2px;">';
+                            itemHtml += 'collected ' + activity.weight.toFixed(1) + ' lbs';
+                            if (activity.sqrtCpue) {
+                                itemHtml += ' (√CPUE: ' + activity.sqrtCpue.toFixed(2) + ')';
+                            }
+                            itemHtml += ' - ' + timeAgo + '</div>';
                             
-                            // Add validation if present
-                            if (activity.type === 'collection' && activity.validation && activity.validation.length > 0) {
-                                const val = activity.validation[0];
-                                const matchIcon = val.tierMatch ? '✓' : '○';
-                                line += ' (' + matchIcon + ' Scout ' + val.scoutRating + '/10)';
+                            // Validation substacks
+                            const val = activity.validation;
+                            const totalValidated = val.spotOn.length + val.under.length + val.over.length;
+                            
+                            if (totalValidated > 0) {
+                                itemHtml += '<div style="margin-top: 8px; margin-left: 16px; padding: 8px; background: #f9fafb; border-radius: 6px; border-left: 3px solid #2D5F3F;">';
+                                itemHtml += '<div style="font-size: 11px; font-weight: 700; color: #2D5F3F; margin-bottom: 6px;">👀 SCOUT RATINGS VALIDATED 📈</div>';
+                                
+                                if (val.spotOn.length > 0) {
+                                    itemHtml += '<div style="font-size: 11px; color: #059669; margin-bottom: 3px;">';
+                                    itemHtml += '<strong>Spot on:</strong> ' + val.spotOn.join(', ');
+                                    itemHtml += '</div>';
+                                }
+                                
+                                if (val.under.length > 0) {
+                                    itemHtml += '<div style="font-size: 11px; color: #0284c7; margin-bottom: 3px;">';
+                                    itemHtml += '<strong>Under:</strong> ' + val.under.join(', ');
+                                    itemHtml += '</div>';
+                                }
+                                
+                                if (val.over.length > 0) {
+                                    itemHtml += '<div style="font-size: 11px; color: #dc2626;">';
+                                    itemHtml += '<strong>Over:</strong> ' + val.over.join(', ');
+                                    itemHtml += '</div>';
+                                }
+                                
+                                itemHtml += '</div>';
+                            } else {
+                                itemHtml += '<div style="margin-top: 6px; margin-left: 16px; font-size: 11px; color: #9ca3af; font-style: italic;">No scouts validated</div>';
                             }
                             
-                            html += '<div class="activity-item">' + line + '</div>';
+                            itemHtml += '</div>';
+                            html += itemHtml;
                         });
                         activityList.innerHTML = html;
                     }
