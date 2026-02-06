@@ -273,7 +273,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">PIN</label>
-                        <input type="password" class="form-input" id="loginPIN" placeholder="Your PIN" inputmode="numeric">
+                        <input type="text" class="form-input" id="loginPIN" placeholder="e.g. jb07" maxlength="4" autocomplete="off" style="text-transform: lowercase;">
                     </div>
                     <button class="btn btn-primary" id="loginBtn" disabled>Log In</button>
                     <div class="login-toggle" id="showCreateToggle">New here? Create a profile →</div>
@@ -289,8 +289,9 @@
                         <input type="text" class="form-input" id="createHandle" placeholder="Choose a handle (2+ characters)" autocomplete="off">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">PIN (4+ digits)</label>
-                        <input type="password" class="form-input" id="createPIN" placeholder="Choose a PIN" inputmode="numeric">
+                        <label class="form-label">PIN (2 letters + 2 numbers)</label>
+                        <input type="text" class="form-input" id="createPIN" placeholder="e.g. jb07" maxlength="4" autocomplete="off" style="text-transform: lowercase;">
+                        <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Format: two letters followed by two numbers (e.g. km23, jb07)</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Organization</label>
@@ -904,11 +905,14 @@
             document.getElementById('loginForm').classList.remove('hidden');
         });
 
+        // PIN format: 2 letters + 2 numbers
+        const PIN_REGEX = /^[a-zA-Z]{2}[0-9]{2}$/;
+
         // Login validation
         loginHandle.addEventListener('input', validateLogin);
         loginPIN.addEventListener('input', validateLogin);
         function validateLogin() {
-            loginBtn.disabled = !(loginHandle.value.trim().length >= 2 && loginPIN.value.trim().length >= 4);
+            loginBtn.disabled = !(loginHandle.value.trim().length >= 2 && PIN_REGEX.test(loginPIN.value.trim()));
         }
 
         // Create validation
@@ -922,7 +926,7 @@
 
         function validateCreate() {
             const handleOk = createHandle.value.trim().length >= 2;
-            const pinOk = createPIN.value.trim().length >= 4;
+            const pinOk = PIN_REGEX.test(createPIN.value.trim());
             const orgOk = createOrgSelect.value !== '' &&
                          (createOrgSelect.value !== 'other' || createCustomOrgText.value.trim() !== '');
             createProfileBtn.disabled = !(handleOk && pinOk && orgOk);
@@ -934,15 +938,12 @@
             loginBtn.textContent = 'Logging in...';
 
             try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'login',
-                        handle: loginHandle.value.trim(),
-                        pin: loginPIN.value.trim()
-                    })
+                const params = new URLSearchParams({
+                    action: 'login',
+                    handle: loginHandle.value.trim(),
+                    pin: loginPIN.value.trim().toLowerCase()
                 });
+                const response = await fetch(APPS_SCRIPT_URL + '?' + params.toString());
                 const result = await response.json();
 
                 if (result.status === 'success') {
@@ -961,22 +962,8 @@
                     showMessage(result.message || 'Login failed', 'error');
                 }
             } catch (error) {
-                // no-cors fallback: try with no-cors and assume success
-                try {
-                    await fetch(APPS_SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            action: 'login',
-                            handle: loginHandle.value.trim(),
-                            pin: loginPIN.value.trim()
-                        })
-                    });
-                    showMessage('CORS issue — try deploying Apps Script as "Anyone" with access', 'error');
-                } catch (e2) {
-                    showMessage('Connection error. Please try again.', 'error');
-                }
+                console.error('Login error:', error);
+                showMessage('Connection error. Please try again.', 'error');
             }
 
             loginBtn.disabled = false;
@@ -993,16 +980,13 @@
                 : createOrgSelect.value;
 
             try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'create_profile',
-                        handle: createHandle.value.trim(),
-                        pin: createPIN.value.trim(),
-                        organization: org
-                    })
+                const params = new URLSearchParams({
+                    action: 'create_profile',
+                    handle: createHandle.value.trim(),
+                    pin: createPIN.value.trim().toLowerCase(),
+                    organization: org
                 });
+                const response = await fetch(APPS_SCRIPT_URL + '?' + params.toString());
                 const result = await response.json();
 
                 if (result.status === 'success') {
@@ -1022,6 +1006,7 @@
                     showMessage(result.message || 'Creation failed', 'error');
                 }
             } catch (error) {
+                console.error('Create profile error:', error);
                 showMessage('Connection error. Please try again.', 'error');
             }
 
@@ -1044,16 +1029,12 @@
             tcContinueBtn.textContent = 'Saving...';
 
             try {
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'accept_tc',
-                        userId: currentUser.userId
-                    })
+                const params = new URLSearchParams({
+                    action: 'accept_tc',
+                    userId: currentUser.userId
                 });
-            } catch (e) { /* no-cors — fire and forget */ }
+                await fetch(APPS_SCRIPT_URL + '?' + params.toString());
+            } catch (e) { /* best effort */ }
 
             currentUser.tcAccepted = true;
             saveSession();
