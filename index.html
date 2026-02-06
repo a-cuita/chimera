@@ -286,7 +286,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">PIN</label>
-                        <input type="text" class="form-input" id="loginPIN" placeholder="e.g. jb07" maxlength="4" autocomplete="off" style="text-transform: lowercase;">
+                        <input type="password" class="form-input" id="loginPIN" placeholder="e.g. jb07" maxlength="4" autocomplete="off" style="text-transform: lowercase;">
                     </div>
                     <button class="btn btn-primary" id="loginBtn" disabled>Log In</button>
                     <div style="text-align: center; font-size: 12px; color: #6b7280; margin-top: 8px;">
@@ -306,7 +306,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">PIN (2 letters + 2 numbers)</label>
-                        <input type="text" class="form-input" id="createPIN" placeholder="e.g. jb07" maxlength="4" autocomplete="off" style="text-transform: lowercase;">
+                        <input type="password" class="form-input" id="createPIN" placeholder="e.g. jb07" maxlength="4" autocomplete="off" style="text-transform: lowercase;">
                         <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Format: two letters followed by two numbers (e.g. km23, jb07)</div>
                     </div>
                     <div class="form-group">
@@ -375,7 +375,7 @@
                 </div>
 
                 <div class="form-group">
-                    <input type="text" class="form-input" id="tcPIN" placeholder="Enter your PIN" maxlength="4" autocomplete="off" style="text-transform: lowercase;">
+                    <input type="password" class="form-input" id="tcPIN" placeholder="Enter your PIN" maxlength="4" autocomplete="off" style="text-transform: lowercase;">
                 </div>
 
                 <button class="btn btn-primary" id="tcContinueBtn" disabled>Accept & Continue</button>
@@ -469,7 +469,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label" style="font-size: 13px;">Change PIN (optional)</label>
-                        <input type="text" class="form-input" id="editPIN" placeholder="Leave blank to keep current" maxlength="4" style="text-transform: lowercase;">
+                        <input type="password" class="form-input" id="editPIN" placeholder="Leave blank to keep current" maxlength="4" style="text-transform: lowercase;">
                         <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Format: two letters + two numbers (e.g. km23)</div>
                     </div>
                     <button class="btn btn-primary" id="saveProfileBtn">Save Changes</button>
@@ -501,7 +501,7 @@
 
                 <button class="btn btn-primary" id="scoutOnlyBtn" disabled>🔍 Scout: Rate Location</button>
                 <button class="btn btn-primary" id="collectTrackBtn" disabled>🗑️ Collect: Track Cleanup</button>
-                <button class="btn btn-primary" id="recycleBtn" disabled>♻️ Recycle: Log Household Recycling</button>
+                <button class="btn btn-primary" id="recycleBtn">♻️ Recycle: Log Household Recycling</button>
 
                 <button class="btn btn-secondary" id="logoutBtn" style="margin-top: 8px;">Log Out</button>
             </div>
@@ -795,51 +795,56 @@
                 const result = await response.json();
 
                 if (result.status === 'success') {
-                    const data = result.data;
-
-                    document.getElementById('sessionsToday').textContent = data.totalCollections;
-                    document.getElementById('unvalidatedScouts').textContent = data.unvalidatedScouts;
+                    document.getElementById('sessionsToday').textContent = result.recentCollections;
+                    document.getElementById('unvalidatedScouts').textContent = result.unvalidatedScouts;
 
                     const activityList = document.getElementById('activityList');
 
-                    if (data.recentActivity.length === 0) {
+                    if (result.items.length === 0) {
                         activityList.innerHTML = '<div style="text-align: center; color: #9ca3af; font-size: 13px; padding: 20px;">No recent activity</div>';
                     } else {
                         let html = '';
-                        data.recentActivity.forEach(activity => {
-                            const timeAgo = getTimeAgo(new Date(activity.timestamp));
+                        result.items.forEach(item => {
+                            const timeAgo = getTimeAgo(new Date(item.timestamp));
 
                             let itemHtml = '<div class="activity-item" style="padding: 12px 0;">';
-                            itemHtml += '<div style="font-weight: 600; color: #1f2937;">🗑️ ' + activity.volunteer + '</div>';
+                            itemHtml += '<div style="font-weight: 600; color: #1f2937;">🗑️ ' + item.volunteer + '</div>';
                             itemHtml += '<div style="font-size: 12px; color: #6b7280; margin-top: 2px;">';
-                            itemHtml += 'collected ' + activity.weight.toFixed(1) + ' lbs';
-                            if (activity.sqrtCpue) {
-                                itemHtml += ' (√CPUE: ' + activity.sqrtCpue.toFixed(2) + ')';
-                            }
+                            itemHtml += 'collected ' + item.weight.toFixed(1) + ' lbs';
                             itemHtml += ' — ' + timeAgo + '</div>';
 
-                            const val = activity.validation;
-                            const totalValidated = val.accurate.length + val.close.length + val.off.length;
+                            // Validation data
+                            if (item.validation && item.validation.length > 0) {
+                                const val = item.validation[0]; // Get first validation record
+                                
+                                // Parse comma-separated lists
+                                const onTarget = val.onTarget ? val.onTarget.split(',').filter(s => s.trim()) : [];
+                                const close = val.close ? val.close.split(',').filter(s => s.trim()) : [];
+                                const off = val.off ? val.off.split(',').filter(s => s.trim()) : [];
+                                
+                                const totalValidated = onTarget.length + close.length + off.length;
 
-                            if (totalValidated > 0) {
-                                itemHtml += '<div style="margin-top: 8px; margin-left: 16px; padding: 8px; background: #f9fafb; border-radius: 6px; border-left: 3px solid #2D5F3F;">';
-                                itemHtml += '<div style="font-size: 11px; font-weight: 700; color: #2D5F3F; margin-bottom: 6px;">👀 SCOUT RATINGS VALIDATED 📈</div>';
+                                if (totalValidated > 0) {
+                                    itemHtml += '<div style="margin-top: 8px; margin-left: 16px; padding: 8px; background: #f9fafb; border-radius: 6px; border-left: 3px solid #2D5F3F;">';
+                                    itemHtml += '<div style="font-size: 11px; font-weight: 700; color: #2D5F3F; margin-bottom: 6px;">👀 SCOUT RATINGS VALIDATED 📈</div>';
 
-                                if (val.accurate.length > 0) {
-                                    itemHtml += '<div style="font-size: 11px; color: #059669; margin-bottom: 3px;">';
-                                    itemHtml += '<strong>Spot on:</strong> ' + val.accurate.join(', ') + '</div>';
-                                }
-                                if (val.close.length > 0) {
-                                    itemHtml += '<div style="font-size: 11px; color: #0284c7; margin-bottom: 3px;">';
-                                    itemHtml += '<strong>Under:</strong> ' + val.close.join(', ') + '</div>';
-                                }
-                                // V5 BUG FIX: was val.close, now correctly val.off
-                                if (val.off.length > 0) {
-                                    itemHtml += '<div style="font-size: 11px; color: #dc2626;">';
-                                    itemHtml += '<strong>Over:</strong> ' + val.off.join(', ') + '</div>';
-                                }
+                                    if (onTarget.length > 0) {
+                                        itemHtml += '<div style="font-size: 11px; color: #059669; margin-bottom: 3px;">';
+                                        itemHtml += '<strong>Spot on:</strong> ' + onTarget.join(', ') + '</div>';
+                                    }
+                                    if (close.length > 0) {
+                                        itemHtml += '<div style="font-size: 11px; color: #0284c7; margin-bottom: 3px;">';
+                                        itemHtml += '<strong>Under:</strong> ' + close.join(', ') + '</div>';
+                                    }
+                                    if (off.length > 0) {
+                                        itemHtml += '<div style="font-size: 11px; color: #dc2626;">';
+                                        itemHtml += '<strong>Over:</strong> ' + off.join(', ') + '</div>';
+                                    }
 
-                                itemHtml += '</div>';
+                                    itemHtml += '</div>';
+                                } else {
+                                    itemHtml += '<div style="margin-top: 6px; margin-left: 16px; font-size: 11px; color: #9ca3af; font-style: italic;">No scouts validated</div>';
+                                }
                             } else {
                                 itemHtml += '<div style="margin-top: 6px; margin-left: 16px; font-size: 11px; color: #9ca3af; font-style: italic;">No scouts validated</div>';
                             }
@@ -1282,7 +1287,6 @@
                 scoutOnlyBtn.disabled = !this.checked;
                 collectTrackBtn.disabled = !this.checked;
             }
-            recycleBtn.disabled = !this.checked;
         });
 
         // ==========================================
@@ -1747,7 +1751,6 @@
             safetyAcknowledge.checked = false;
             scoutOnlyBtn.disabled = true;
             collectTrackBtn.disabled = true;
-            recycleBtn.disabled = true;
 
             updateFormVisibility();
         }
