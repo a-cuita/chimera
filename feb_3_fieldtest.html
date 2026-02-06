@@ -22,6 +22,61 @@
             height: 100vh;
         }
         
+        /* Auth Screen */
+        .auth-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #F5F5F5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+        
+        .auth-card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            max-width: 350px;
+            width: 90%;
+        }
+        
+        .auth-card h2 {
+            color: #2D5F3F;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .auth-card p {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .auth-card .btn {
+            width: 100%;
+            padding: 12px;
+            background: #2D5F3F;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+        }
+        
+        .auth-card .btn:hover {
+            background: #234a31;
+        }
+        
         .back-button {
             position: fixed;
             top: 20px;
@@ -73,28 +128,37 @@
             padding: 16px;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            min-width: 200px;
         }
         
         .legend-title {
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             color: #1f2937;
+            font-size: 14px;
         }
         
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 6px;
-            font-size: 13px;
-            color: #4b5563;
-        }
-        
-        .legend-marker {
-            width: 20px;
+        .gradient-bar {
+            width: 100%;
             height: 20px;
-            border-radius: 50%;
-            border: 2px solid #333;
+            background: linear-gradient(to right, #4CAF50, #FFEB3B, #FF9800, #F44336);
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+        
+        .gradient-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #6b7280;
+            margin-bottom: 12px;
+        }
+        
+        .legend-note {
+            font-size: 11px;
+            color: #6b7280;
+            font-style: italic;
+            line-height: 1.4;
         }
         
         .stats-panel {
@@ -106,7 +170,7 @@
             padding: 16px;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            min-width: 200px;
+            min-width: 220px;
         }
         
         .stats-title {
@@ -132,9 +196,27 @@
             font-weight: 600;
             color: #1f2937;
         }
+        
+        .consent-notice {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid #e5e7eb;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
+    <!-- Auth Screen (hidden if logged in) -->
+    <div class="auth-screen" id="authScreen" style="display: none;">
+        <div class="auth-card">
+            <h2>🗺️ CHIMERA Map</h2>
+            <p>You must be logged in to view the field test map.</p>
+            <a href="index.html" class="btn">Go to Login</a>
+        </div>
+    </div>
+    
     <a href="index.html" class="back-button">← Back to Tracker</a>
     
     <div class="loading" id="loading">
@@ -162,25 +244,24 @@
             <span class="stat-label">Total Distance:</span>
             <span class="stat-value" id="totalDistance">0 mi</span>
         </div>
+        <div class="consent-notice">
+            Only showing sessions with activity feed consent enabled
+        </div>
     </div>
     
     <div class="legend">
-        <div class="legend-title">Legend</div>
-        <div class="legend-item">
-            <div class="legend-marker" style="background: #4CAF50;"></div>
-            <span>Scout (0-3)</span>
+        <div class="legend-title">Litter Density</div>
+        <div class="gradient-bar"></div>
+        <div class="gradient-labels">
+            <span>0</span>
+            <span>2.5</span>
+            <span>5</span>
+            <span>7.5</span>
+            <span>10</span>
         </div>
-        <div class="legend-item">
-            <div class="legend-marker" style="background: #FF9800;"></div>
-            <span>Scout (4-7)</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-marker" style="background: #F44336;"></div>
-            <span>Scout (8-10)</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-marker" style="background: #2196F3;"></div>
-            <span>Collection Path</span>
+        <div class="legend-note">
+            <strong>Scout circles:</strong> Visual litter rating (0-10)<br>
+            <strong>Collection paths:</strong> √CPUE (catch per unit effort)
         </div>
     </div>
     
@@ -188,27 +269,98 @@
     <script>
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyZSKDx1Z_cVeyNTQCRNqiWIhX8Caju1dUdcCLByxxIEvzDQXaYJNzcZxfW1TeTlZT/exec?action=map_data';
         
-        // Initialize map
-        const map = L.map('map').setView([32.356, -86.306], 13);
+        // ==========================================
+        // AUTH CHECK
+        // ==========================================
+        function checkAuth() {
+            const saved = sessionStorage.getItem('chimera_user');
+            if (!saved) {
+                document.getElementById('authScreen').style.display = 'flex';
+                document.getElementById('loading').style.display = 'none';
+                return false;
+            }
+            
+            try {
+                const user = JSON.parse(saved);
+                if (!user.userId) {
+                    document.getElementById('authScreen').style.display = 'flex';
+                    document.getElementById('loading').style.display = 'none';
+                    return false;
+                }
+            } catch (e) {
+                document.getElementById('authScreen').style.display = 'flex';
+                document.getElementById('loading').style.display = 'none';
+                return false;
+            }
+            
+            return true;
+        }
         
-        // Add tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 19
-        }).addTo(map);
-        
-        // Color functions
-        function getScoutColor(rating) {
-            if (rating <= 3) return '#4CAF50'; // Green
-            if (rating <= 7) return '#FF9800'; // Orange
-            return '#F44336'; // Red
+        // ==========================================
+        // GRADIENT COLOR FUNCTION
+        // ==========================================
+        // Continuous gradient from green (0) → yellow (3) → orange (6) → red (10)
+        function getGradientColor(value) {
+            // Clamp value between 0 and 10
+            value = Math.max(0, Math.min(10, value));
+            
+            let r, g, b;
+            
+            if (value <= 3) {
+                // Green (76,175,80) to Yellow (255,235,59)
+                const t = value / 3;
+                r = Math.round(76 + (255 - 76) * t);
+                g = Math.round(175 + (235 - 175) * t);
+                b = Math.round(80 + (59 - 80) * t);
+            } else if (value <= 6) {
+                // Yellow (255,235,59) to Orange (255,152,0)
+                const t = (value - 3) / 3;
+                r = 255;
+                g = Math.round(235 + (152 - 235) * t);
+                b = Math.round(59 + (0 - 59) * t);
+            } else {
+                // Orange (255,152,0) to Red (244,67,54)
+                const t = (value - 6) / 4;
+                r = Math.round(255 + (244 - 255) * t);
+                g = Math.round(152 + (67 - 152) * t);
+                b = Math.round(0 + (54 - 0) * t);
+            }
+            
+            return `rgb(${r}, ${g}, ${b})`;
         }
         
         function getScoutSize(rating) {
-            return 8 + (rating * 0.5); // Size increases with rating
+            // Size scales from 6 to 12 based on rating (0-10)
+            return 6 + (rating * 0.6);
         }
         
-        // Load and display data
+        // ==========================================
+        // CALCULATE SQRT CPUE
+        // ==========================================
+        function calculateSqrtCpue(weight, distance, duration) {
+            if (distance === 0 || duration === 0) return 0;
+            const durationHours = duration / 3600;
+            const cpue = weight / (distance / durationHours);
+            return Math.sqrt(cpue);
+        }
+        
+        // ==========================================
+        // MAP INITIALIZATION
+        // ==========================================
+        let map;
+        
+        function initMap() {
+            map = L.map('map').setView([32.356, -86.306], 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+        }
+        
+        // ==========================================
+        // LOAD AND DISPLAY DATA
+        // ==========================================
         async function loadMapData() {
             try {
                 const response = await fetch(APPS_SCRIPT_URL);
@@ -223,11 +375,11 @@
                 let totalDistance = 0;
                 const bounds = [];
                 
-                // Add scout markers
+                // Add scout markers with gradient coloring
                 data.scouts.forEach(scout => {
                     if (!scout.lat || !scout.lon) return;
                     
-                    const color = getScoutColor(scout.rating);
+                    const color = getGradientColor(scout.rating);
                     const size = getScoutSize(scout.rating);
                     
                     const marker = L.circleMarker([scout.lat, scout.lon], {
@@ -235,7 +387,7 @@
                         fillColor: color,
                         color: '#333',
                         weight: 2,
-                        fillOpacity: 0.7
+                        fillOpacity: 0.5
                     }).addTo(map);
                     
                     const popupContent = `
@@ -253,7 +405,7 @@
                     bounds.push([scout.lat, scout.lon]);
                 });
                 
-                // Add collection paths
+                // Add collection paths with gradient coloring based on √CPUE
                 data.collections.forEach(collection => {
                     totalWeight += collection.weight;
                     totalDistance += collection.distance;
@@ -263,18 +415,23 @@
                     
                     const coordinates = path.map(p => [p.lat, p.lon]);
                     
+                    // Calculate √CPUE for color
+                    const sqrtCpue = calculateSqrtCpue(collection.weight, collection.distance, collection.duration);
+                    const color = getGradientColor(sqrtCpue);
+                    
                     const polyline = L.polyline(coordinates, {
-                        color: '#2196F3',
-                        weight: 3,
-                        opacity: 0.7
+                        color: color,
+                        weight: 4,
+                        opacity: 0.6
                     }).addTo(map);
                     
                     const popupContent = `
                         <div style="font-family: sans-serif;">
-                            <strong style="color: #2196F3;">Collection Session</strong><br>
+                            <strong style="color: ${color};">Collection Session</strong><br>
                             <strong>Weight:</strong> ${collection.weight.toFixed(1)} lbs<br>
                             <strong>Distance:</strong> ${collection.distance.toFixed(2)} mi<br>
                             <strong>Duration:</strong> ${Math.floor(collection.duration / 60)} min<br>
+                            <strong>√CPUE:</strong> ${sqrtCpue.toFixed(2)}<br>
                             <strong>Volunteer:</strong> ${collection.volunteer}<br>
                             <strong>Organization:</strong> ${collection.organization}<br>
                             <strong>Date:</strong> ${new Date(collection.timestamp).toLocaleDateString()}
@@ -309,8 +466,13 @@
             }
         }
         
-        // Load data when page loads
-        loadMapData();
+        // ==========================================
+        // INITIALIZE
+        // ==========================================
+        if (checkAuth()) {
+            initMap();
+            loadMapData();
+        }
     </script>
 </body>
 </html>
