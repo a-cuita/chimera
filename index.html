@@ -443,6 +443,14 @@
                 <div class="profile-edit-pane" id="profileEditPane">
                     <h4>Edit Your Profile</h4>
                     <div class="form-group">
+                        <label class="form-label" style="font-size: 13px;">Address Type</label>
+                        <select class="form-select" id="editAddressType">
+                            <option value="Home">Home</option>
+                            <option value="Work">Work</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label" style="font-size: 13px;">Street Address</label>
                         <input type="text" class="form-input" id="editStreet" placeholder="123 Main St">
                     </div>
@@ -795,56 +803,50 @@
                 const result = await response.json();
 
                 if (result.status === 'success') {
-                    document.getElementById('sessionsToday').textContent = result.recentCollections;
-                    document.getElementById('unvalidatedScouts').textContent = result.unvalidatedScouts;
+                    const data = result.data;
+
+                    document.getElementById('sessionsToday').textContent = data.totalCollections;
+                    document.getElementById('unvalidatedScouts').textContent = data.unvalidatedScouts;
 
                     const activityList = document.getElementById('activityList');
 
-                    if (result.items.length === 0) {
+                    if (data.recentActivity.length === 0) {
                         activityList.innerHTML = '<div style="text-align: center; color: #9ca3af; font-size: 13px; padding: 20px;">No recent activity</div>';
                     } else {
                         let html = '';
-                        result.items.forEach(item => {
-                            const timeAgo = getTimeAgo(new Date(item.timestamp));
+                        data.recentActivity.forEach(activity => {
+                            const timeAgo = getTimeAgo(new Date(activity.timestamp));
 
                             let itemHtml = '<div class="activity-item" style="padding: 12px 0;">';
-                            itemHtml += '<div style="font-weight: 600; color: #1f2937;">🗑️ ' + item.volunteer + '</div>';
+                            itemHtml += '<div style="font-weight: 600; color: #1f2937;">🗑️ ' + activity.volunteer + '</div>';
                             itemHtml += '<div style="font-size: 12px; color: #6b7280; margin-top: 2px;">';
-                            itemHtml += 'collected ' + item.weight.toFixed(1) + ' lbs';
+                            itemHtml += 'collected ' + activity.weight.toFixed(1) + ' lbs';
+                            if (activity.sqrtCpue) {
+                                itemHtml += ' (√CPUE: ' + activity.sqrtCpue.toFixed(2) + ')';
+                            }
                             itemHtml += ' — ' + timeAgo + '</div>';
 
-                            // Validation data
-                            if (item.validation && item.validation.length > 0) {
-                                const val = item.validation[0]; // Get first validation record
-                                
-                                // Parse comma-separated lists
-                                const onTarget = val.onTarget ? val.onTarget.split(',').filter(s => s.trim()) : [];
-                                const close = val.close ? val.close.split(',').filter(s => s.trim()) : [];
-                                const off = val.off ? val.off.split(',').filter(s => s.trim()) : [];
-                                
-                                const totalValidated = onTarget.length + close.length + off.length;
+                            const val = activity.validation;
+                            const totalValidated = val.accurate.length + val.close.length + val.off.length;
 
-                                if (totalValidated > 0) {
-                                    itemHtml += '<div style="margin-top: 8px; margin-left: 16px; padding: 8px; background: #f9fafb; border-radius: 6px; border-left: 3px solid #2D5F3F;">';
-                                    itemHtml += '<div style="font-size: 11px; font-weight: 700; color: #2D5F3F; margin-bottom: 6px;">👀 SCOUT RATINGS VALIDATED 📈</div>';
+                            if (totalValidated > 0) {
+                                itemHtml += '<div style="margin-top: 8px; margin-left: 16px; padding: 8px; background: #f9fafb; border-radius: 6px; border-left: 3px solid #2D5F3F;">';
+                                itemHtml += '<div style="font-size: 11px; font-weight: 700; color: #2D5F3F; margin-bottom: 6px;">👀 SCOUT RATINGS VALIDATED 📈</div>';
 
-                                    if (onTarget.length > 0) {
-                                        itemHtml += '<div style="font-size: 11px; color: #059669; margin-bottom: 3px;">';
-                                        itemHtml += '<strong>Spot on:</strong> ' + onTarget.join(', ') + '</div>';
-                                    }
-                                    if (close.length > 0) {
-                                        itemHtml += '<div style="font-size: 11px; color: #0284c7; margin-bottom: 3px;">';
-                                        itemHtml += '<strong>Under:</strong> ' + close.join(', ') + '</div>';
-                                    }
-                                    if (off.length > 0) {
-                                        itemHtml += '<div style="font-size: 11px; color: #dc2626;">';
-                                        itemHtml += '<strong>Over:</strong> ' + off.join(', ') + '</div>';
-                                    }
-
-                                    itemHtml += '</div>';
-                                } else {
-                                    itemHtml += '<div style="margin-top: 6px; margin-left: 16px; font-size: 11px; color: #9ca3af; font-style: italic;">No scouts validated</div>';
+                                if (val.accurate.length > 0) {
+                                    itemHtml += '<div style="font-size: 11px; color: #059669; margin-bottom: 3px;">';
+                                    itemHtml += '<strong>Spot on:</strong> ' + val.accurate.join(', ') + '</div>';
                                 }
+                                if (val.close.length > 0) {
+                                    itemHtml += '<div style="font-size: 11px; color: #0284c7; margin-bottom: 3px;">';
+                                    itemHtml += '<strong>Under:</strong> ' + val.close.join(', ') + '</div>';
+                                }
+                                if (val.off.length > 0) {
+                                    itemHtml += '<div style="font-size: 11px; color: #dc2626;">';
+                                    itemHtml += '<strong>Over:</strong> ' + val.off.join(', ') + '</div>';
+                                }
+
+                                itemHtml += '</div>';
                             } else {
                                 itemHtml += '<div style="margin-top: 6px; margin-left: 16px; font-size: 11px; color: #9ca3af; font-style: italic;">No scouts validated</div>';
                             }
@@ -1038,6 +1040,7 @@
                         userId: result.userId,
                         handle: result.handle,
                         organization: result.organization,
+                        addressType: result.addressType || 'Home',
                         streetAddress: result.streetAddress || '',
                         neighborhood: result.neighborhood || '',
                         zipCode: result.zipCode || '',
@@ -1085,6 +1088,7 @@
                         userId: result.userId,
                         handle: result.handle,
                         organization: org,
+                        addressType: 'Home',
                         streetAddress: document.getElementById('createStreet').value.trim(),
                         neighborhood: document.getElementById('createNeighborhood').value.trim(),
                         zipCode: document.getElementById('createZip').value.trim(),
@@ -1112,6 +1116,7 @@
         // ==========================================
         const profileEditToggle = document.getElementById('profileEditToggle');
         const profileEditPane = document.getElementById('profileEditPane');
+        const editAddressType = document.getElementById('editAddressType');
         const editStreet = document.getElementById('editStreet');
         const editNeighborhood = document.getElementById('editNeighborhood');
         const editZip = document.getElementById('editZip');
@@ -1125,6 +1130,7 @@
             profileEditPane.classList.toggle('show');
             if (profileEditPane.classList.contains('show')) {
                 // Populate current values
+                editAddressType.value = currentUser.addressType || 'Home';
                 editStreet.value = currentUser.streetAddress || '';
                 editNeighborhood.value = currentUser.neighborhood || '';
                 editZip.value = currentUser.zipCode || '';
@@ -1159,39 +1165,58 @@
                 ? editCustomOrgText.value.trim()
                 : editOrgSelect.value;
 
-            const updates = {
-                action: 'update_profile',
-                userId: currentUser.userId,
-                streetAddress: editStreet.value.trim(),
-                neighborhood: editNeighborhood.value.trim(),
-                zipCode: editZip.value.trim(),
-                organization: org
-            };
-
-            // Only include newPin if user entered one
-            if (editPIN.value.trim()) {
-                const pin = editPIN.value.trim().toLowerCase();
-                if (!/^[a-zA-Z]{2}[0-9]{2}$/.test(pin)) {
-                    showMessage('PIN must be 2 letters + 2 numbers (e.g. jb07)', 'error');
-                    saveProfileBtn.disabled = false;
-                    saveProfileBtn.textContent = 'Save Changes';
-                    return;
-                }
-                updates.newPin = pin;
-            }
-
             try {
-                const response = await fetch(APPS_SCRIPT_URL, {
+                // Update address if addressId exists
+                if (currentUser.addressId) {
+                    const addressData = {
+                        action: 'update_address',
+                        addressId: currentUser.addressId,
+                        addressType: editAddressType.value,
+                        streetAddress: editStreet.value.trim(),
+                        neighborhood: editNeighborhood.value.trim(),
+                        zipCode: editZip.value.trim()
+                    };
+
+                    await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(addressData)
+                    });
+
+                    // Update local currentUser object
+                    currentUser.addressType = editAddressType.value;
+                    currentUser.streetAddress = editStreet.value.trim();
+                    currentUser.neighborhood = editNeighborhood.value.trim();
+                    currentUser.zipCode = editZip.value.trim();
+                }
+
+                // Update profile (organization and/or PIN)
+                const profileUpdates = {
+                    action: 'update_profile',
+                    userId: currentUser.userId,
+                    organization: org
+                };
+
+                // Only include newPin if user entered one
+                if (editPIN.value.trim()) {
+                    const pin = editPIN.value.trim().toLowerCase();
+                    if (!/^[a-zA-Z]{2}[0-9]{2}$/.test(pin)) {
+                        showMessage('PIN must be 2 letters + 2 numbers (e.g. jb07)', 'error');
+                        saveProfileBtn.disabled = false;
+                        saveProfileBtn.textContent = 'Save Changes';
+                        return;
+                    }
+                    profileUpdates.newPin = pin;
+                }
+
+                await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(updates)
+                    body: JSON.stringify(profileUpdates)
                 });
 
-                // Update local currentUser object
-                currentUser.streetAddress = editStreet.value.trim();
-                currentUser.neighborhood = editNeighborhood.value.trim();
-                currentUser.zipCode = editZip.value.trim();
                 currentUser.organization = org;
                 
                 saveSession();
