@@ -535,8 +535,9 @@
 
                 <h3 style="font-size: 16px; color: #1f2937; margin-bottom: 12px;">What would you like to do?</h3>
 
-                <button class="btn btn-primary" id="scoutOnlyBtn" disabled>🔍 Scout: Rate Location</button>
-                <button class="btn btn-primary" id="collectTrackBtn" disabled>🗑️ Collect: Track Cleanup</button>
+                <button class="btn btn-primary" id="scoutOnlyBtn" disabled>🔍 Rate Location</button>
+                <button id="addLocationBtn" class="btn-secondary">📍 Pin Location</button>
+                <button class="btn btn-primary" id="collectTrackBtn" disabled>🗑️ Live Track: √CPUE</button>
                 <button class="btn btn-primary" id="recycleBtn">♻️ Recycle: Log Household Recycling</button>
 
                 <button class="btn btn-secondary" id="logoutBtn" style="margin-top: 8px;">Log Out</button>
@@ -1960,6 +1961,163 @@ function getTimeAgo(date) {
         });
 
         setInterval(loadActivityFeed, 60000);
+    // ============================================================================
+// PHASE 1: ADD LOCATION PIN
+// ============================================================================
+
+const locationCategories = {
+  disposal: [
+    {value: 'public_bin', label: 'Public Waste Bin'},
+    {value: 'recycling_dropoff', label: 'Recycling Drop-off'},
+    {value: 'transfer_station', label: 'Transfer Station'}
+  ],
+  support: [
+    {value: 'water_fountain', label: 'Water Fountain'},
+    {value: 'public_restroom', label: 'Public Restroom'},
+    {value: 'parking_area', label: 'Parking Area'},
+    {value: 'volunteer_support_station', label: 'Support Station'}
+  ]
+};
+
+// Open modal
+document.getElementById('addLocationBtn').addEventListener('click', function() {
+  document.getElementById('addLocationModal').style.display = 'block';
+});
+
+// Close modal
+document.getElementById('cancelLocationBtn').addEventListener('click', function() {
+  document.getElementById('addLocationModal').style.display = 'none';
+  document.getElementById('modalPinType').value = '';
+  document.getElementById('modalPinCategory').value = '';
+  document.getElementById('modalPinCategory').disabled = true;
+  document.getElementById('modalLocationName').value = '';
+  document.getElementById('modalNotes').value = '';
+});
+
+// Type change updates categories
+document.getElementById('modalPinType').addEventListener('change', function() {
+  const categorySelect = document.getElementById('modalPinCategory');
+  categorySelect.innerHTML = '<option value="">-- Select Category --</option>';
+  
+  if (this.value && locationCategories[this.value]) {
+    categorySelect.disabled = false;
+    locationCategories[this.value].forEach(cat => {
+      const option = document.createElement('option');
+      option.value = cat.value;
+      option.textContent = cat.label;
+      categorySelect.appendChild(option);
+    });
+  } else {
+    categorySelect.disabled = true;
+  }
+});
+
+// Save location pin
+document.getElementById('saveLocationBtn').addEventListener('click', async function() {
+  const pinType = document.getElementById('modalPinType').value;
+  const pinCategory = document.getElementById('modalPinCategory').value;
+  const locationName = document.getElementById('modalLocationName').value;
+  const notes = document.getElementById('modalNotes').value;
+  
+  if (!pinType || !pinCategory || !locationName) {
+    alert('Please fill in Pin Type, Category, and Location Name');
+    return;
+  }
+  
+  // Get current location
+  if (!navigator.geolocation) {
+    alert('Geolocation not supported');
+    return;
+  }
+  
+  this.disabled = true;
+  this.textContent = 'Getting location...';
+  
+  navigator.geolocation.getCurrentPosition(async (position) => {
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+    
+    try {
+      this.textContent = 'Saving...';
+      
+      const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: {'Content-Type': 'text/plain'},
+        body: JSON.stringify({
+          action: 'createLocationPin',
+          pinType: pinType,
+          pinCategory: pinCategory,
+          lat: lat,
+          lon: lon,
+          locationName: locationName,
+          descriptionNotes: notes,
+          status: 'active'
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        alert('✓ Location pin added successfully!');
+        document.getElementById('addLocationModal').style.display = 'none';
+        // Reset form
+        document.getElementById('modalPinType').value = '';
+        document.getElementById('modalPinCategory').value = '';
+        document.getElementById('modalPinCategory').disabled = true;
+        document.getElementById('modalLocationName').value = '';
+        document.getElementById('modalNotes').value = '';
+      } else {
+        alert('Error: ' + data.message);
+      }
+    } catch (error) {
+      alert('Error saving location: ' + error.message);
+    }
+    
+    this.disabled = false;
+    this.textContent = 'Save Location';
+  }, (error) => {
+    alert('Error getting location: ' + error.message);
+    this.disabled = false;
+    this.textContent = 'Save Location';
+  });
+});
     </script>
+    <!-- Add Location Modal -->
+<div id="addLocationModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000;">
+  <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:#2d2d2d; padding:2rem; border-radius:8px; max-width:500px; width:90%;">
+    <h2 style="color:#00ff88; margin-bottom:1rem;">📍 Add Location Pin</h2>
+    
+    <div style="margin-bottom:1rem;">
+      <label style="display:block; color:#aaa; margin-bottom:0.5rem;">Pin Type</label>
+      <select id="modalPinType" style="width:100%; padding:0.75rem; background:#1a1a1a; border:1px solid #444; border-radius:4px; color:#e0e0e0;">
+        <option value="">-- Select Type --</option>
+        <option value="disposal">🗑️ Disposal Site</option>
+        <option value="support">🎯 Support Infrastructure</option>
+      </select>
+    </div>
+    
+    <div style="margin-bottom:1rem;">
+      <label style="display:block; color:#aaa; margin-bottom:0.5rem;">Category</label>
+      <select id="modalPinCategory" style="width:100%; padding:0.75rem; background:#1a1a1a; border:1px solid #444; border-radius:4px; color:#e0e0e0;" disabled>
+        <option value="">-- Select type first --</option>
+      </select>
+    </div>
+    
+    <div style="margin-bottom:1rem;">
+      <label style="display:block; color:#aaa; margin-bottom:0.5rem;">Location Name</label>
+      <input type="text" id="modalLocationName" placeholder="e.g., Main St & 5th Ave" style="width:100%; padding:0.75rem; background:#1a1a1a; border:1px solid #444; border-radius:4px; color:#e0e0e0;">
+    </div>
+    
+    <div style="margin-bottom:1.5rem;">
+      <label style="display:block; color:#aaa; margin-bottom:0.5rem;">Notes (optional)</label>
+      <textarea id="modalNotes" placeholder="e.g., Blue bin, emptied Tuesdays" style="width:100%; padding:0.75rem; background:#1a1a1a; border:1px solid #444; border-radius:4px; color:#e0e0e0; min-height:60px;"></textarea>
+    </div>
+    
+    <div style="display:flex; gap:0.5rem;">
+      <button id="saveLocationBtn" style="flex:1; background:#00ff88; color:#1a1a1a; border:none; padding:0.75rem; border-radius:4px; font-weight:600; cursor:pointer;">Save Location</button>
+      <button id="cancelLocationBtn" style="flex:1; background:#555; color:#e0e0e0; border:none; padding:0.75rem; border-radius:4px; font-weight:600; cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
