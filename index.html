@@ -1327,8 +1327,8 @@ function getTimeAgo(date) {
 
                     await fetch(APPS_SCRIPT_URL, {
                         method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
+                        
+                        headers: { 'Content-Type': 'text/plain' },
                         body: JSON.stringify(addressData)
                     });
 
@@ -1360,8 +1360,8 @@ function getTimeAgo(date) {
 
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
+                    
+                    headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify(profileUpdates)
                 });
 
@@ -1546,8 +1546,8 @@ function getTimeAgo(date) {
 
             try {
                 await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST', mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify(data)
                 });
                 showMessage('✓ Scout report submitted!', 'success');
@@ -1764,8 +1764,8 @@ function getTimeAgo(date) {
 
             try {
                 await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST', mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify(data)
                 });
                 showMessage('✓ Report submitted!', 'success');
@@ -1861,8 +1861,8 @@ function getTimeAgo(date) {
 
             try {
                 await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST', mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify(data)
                 });
                 showMessage('✓ Recycling logged!', 'success');
