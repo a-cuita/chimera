@@ -3,292 +3,936 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>CHIMERA - Unified Tracking V5.3</title>
+    <title>CHIMERA - Unified Tracking V5.4</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: #F5F5F5;
-            padding: env(safe-area-inset-top, 20px) env(safe-area-inset-right, 20px)
-                     env(safe-area-inset-bottom, 20px) env(safe-area-inset-left, 20px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .container {
             width: 100%;
-            max-width: 375px;
+            max-width: 480px;
             margin: 0 auto;
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            overflow: hidden;
+            min-height: 100vh;
+            position: relative;
         }
 
+        /* ==================== HEADER ==================== */
         .header {
             background: #2D5F3F;
             color: white;
             padding: 16px;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        .header h1 { font-size: 20px; font-weight: 600; }
-        .header .subtitle { font-size: 12px; opacity: 0.9; margin-top: 4px; }
-
-        .content { padding: 20px; }
-
-        /* Messages */
-        .message {
-            padding: 12px; border-radius: 8px; margin-bottom: 16px;
-            display: none; text-align: center; font-size: 14px; font-weight: 500;
-        }
-        .message.success { background: #d1fae5; color: #065f46; border: 1px solid #10b981; }
-        .message.error { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
-        .message.warning { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
-        .message.show { display: block; }
-
-        /* Upcoming Events Placeholder */
-        .upcoming-events {
-            background: #f9fafb; border: 2px dashed #d1d5db; border-radius: 8px;
-            padding: 12px; text-align: center; color: #9ca3af; font-size: 13px; margin-bottom: 20px;
-        }
-
-        /* Activity Feed */
-        .activity-feed { background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
-        .activity-item { padding: 8px 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; color: #4b5563; line-height: 1.5; }
-        .activity-item:last-child { border-bottom: none; }
-        .activity-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-        .stat-card { padding: 12px; border-radius: 8px; text-align: center; }
-
-        /* Map Button */
-        .map-btn {
-            display: block; text-align: center; padding: 14px;
-            background: #2D5F3F; color: white; text-decoration: none;
-            font-weight: 600; border-radius: 10px; margin-bottom: 20px;
-            font-size: 15px; transition: all 0.2s;
-        }
-        .map-btn:hover { background: #234a31; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(45,95,63,0.3); }
-
-        /* Instructions Box */
-        .instructions {
-            background: #f0f9f4; border: 1px solid #d1fae5; border-radius: 8px;
-            padding: 14px; margin-bottom: 20px; font-size: 13px; color: #065f46; line-height: 1.6;
-        }
-
-        /* Form Elements */
-        .form-group { margin-bottom: 20px; }
-        .form-label { display: block; font-size: 14px; font-weight: 600; color: #1f2937; margin-bottom: 8px; }
-        .form-input, .form-select {
-            width: 100%; padding: 12px; border: 2px solid #e5e7eb;
-            border-radius: 8px; font-size: 15px; color: #1f2937; background: white;
-        }
-        .form-input:focus, .form-select:focus { outline: none; border-color: #2D5F3F; }
         
-        /* PIN Toggle */
+        .hamburger {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px;
+            user-select: none;
+            transition: transform 0.2s;
+        }
+        .hamburger:hover { transform: scale(1.1); }
+        
+        .header-content { flex: 1; }
+        .header h1 { font-size: 18px; font-weight: 600; }
+        .header .subtitle { font-size: 11px; opacity: 0.9; margin-top: 2px; }
+
+        /* ==================== HAMBURGER MENU ==================== */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 998;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .menu-overlay.show { display: block; opacity: 1; }
+        
+        .slide-menu {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background: white;
+            z-index: 999;
+            transition: left 0.3s ease;
+            overflow-y: auto;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.15);
+        }
+        .slide-menu.show { left: 0; }
+        
+        .menu-header {
+            background: #2D5F3F;
+            color: white;
+            padding: 20px 16px;
+        }
+        .menu-username {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .menu-edit {
+            font-size: 13px;
+            font-style: italic;
+            opacity: 0.9;
+            cursor: pointer;
+        }
+        .menu-edit:hover { text-decoration: underline; }
+        
+        .menu-section {
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .menu-item {
+            padding: 14px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+            color: #1f2937;
+            transition: background 0.2s;
+        }
+        .menu-item:hover { background: #f9fafb; }
+        .menu-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .menu-item-icon { font-size: 20px; width: 24px; text-align: center; }
+        
+        .menu-divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 8px 16px;
+        }
+
+        .menu-lockout-banner {
+            background: #1e293b;
+            color: #f1f5f9;
+            padding: 12px 16px;
+            margin: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            text-align: center;
+            display: none;
+        }
+        .menu-lockout-banner.show { display: block; }
+        .menu-lockout-banner .lockout-icon { font-size: 20px; margin-bottom: 4px; }
+        .menu-lockout-banner .lockout-title { font-weight: 600; margin-bottom: 2px; }
+        .menu-lockout-banner .lockout-detail { font-size: 11px; color: #94a3b8; }
+
+        /* ==================== CONTENT ==================== */
+        .content {
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        /* ==================== TOAST NOTIFICATIONS ==================== */
+        .toast-container {
+            position: fixed;
+            top: 70px;
+            right: -350px;
+            width: 320px;
+            z-index: 1000;
+            transition: right 0.3s ease;
+        }
+        .toast-container.show { right: 16px; }
+        
+        .toast {
+            background: white;
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid #10b981;
+        }
+        .toast.error { border-left-color: #ef4444; }
+        .toast.warning { border-left-color: #f59e0b; }
+        
+        .toast-icon { font-size: 20px; }
+        .toast-message { flex: 1; font-size: 14px; color: #1f2937; font-weight: 500; }
+
+        /* ==================== ACTIVITY FEED ==================== */
+        .activity-feed {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .feed-header {
+            padding: 16px;
+            border-bottom: 2px solid #e5e7eb;
+            background: #f9fafb;
+        }
+        .feed-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .feed-scroll {
+            max-height: 60vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .feed-sticky-item {
+            padding: 12px 16px;
+            background: #fef3c7;
+            border-bottom: 1px solid #fbbf24;
+        }
+        .feed-sticky-item.accuracy {
+            background: #f0f9f4;
+            border-bottom: 1px solid #10b981;
+        }
+        .feed-sticky-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #92400e;
+        }
+        .feed-sticky-item.accuracy .feed-sticky-header {
+            color: #065f46;
+        }
+        .feed-sticky-detail {
+            font-size: 12px;
+            color: #78350f;
+            margin-top: 4px;
+            margin-left: 28px;
+        }
+        .feed-sticky-item.accuracy .feed-sticky-detail {
+            color: #047857;
+        }
+        .accuracy-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #059669;
+            margin-left: 28px;
+        }
+        
+        .activity-item {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .activity-item:last-child { border-bottom: none; }
+        
+        .activity-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .activity-icon { font-size: 16px; }
+        .activity-volunteer {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .activity-time {
+            font-size: 13px;
+            color: #6b7280;
+        }
+        .district-badge {
+            display: inline-block;
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: auto;
+        }
+        .activity-details {
+            color: #4b5563;
+            margin-top: 4px;
+            margin-left: 24px;
+        }
+        
+        .validation-box {
+            margin-top: 10px;
+            margin-left: 24px;
+            padding: 10px;
+            background: #f9fafb;
+            border-radius: 6px;
+            border-left: 3px solid #2D5F3F;
+        }
+        .validation-header {
+            font-size: 11px;
+            font-weight: 700;
+            color: #2D5F3F;
+            margin-bottom: 6px;
+            letter-spacing: 0.3px;
+        }
+        .validation-line {
+            font-size: 12px;
+            color: #4b5563;
+            margin-bottom: 3px;
+        }
+        .validation-line:last-child { margin-bottom: 0; }
+        .validation-line strong { color: #1f2937; }
+        .validation-line.spot-on { color: #059669; }
+        .validation-line.under { color: #0284c7; }
+        .validation-line.over { color: #dc2626; }
+        
+        .no-validation {
+            margin-top: 6px;
+            margin-left: 24px;
+            font-size: 12px;
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        /* ==================== UPCOMING EVENTS ==================== */
+        .upcoming-events {
+            background: #f9fafb;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        /* ==================== MODALS ==================== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-overlay.show { display: flex; }
+        
+        .modal {
+            background: white;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 2px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .modal-content {
+            padding: 20px;
+            line-height: 1.7;
+            font-size: 14px;
+            color: #374151;
+        }
+        .modal-content h4 {
+            font-size: 15px;
+            color: #1f2937;
+            margin: 16px 0 8px;
+        }
+        .modal-content h4:first-child { margin-top: 0; }
+        .modal-content ul {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+        
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 2px solid #e5e7eb;
+            background: #f9fafb;
+            position: sticky;
+            bottom: 0;
+        }
+
+        /* ==================== BUTTONS ==================== */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: #2D5F3F;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #234a31;
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: white;
+            color: #2D5F3F;
+            border: 2px solid #2D5F3F;
+            margin-top: 10px;
+        }
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+        .btn:disabled {
+            background: #d1d5db;
+            color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ==================== FORMS ==================== */
+        .form-group { margin-bottom: 16px; }
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 6px;
+        }
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 15px;
+            color: #1f2937;
+        }
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #2D5F3F;
+        }
+
+        /* ==================== UTILITY ==================== */
+        .hidden { display: none !important; }
+        
+        .instructions {
+            background: #f0f9f4;
+            border: 1px solid #d1fae5;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #065f46;
+            line-height: 1.6;
+        }
+
+        /* Safety checkbox */
+        .safety-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: white;
+            border-radius: 6px;
+            margin-top: 12px;
+        }
+        .safety-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .safety-checkbox label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1f2937;
+            cursor: pointer;
+        }
+
+        /* PIN toggle */
         .pin-input-wrapper { position: relative; }
         .pin-input-wrapper input { padding-right: 45px; }
         .pin-toggle {
-            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-            cursor: pointer; font-size: 18px; color: #6b7280; user-select: none;
-            transition: color 0.2s;
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 18px;
+            color: #6b7280;
+            user-select: none;
         }
         .pin-toggle:hover { color: #2D5F3F; }
 
-        /* Safety Warnings */
-        .safety-container { background: #fef3c7; border: 2px solid #f59e0b; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
-        .safety-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-        .safety-icon { font-size: 24px; }
-        .safety-title { font-size: 16px; font-weight: 700; color: #92400e; }
-        .safety-list { list-style: none; padding: 0; }
-        .safety-list li { padding: 6px 0; font-size: 14px; color: #78350f; display: flex; align-items: flex-start; gap: 8px; }
-        .safety-list li::before { content: "•"; font-size: 18px; font-weight: bold; flex-shrink: 0; }
-        .safety-checkbox { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 12px; background: white; border-radius: 8px; }
-        .safety-checkbox input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
-        .safety-checkbox label { font-size: 14px; font-weight: 600; color: #1f2937; cursor: pointer; }
-
-        /* Status Display */
-        .status-box { background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
-        .status-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
-        .status-label { font-size: 13px; color: #6b7280; font-weight: 500; }
-        .status-value { font-size: 18px; color: #1f2937; font-weight: 700; }
+        /* Status box */
+        .status-box {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+        }
+        .status-label {
+            font-size: 13px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        .status-value {
+            font-size: 16px;
+            color: #1f2937;
+            font-weight: 700;
+        }
         .status-value.tracking { color: #2D5F3F; }
 
-        /* Buttons */
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; }
-        .btn-primary { background: #2D5F3F; color: white; }
-        .btn-primary:hover { background: #234a31; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(45,95,63,0.3); }
-        .btn-danger { background: #dc2626; color: white; }
-        .btn-danger:hover { background: #b91c1c; }
-        .btn-secondary { background: white; color: #2D5F3F; border: 2px solid #2D5F3F; }
-        .btn-secondary:hover { background: #E8F3ED; }
-        .btn:disabled { background: #d1d5db; color: #9ca3af; cursor: not-allowed; transform: none; }
-
-        /* Lockout banner */
-        .lockout-banner {
-            background: #1e293b; color: #f1f5f9; border-radius: 12px;
-            padding: 16px; margin-bottom: 20px; text-align: center;
+        /* Rating slider */
+        .rating-scale {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: #6b7280;
         }
-        .lockout-banner .lockout-icon { font-size: 32px; margin-bottom: 8px; }
-        .lockout-banner .lockout-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-        .lockout-banner .lockout-detail { font-size: 13px; color: #94a3b8; }
-
-        /* Photo Section */
-        .photo-section { margin-bottom: 16px; }
-        .photo-btn {
-            width: 100%; padding: 14px; border: 2px dashed #d1d5db; background: #fafafa;
-            border-radius: 8px; font-size: 14px; color: #6b7280; cursor: pointer; transition: all 0.2s;
-        }
-        .photo-btn:hover { border-color: #2D5F3F; background: #f5f5f5; }
-        .photo-btn::before { content: "📸 "; font-size: 18px; }
-        .photo-input { display: none; }
-        .photo-count { text-align: center; font-size: 12px; color: #6b7280; margin-top: 8px; }
-
-        /* Rating Slider */
-        .rating-scale { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 12px; color: #6b7280; }
-        .slider-container { position: relative; margin-bottom: 16px; }
         .slider {
-            width: 100%; height: 8px; border-radius: 4px;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
             background: linear-gradient(to right, #4CAF50, #FF9800, #F44336);
-            -webkit-appearance: none; appearance: none; outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            outline: none;
         }
         .slider::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%;
-            background: white; border: 3px solid #2D5F3F; cursor: pointer;
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #2D5F3F;
+            cursor: pointer;
             box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
         .slider::-moz-range-thumb {
-            width: 24px; height: 24px; border-radius: 50%;
-            background: white; border: 3px solid #2D5F3F; cursor: pointer;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #2D5F3F;
+            cursor: pointer;
             box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
-        .slider.skipped {
-            opacity: 0.3;
+        .slider.untouched {
+            opacity: 0.5;
         }
-        .rating-value { text-align: center; font-size: 32px; font-weight: 700; color: #2D5F3F; margin-bottom: 8px; }
-        .rating-value.skipped { color: #95a5a6; }
-        .rating-description { text-align: center; font-size: 14px; color: #6b7280; }
-
-        /* Skip Rating Button */
-        .skip-rating-btn {
-            width: 100%; padding: 10px; background: #f9fafb; border: 2px dashed #d1d5db;
-            border-radius: 8px; color: #6b7280; font-size: 14px; cursor: pointer;
-            transition: all 0.2s; margin-top: 8px;
+        .rating-value {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: #2D5F3F;
+            margin-bottom: 6px;
         }
-        .skip-rating-btn:hover { border-color: #2D5F3F; color: #2D5F3F; }
-
-        /* Scout Notes */
-        .notes-textarea {
-            width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;
-            font-size: 14px; color: #1f2937;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            resize: vertical; min-height: 80px; margin-top: 16px;
+        .rating-value.untouched {
+            color: #9ca3af;
         }
-        .notes-textarea:focus { outline: none; border-color: #2D5F3F; }
-        .notes-label { display: block; font-size: 13px; font-weight: 600; color: #1f2937; margin-top: 16px; margin-bottom: 8px; }
-        .notes-helper { font-size: 12px; color: #6b7280; margin-top: 4px; }
-        .char-counter { font-size: 11px; color: #9ca3af; text-align: right; margin-top: 4px; }
+        .rating-description {
+            text-align: center;
+            font-size: 13px;
+            color: #6b7280;
+        }
 
-        /* Collection Bags */
-        .bag-entry { background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
-        .bag-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .bag-number { font-size: 14px; font-weight: 600; color: #1f2937; }
-        .remove-bag { color: #dc2626; cursor: pointer; font-size: 12px; padding: 4px 8px; }
-        .bag-input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
+        /* Bags */
+        .bag-entry {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .bag-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .bag-number {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .remove-bag {
+            color: #dc2626;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 4px 8px;
+        }
         .add-bag-btn {
-            width: 100%; padding: 10px; background: #f9fafb; border: 2px dashed #d1d5db;
-            border-radius: 8px; color: #6b7280; font-size: 14px; cursor: pointer; transition: all 0.2s;
+            width: 100%;
+            padding: 10px;
+            background: #f9fafb;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            color: #6b7280;
+            font-size: 14px;
+            cursor: pointer;
         }
-        .add-bag-btn:hover { border-color: #2D5F3F; color: #2D5F3F; }
+        .add-bag-btn:hover {
+            border-color: #2D5F3F;
+            color: #2D5F3F;
+        }
 
-        /* Hidden class */
-        .hidden { display: none !important; }
+        /* Consent */
+        .consent-section {
+            background: #fef3c7;
+            border: 2px solid #fbbf24;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+        .consent-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 12px;
+        }
+        .consent-question {
+            background: white;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .consent-question:last-child { margin-bottom: 0; }
+        .consent-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .consent-options {
+            display: flex;
+            gap: 16px;
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .radio-option input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .radio-option label {
+            font-size: 13px;
+            color: #1f2937;
+            cursor: pointer;
+        }
 
-        /* Custom organization input */
-        .custom-org-input { margin-top: 12px; display: none; }
-        .custom-org-input.show { display: block; }
+        /* Notes */
+        .notes-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #1f2937;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+        }
+        .notes-textarea:focus {
+            outline: none;
+            border-color: #2D5F3F;
+        }
+        .char-counter {
+            font-size: 11px;
+            color: #9ca3af;
+            text-align: right;
+            margin-top: 4px;
+        }
 
-        /* Consent Section */
-        .consent-section { background: #fef3c7; border: 2px solid #fbbf24; border-radius: 8px; padding: 14px; margin-bottom: 20px; }
-        .consent-title { font-size: 14px; font-weight: 700; color: #92400e; margin-bottom: 12px; }
-        .consent-question { background: white; border-radius: 6px; padding: 12px; margin-bottom: 10px; }
-        .consent-label { font-size: 13px; font-weight: 600; color: #1f2937; margin-bottom: 8px; display: block; }
-        .consent-options { display: flex; gap: 16px; }
-        .radio-option { display: flex; align-items: center; gap: 6px; }
-        .radio-option input[type="radio"] { width: 16px; height: 16px; cursor: pointer; }
-        .radio-option label { font-size: 13px; color: #1f2937; cursor: pointer; }
-
-        /* Login / Profile Screen */
+        /* Login cards */
         .login-card {
-            background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 12px;
-            padding: 20px; margin-bottom: 20px;
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
-        .login-card h3 { font-size: 16px; color: #1f2937; margin-bottom: 4px; }
-        .login-card .login-sub { font-size: 13px; color: #6b7280; margin-bottom: 16px; }
+        .login-card h3 {
+            font-size: 16px;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+        .login-sub {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 16px;
+        }
         .login-toggle {
-            text-align: center; font-size: 13px; color: #2D5F3F;
-            cursor: pointer; margin-top: 12px; font-weight: 600;
+            text-align: center;
+            font-size: 13px;
+            color: #2D5F3F;
+            cursor: pointer;
+            margin-top: 12px;
+            font-weight: 600;
         }
         .login-toggle:hover { text-decoration: underline; }
 
-        /* T&C Screen */
-        .tc-box {
-            background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 12px;
-            padding: 16px; margin-bottom: 20px; max-height: 300px; overflow-y: auto;
-            font-size: 13px; color: #374151; line-height: 1.7;
+        /* Custom org input */
+        .custom-org-input {
+            margin-top: 12px;
+            display: none;
         }
-        .tc-box h4 { font-size: 14px; color: #1f2937; margin: 12px 0 6px; }
-        .tc-box h4:first-child { margin-top: 0; }
+        .custom-org-input.show { display: block; }
 
-        /* Scale Tip */
+        /* Photo section */
+        .photo-section { margin-bottom: 16px; }
+        .photo-btn {
+            width: 100%;
+            padding: 14px;
+            border: 2px dashed #d1d5db;
+            background: #fafafa;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .photo-btn:hover {
+            border-color: #2D5F3F;
+            background: #f5f5f5;
+        }
+        .photo-count {
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 8px;
+        }
+
+        /* Address card */
+        .address-card {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .address-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .address-type-badge {
+            background: #2D5F3F;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .address-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .address-action {
+            font-size: 12px;
+            color: #6b7280;
+            cursor: pointer;
+        }
+        .address-action:hover { color: #2D5F3F; }
+        .address-action.delete:hover { color: #dc2626; }
+        .address-text {
+            font-size: 13px;
+            color: #4b5563;
+        }
+
+        /* Household Recycling */
         .scale-tip {
-            background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;
-            padding: 12px; margin-bottom: 16px; font-size: 12px; color: #1e40af; line-height: 1.5;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #1e40af;
+            line-height: 1.5;
         }
-        
-        /* Profile Edit Dropdown */
-        .profile-edit-toggle {
-            text-align: center; font-size: 13px; color: #2D5F3F;
-            cursor: pointer; margin-top: 8px; font-weight: 600;
-        }
-        .profile-edit-toggle:hover { text-decoration: underline; }
-        .profile-edit-pane {
-            display: none; background: #f9fafb; border: 2px solid #e5e7eb;
-            border-radius: 12px; padding: 16px; margin-top: 12px; margin-bottom: 20px;
-        }
-        .profile-edit-pane.show { display: block; }
-        .profile-edit-pane h4 { font-size: 14px; color: #1f2937; margin-bottom: 16px; }
 
-        /* V5.3 Section Headers */
-        .section-header {
-            font-size: 16px; font-weight: 600; color: #1f2937;
-            margin: 20px 0 12px; padding-bottom: 8px;
-            border-bottom: 2px solid #e5e7eb;
+        .info-dropdown-toggle {
+            text-align: center;
+            font-size: 13px;
+            color: #2D5F3F;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 12px;
         }
-        .section-helper {
-            font-size: 12px; color: #6b7280; margin-bottom: 16px;
-            background: #f9fafb; padding: 10px; border-radius: 6px;
+        .info-dropdown-toggle:hover { text-decoration: underline; }
+        .info-dropdown-pane {
+            display: none;
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .info-dropdown-pane.show { display: block; }
+        .info-dropdown-pane h4 {
+            font-size: 15px;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        .info-dropdown-pane p {
+            font-size: 13px;
+            color: #6b7280;
+            line-height: 1.6;
         }
     </style>
 </head>
 <body>
+    <!-- ==================== HAMBURGER MENU ==================== -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+    <div class="slide-menu" id="slideMenu">
+        <div class="menu-header">
+            <div class="menu-username" id="menuUsername">Volunteer</div>
+            <div class="menu-edit" id="menuEditProfile">edit profile</div>
+        </div>
+        
+        <!-- Info Section -->
+        <div class="menu-section">
+            <div class="menu-item" id="menuGettingStarted">
+                <span class="menu-item-icon">💡</span>
+                <span>Getting Started</span>
+            </div>
+            <div class="menu-item disabled" id="menuWiki">
+                <span class="menu-item-icon">📚</span>
+                <span>CHIMERAwiki (coming soon)</span>
+            </div>
+            <div class="menu-item" id="menuFieldTest">
+                <span class="menu-item-icon">🗺️</span>
+                <span>Field Test Map</span>
+            </div>
+            <div class="menu-item" id="menuDemo">
+                <span class="menu-item-icon">🐾</span>
+                <span>(DEMO) The Chimera Hunt</span>
+            </div>
+        </div>
+        
+        <div class="menu-divider"></div>
+
+        <!-- Lockout Banner (shown when sun-locked) -->
+        <div class="menu-lockout-banner" id="menuLockoutBanner">
+            <div class="lockout-icon">🌙</div>
+            <div class="lockout-title">Outdoor Tracking Unavailable</div>
+            <div class="lockout-detail">Disabled after sunset for safety.<br>Next sunrise: <span id="menuLockoutSunrise">--:--</span></div>
+        </div>
+        
+        <!-- Tracking Section -->
+        <div class="menu-section">
+            <div class="menu-item" id="menuScout">
+                <span class="menu-item-icon">🔍</span>
+                <span>Rate Location</span>
+            </div>
+            <div class="menu-item disabled" id="menuPin">
+                <span class="menu-item-icon">📍</span>
+                <span>Pin Location (coming soon)</span>
+            </div>
+            <div class="menu-item" id="menuTrack">
+                <span class="menu-item-icon">🗑️</span>
+                <span>Live Track: √CPUE</span>
+            </div>
+            <div class="menu-item" id="menuRecycle">
+                <span class="menu-item-icon">♻️</span>
+                <span>Recycle</span>
+            </div>
+        </div>
+        
+        <div class="menu-divider"></div>
+        
+        <div class="menu-section">
+            <div class="menu-item" id="menuLogout">
+                <span class="menu-item-icon">🚪</span>
+                <span>Log Out</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== TOAST NOTIFICATIONS ==================== -->
+    <div class="toast-container" id="toastContainer"></div>
+
     <div class="container">
+        <!-- ==================== HEADER ==================== -->
         <div class="header">
-            <h1>🌍 CHIMERA Tracker</h1>
-            <div class="subtitle">Data Hub for Litter Scouting, Collecting & Recycling • V5.3</div>
+            <div class="hamburger hidden" id="hamburgerBtn">☰</div>
+            <div class="header-content">
+                <h1>🌍 CHIMERA Tracker</h1>
+                <div class="subtitle">Data Hub for Litter Scouting, Collecting & Recycling • V5.4</div>
+            </div>
         </div>
 
         <div class="content">
-            <div class="message" id="message"></div>
-
-            <!-- ================================ -->
-            <!-- SCREEN 0: LOGIN / CREATE PROFILE -->
-            <!-- ================================ -->
+            <!-- ==================== LOGIN SCREEN ==================== -->
             <div id="loginScreen">
                 <div class="instructions" style="margin-bottom: 20px;">
                     <strong>Welcome to CHIMERA!</strong><br>
-                    Log in or create a profile to start tracking. Your profile keeps your data linked across sessions.
+                    Log in or create a profile to start tracking.
+                </div>
+
+                <!-- PRE-LOGIN ACTIVITY FEED -->
+                <div class="activity-feed" id="preLoginFeed">
+                    <div class="feed-header">
+                        <div class="feed-title">
+                            <span>📊</span> Recent Activity
+                        </div>
+                    </div>
+                    <div class="feed-scroll" id="preLoginFeedScroll">
+                        <div style="text-align: center; color: #9ca3af; font-size: 13px; padding: 40px 20px;">
+                            Loading activity...
+                        </div>
+                    </div>
                 </div>
 
                 <!-- LOGIN FORM -->
@@ -309,7 +953,7 @@
                     </div>
                     <button class="btn btn-primary" id="loginBtn" disabled>Log In</button>
                     <div style="text-align: center; font-size: 12px; color: #6b7280; margin-top: 8px;">
-                        Forgot your PIN? Contact your organization lead to request a reset.
+                        Forgot your PIN? Contact your organization lead.
                     </div>
                     <div class="login-toggle" id="showCreateToggle">New here? Create a profile →</div>
                 </div>
@@ -329,7 +973,7 @@
                             <input type="password" class="form-input" id="createPIN" placeholder="e.g. jb07" maxlength="4" autocomplete="off" style="text-transform: lowercase;">
                             <span class="pin-toggle" onclick="togglePIN('createPIN', this)">👁️</span>
                         </div>
-                        <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Format: two letters followed by two numbers (e.g. km23, jb07)</div>
+                        <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Format: two letters + two numbers (e.g. km23)</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Organization</label>
@@ -345,254 +989,85 @@
                         </div>
                     </div>
                     
-                    <h3 style="font-size: 15px; color: #1f2937; margin: 20px 0 12px;">Location (Optional)</h3>
-                    <div class="instructions" style="margin-bottom: 16px; font-size: 12px;">
-                        Your address, neighborhood, or zip code will be used for household recycling market research to support the case for expanded recycling infrastructure in Montgomery.
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Street Address</label>
-                        <input type="text" class="form-input" id="createStreet" placeholder="123 Main St">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Neighborhood</label>
-                        <input type="text" class="form-input" id="createNeighborhood" placeholder="e.g. Cloverdale, Capitol Heights">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Zip Code</label>
-                        <input type="text" class="form-input" id="createZip" placeholder="36104" maxlength="5">
-                    </div>
-                    
                     <button class="btn btn-primary" id="createProfileBtn" disabled>Create Profile</button>
                     <div class="login-toggle" id="showLoginToggle">Already have a profile? Log in →</div>
                 </div>
             </div>
 
-            <!-- ================================ -->
-            <!-- SCREEN 0B: TERMS & CONDITIONS    -->
-            <!-- ================================ -->
-            <div id="tcScreen" class="hidden">
-                <h2 style="font-size: 18px; margin-bottom: 16px; color: #1f2937;">📋 Terms & Conditions</h2>
-                <div class="tc-box">
-                    <h4>Data Collection</h4>
-                    CHIMERA collects GPS location data, litter ratings, collection weights, and photos during tracking sessions. Location data is used to validate scout accuracy and display collection paths on the community map.
-
-                    <h4>Data Retention</h4>
-                    GPS coordinates are archived after validation and permanently deleted after 30 days. Simplified path geometry (start/end points and general route shape) is retained indefinitely for map display. Photos are stored in Google Drive and retained indefinitely unless you request deletion. Scout ratings, collection weights, and session metadata are retained indefinitely for research purposes.
-
-                    <h4>Your Profile</h4>
-                    Your handle and PIN are stored securely. Your PIN is hashed — we cannot see it. Your profile links your sessions for accuracy tracking. You may request account deletion at any time.
-
-                    <h4>Activity Feed & Map</h4>
-                    You choose each session whether to appear in the public Activity Feed. Sessions you opt out of will not display your name or data publicly. The community map requires login to view.
-
-                    <h4>Household Recycling</h4>
-                    Recycling logs are linked to your profile and include material type, estimated weight, and general location (street, neighborhood, or zip code). This data supports the case for expanded recycling infrastructure in Montgomery.
-
-                    <h4>Contact</h4>
-                    Questions about your data? Contact the CHIMERA project team through your organization.
-                </div>
-
-                <div class="instructions" style="margin: 20px 0;">
-                    <strong>To accept these terms, enter your PIN:</strong>
-                </div>
-
-                <div class="form-group">
-                    <div class="pin-input-wrapper">
-                        <input type="password" class="form-input" id="tcPIN" placeholder="Enter your PIN" maxlength="4" autocomplete="off" style="text-transform: lowercase;">
-                        <span class="pin-toggle" onclick="togglePIN('tcPIN', this)">👁️</span>
-                    </div>
-                </div>
-
-                <button class="btn btn-primary" id="tcContinueBtn" disabled>Accept & Continue</button>
-            </div>
-
-            <!-- ================================ -->
-            <!-- SCREEN 1: MAIN (VOLUNTEER INFO)  -->
-            <!-- ================================ -->
-            <div id="volunteerInfoScreen" class="hidden">
-                <!-- Lockout Banner (shown when after sunset) -->
-                <div class="lockout-banner hidden" id="lockoutBanner">
-                    <div class="lockout-icon">🌙</div>
-                    <div class="lockout-title">Outdoor Tracking Unavailable</div>
-                    <div class="lockout-detail" id="lockoutDetail">
-                        Scout &amp; Collection modes are disabled after sunset for your safety.<br>
-                        Next sunrise: <span id="lockoutSunrise">--:--</span>
-                    </div>
-                </div>
-
-                <!-- Upcoming Events -->
-                <div class="upcoming-events">📅 Upcoming Cleanups - COMING SOON</div>
-
+            <!-- ==================== MAIN SCREEN ==================== -->
+            <div id="mainScreen" class="hidden">
                 <!-- Activity Feed -->
-                <div class="activity-feed" id="activityFeed">
-                    <h3 style="font-size: 16px; color: #1f2937; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                        <span>📊</span> Recent Activity
-                    </h3>
-                    <div class="activity-stats">
-                        <div class="stat-card" style="background: #f0f9f4;">
-                            <div style="font-size: 24px; font-weight: 700; color: #2D5F3F;" id="sessionsToday">-</div>
-                            <div style="font-size: 12px; color: #6b7280;">Recent Collections</div>
-                        </div>
-                        <div class="stat-card" style="background: #fef3c7;">
-                            <div style="font-size: 24px; font-weight: 700; color: #92400e;" id="unvalidatedScouts">-</div>
-                            <div style="font-size: 12px; color: #78350f;">Need Validation</div>
+                <div class="activity-feed">
+                    <div class="feed-header">
+                        <div class="feed-title">
+                            <span>📊</span> Recent Activity
                         </div>
                     </div>
-                    <div class="activity-list" id="activityList" style="background: #f9fafb; border-radius: 8px; padding: 12px; max-height: 200px; overflow-y: auto;">
-                        <div style="text-align: center; color: #9ca3af; font-size: 13px; padding: 20px;">Loading activity...</div>
-                    </div>
-                </div>
-
-                <!-- Map & Gamification Buttons -->
-                <a href="feb_3_fieldtest.html" class="map-btn" id="mapLink">🗺️ View Field Test Map</a>
-                <a href="gone-feral.html" class="map-btn">🐾 View GAMIFIED DEMO</a>
-
-                <div class="instructions">
-                    <strong>Getting Started:</strong><br>
-                    Choose a mode below. Scout and Collection require location services and are available during daylight hours only. Household Recycling is always available.
-                </div>
-
-                <h2 style="font-size: 18px; margin-bottom: 16px; color: #1f2937;">
-                    Welcome, <span id="displayHandle">Volunteer</span>
-                </h2>
-
-                <div class="status-box" style="margin-bottom: 20px;">
-                    <div class="status-row">
-                        <span class="status-label">Organization</span>
-                        <span class="status-value" id="displayOrg" style="font-size: 14px;">—</span>
-                    </div>
-                    <div class="profile-edit-toggle" id="profileEditToggle">✏️ Edit Profile</div>
-                </div>
-
-                <!-- Profile Edit Pane -->
-                <div class="profile-edit-pane" id="profileEditPane">
-                    <h4>Edit Your Profile</h4>
-                    <div class="form-group">
-                        <label class="form-label" style="font-size: 13px;">Address Type</label>
-                        <select class="form-select" id="editAddressType">
-                            <option value="Home">Home</option>
-                            <option value="Work">Work</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" style="font-size: 13px;">Street Address</label>
-                        <input type="text" class="form-input" id="editStreet" placeholder="123 Main St">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" style="font-size: 13px;">Neighborhood</label>
-                        <input type="text" class="form-input" id="editNeighborhood" placeholder="e.g. Cloverdale">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" style="font-size: 13px;">Zip Code</label>
-                        <input type="text" class="form-input" id="editZip" placeholder="36104" maxlength="5">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" style="font-size: 13px;">Organization</label>
-                        <select class="form-select" id="editOrgSelect">
-                            <option value="">Select organization</option>
-                            <option value="Baled It!">Baled It!</option>
-                            <option value="Help A Brother Out Foundation">Help A Brother Out Foundation</option>
-                            <option value="West Montgomery Action Committee">West Montgomery Action Committee</option>
-                            <option value="other">Other...</option>
-                        </select>
-                        <div class="custom-org-input" id="editCustomOrg">
-                            <input type="text" class="form-input" id="editCustomOrgText" placeholder="Enter organization name">
+                    <div class="feed-scroll" id="feedScroll">
+                        <div style="text-align: center; color: #9ca3af; font-size: 13px; padding: 40px 20px;">
+                            Loading activity...
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label" style="font-size: 13px;">Change PIN (optional)</label>
-                        <div class="pin-input-wrapper">
-                            <input type="password" class="form-input" id="editPIN" placeholder="Leave blank to keep current" maxlength="4" style="text-transform: lowercase;">
-                            <span class="pin-toggle" onclick="togglePIN('editPIN', this)">👁️</span>
-                        </div>
-                        <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Format: two letters + two numbers (e.g. km23)</div>
-                    </div>
-                    <button class="btn btn-primary" id="saveProfileBtn">Save Changes</button>
-                    <button class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
                 </div>
 
-                <!-- Safety Container -->
-                <div class="safety-container">
-                    <div class="safety-header">
-                        <span class="safety-icon">⚠️</span>
-                        <h2 class="safety-title">Safety Guidelines</h2>
-                    </div>
-                    <ul class="safety-list">
-                        <li>Watch for traffic when crossing streets</li>
-                        <li>Wear gloves when handling litter</li>
-                        <li>Stay hydrated and take breaks as needed</li>
-                        <li>Work in pairs when possible</li>
-                        <li><strong>Do NOT operate a vehicle while tracking</strong></li>
-                        <li>Stay aware of your surroundings</li>
-                        <li>Watch for hazards (broken glass, sharp objects, wildlife)</li>
-                    </ul>
-                    <div class="safety-checkbox">
-                        <input type="checkbox" id="safetyAcknowledge">
-                        <label for="safetyAcknowledge">I understand and will follow these guidelines</label>
-                    </div>
-                </div>
-
-                <h3 style="font-size: 16px; color: #1f2937; margin-bottom: 12px;">What would you like to do?</h3>
-
-                <button class="btn btn-primary" id="scoutOnlyBtn" disabled>🔍 Rate Location</button>
-                <button class="btn btn-primary" id="addLocationBtn">📍 Pin Location</button>
-                <button class="btn btn-primary" id="collectTrackBtn" disabled>🗑️ Live Track: √CPUE</button>
-                <button class="btn btn-primary" id="recycleBtn">♻️ Recycle: Log Household Recycling</button>
-
-                <button class="btn btn-secondary" id="logoutBtn" style="margin-top: 8px;">Log Out</button>
+                <!-- Upcoming Events Placeholder -->
+                <div class="upcoming-events">📅 Upcoming Cleanups - COMING SOON</div>
             </div>
 
-            <!-- ================================ -->
-            <!-- SCREEN 2: SCOUT ONLY             -->
-            <!-- ================================ -->
-            <div id="scoutOnlyScreen" class="hidden">
+            <!-- ==================== SCOUT MODE (Single Capture) ==================== -->
+            <div id="scoutScreen" class="hidden">
+                <div class="instructions">
+                    <strong>🔍 Rate Location</strong><br>
+                    Capture your GPS location and rate the litter density.
+                </div>
+
                 <div class="status-box">
                     <div class="status-row">
                         <span class="status-label">📍 Location</span>
-                        <span class="status-value" id="scoutLocationStatus">Capturing...</span>
+                        <span class="status-value" id="scoutGPSStatus">Capturing...</span>
                     </div>
                 </div>
 
-                <h3 style="font-size: 16px; color: #1f2937; margin-bottom: 12px;">Rate This Location</h3>
-
-                <div class="rating-scale"><span>0 - Clean</span><span>10 - Worst Ever</span></div>
-                <div class="slider-container">
-                    <input type="range" min="0" max="10" value="5" class="slider" id="scoutOnlyRating">
+                <div class="form-group">
+                    <label class="form-label">Litter Rating (0-10)</label>
+                    <div class="rating-value untouched" id="scoutRatingValue">—</div>
+                    <div class="rating-description" id="scoutRatingDesc">Tap the slider to rate</div>
+                    <div class="rating-scale">
+                        <span>0 - Clean</span>
+                        <span>5 - Moderate</span>
+                        <span>10 - Severe</span>
+                    </div>
+                    <input type="range" class="slider untouched" id="scoutRatingSlider" min="0" max="10" value="5" step="1">
                 </div>
-                <div class="rating-value" id="scoutOnlyRatingValue">5</div>
-                <div class="rating-description" id="scoutOnlyRatingDescription">Moderate litter density</div>
 
-                <label class="notes-label">Notes (Optional)</label>
-                <textarea id="scoutOnlyNotes" class="notes-textarea" maxlength="500"
-                    placeholder="Describe this location — nearby landmarks, how to find it, notable features..."></textarea>
-                <div class="char-counter"><span id="scoutOnlyNotesCounter">0</span> / 500 characters</div>
-                <div class="notes-helper">Help others find and validate this location</div>
+                <div class="form-group">
+                    <label class="form-label">Notes (Optional)</label>
+                    <textarea class="notes-textarea" id="scoutNotes" placeholder="Describe this location — nearby landmarks, notable features..." maxlength="500"></textarea>
+                    <div class="char-counter"><span id="scoutNotesCount">0</span>/500</div>
+                </div>
 
                 <div class="consent-section">
-                    <div class="consent-title">📢 Sharing Preferences (Required)</div>
+                    <div class="consent-title">📢 Sharing Preferences</div>
                     <div class="consent-question">
-                        <span class="consent-label">Include my session in the public Activity Feed?</span>
+                        <label class="consent-label">Include in public Activity Feed?</label>
                         <div class="consent-options">
                             <div class="radio-option">
-                                <input type="radio" id="scoutOnlyFeedYes" name="scoutOnlyActivityFeed" value="yes">
-                                <label for="scoutOnlyFeedYes">Yes</label>
+                                <input type="radio" id="scoutFeedYes" name="scoutFeed" value="yes">
+                                <label for="scoutFeedYes">Yes</label>
                             </div>
                             <div class="radio-option">
-                                <input type="radio" id="scoutOnlyFeedNo" name="scoutOnlyActivityFeed" value="no">
-                                <label for="scoutOnlyFeedNo">No</label>
+                                <input type="radio" id="scoutFeedNo" name="scoutFeed" value="no">
+                                <label for="scoutFeedNo">No</label>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <button class="btn btn-primary" id="submitScoutOnlyBtn" disabled>Submit Scout Report</button>
-                <button class="btn btn-secondary" id="cancelScoutOnlyBtn">Cancel</button>
+                <button class="btn btn-primary" id="submitScoutBtn" disabled>Submit Scout Report</button>
+                <button class="btn btn-secondary" id="cancelScoutBtn">Cancel</button>
             </div>
 
-            <!-- ================================ -->
-            <!-- SCREEN 3: ACTIVE TRACKING        -->
-            <!-- ================================ -->
+            <!-- ==================== ACTIVE TRACKING SCREEN ==================== -->
             <div id="activeTrackingScreen" class="hidden">
                 <div class="status-box">
                     <div class="status-row">
@@ -601,26 +1076,24 @@
                     </div>
                     <div class="status-row">
                         <span class="status-label">⏱️ Duration</span>
-                        <span class="status-value" id="durationDisplay">00:00</span>
+                        <span class="status-value" id="trackingDuration">00:00</span>
                     </div>
                     <div class="status-row">
                         <span class="status-label">📏 Distance</span>
-                        <span class="status-value" id="distanceDisplay">0.00 mi</span>
+                        <span class="status-value" id="trackingDistance">0.00 mi</span>
                     </div>
                 </div>
 
                 <div class="photo-section">
-                    <label for="photoInput" class="photo-btn">Take Photo</label>
-                    <input type="file" id="photoInput" class="photo-input" accept="image/*" capture="environment">
-                    <div class="photo-count" id="photoCount">0 photos captured</div>
+                    <label for="trackingPhotoInput" class="photo-btn">📸 Take Photo</label>
+                    <input type="file" id="trackingPhotoInput" accept="image/*" capture="environment" style="display: none;">
+                    <div class="photo-count" id="trackingPhotoCount">0 photos captured</div>
                 </div>
 
                 <button class="btn btn-danger" id="stopTrackingBtn">⏹️ Stop Tracking</button>
             </div>
 
-            <!-- ================================ -->
-            <!-- SCREEN 4: POST-TRACKING (V5.3)   -->
-            <!-- ================================ -->
+            <!-- ==================== POST-TRACKING SCREEN ==================== -->
             <div id="postTrackingScreen" class="hidden">
                 <div class="status-box">
                     <div class="status-row">
@@ -637,56 +1110,43 @@
                     </div>
                 </div>
 
-                <!-- V5.3: SIMPLIFIED POST-TRACKING -->
-                <div class="section-helper">
-                    Mode: <strong><span id="postModeIndicator">Collection</span></strong><br>
-                    Fill in what applies. Leave rating at 0 or weight at 0 if you didn't record that data.
+                <h3 style="font-size: 15px; color: #1f2937; margin: 16px 0 12px;">📊 Litter Rating (Optional)</h3>
+                <div class="rating-value untouched" id="postRatingValue">—</div>
+                <div class="rating-description" id="postRatingDesc">Tap the slider to rate</div>
+                <div class="rating-scale">
+                    <span>0 - Clean</span>
+                    <span>5 - Moderate</span>
+                    <span>10 - Severe</span>
+                </div>
+                <input type="range" class="slider untouched" id="postRatingSlider" min="0" max="10" value="5" step="1">
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label class="form-label">Notes (Optional)</label>
+                    <textarea class="notes-textarea" id="postNotes" placeholder="Describe this location..." maxlength="500"></textarea>
+                    <div class="char-counter"><span id="postNotesCount">0</span>/500</div>
                 </div>
 
-                <!-- RATING SECTION (Always visible) -->
-                <div class="section-header">📊 Litter Rating (Optional)</div>
-                <div class="section-helper">Rate the litter level you observed. Skip if you didn't scout.</div>
-
-                <div class="rating-scale"><span>0 - Clean</span><span>10 - Worst Ever</span></div>
-                <div class="slider-container">
-                    <input type="range" min="0" max="10" value="5" class="slider" id="litterRating">
-                </div>
-                <div class="rating-value" id="ratingValue">5</div>
-                <div class="rating-description" id="ratingDescription">Moderate litter density</div>
-                <button type="button" class="skip-rating-btn" id="skipRatingBtn">Skip Rating</button>
-
-                <!-- NOTES SECTION (Always visible) -->
-                <label class="notes-label">Notes (Optional)</label>
-                <textarea id="scoutNotes" class="notes-textarea" maxlength="500"
-                    placeholder="Describe this location — nearby landmarks, how to find it, notable features..."></textarea>
-                <div class="char-counter"><span id="notesCounter">0</span> / 500 characters</div>
-                <div class="notes-helper">Help others find and validate this location</div>
-
-                <!-- COLLECTION DATA SECTION (Always visible) -->
-                <div class="section-header">🗑️ Collection Data (Optional)</div>
-                <div class="section-helper">Enter weight and bags if you collected litter. Leave at 0 if scout-only.</div>
-
+                <h3 style="font-size: 15px; color: #1f2937; margin: 20px 0 12px;">🗑️ Collection Data</h3>
                 <div id="bagsContainer"></div>
                 <button class="add-bag-btn" id="addBagBtn">+ Add Bag</button>
 
-                <!-- CONSENT SECTION -->
-                <div class="consent-section">
-                    <div class="consent-title">📢 Sharing Preferences (Required)</div>
+                <div class="consent-section" style="margin-top: 20px;">
+                    <div class="consent-title">📢 Sharing Preferences</div>
                     <div class="consent-question">
-                        <span class="consent-label">Include my session in the public Activity Feed?</span>
+                        <label class="consent-label">Include in public Activity Feed?</label>
                         <div class="consent-options">
                             <div class="radio-option">
-                                <input type="radio" id="activityFeedYes" name="activityFeed" value="yes">
-                                <label for="activityFeedYes">Yes</label>
+                                <input type="radio" id="postFeedYes" name="postFeed" value="yes">
+                                <label for="postFeedYes">Yes</label>
                             </div>
                             <div class="radio-option">
-                                <input type="radio" id="activityFeedNo" name="activityFeed" value="no">
-                                <label for="activityFeedNo">No</label>
+                                <input type="radio" id="postFeedNo" name="postFeed" value="no">
+                                <label for="postFeedNo">No</label>
                             </div>
                         </div>
                     </div>
-                    <div class="consent-question" id="photoConsentQuestion" style="display: none;">
-                        <span class="consent-label">My organization may use my photos for social media and promotional purposes?</span>
+                    <div class="consent-question hidden" id="photoConsentQuestion">
+                        <label class="consent-label">Allow photos for promotional use?</label>
                         <div class="consent-options">
                             <div class="radio-option">
                                 <input type="radio" id="photoConsentYes" name="photoConsent" value="yes">
@@ -700,42 +1160,58 @@
                     </div>
                 </div>
 
-                <button class="btn btn-primary" id="submitBtn" disabled>Submit Report</button>
-                <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                <button class="btn btn-primary" id="submitCollectionBtn" disabled>Submit Report</button>
+                <button class="btn btn-secondary" id="cancelCollectionBtn">Cancel</button>
             </div>
 
-            <!-- ================================ -->
-            <!-- SCREEN 5: HOUSEHOLD RECYCLING    -->
-            <!-- ================================ -->
-            <div id="recycleScreen" class="hidden">
-                <h2 style="font-size: 18px; margin-bottom: 16px; color: #1f2937;">♻️ Log Recycling</h2>
+            <!-- ==================== EDIT PROFILE SCREEN ==================== -->
+            <div id="editProfileScreen" class="hidden">
+                <div class="instructions">
+                    <strong>✏️ Edit Profile</strong><br>
+                    Update your information.
+                </div>
 
-                <!-- Info Dropdown -->
-                <div style="margin-bottom: 20px;">
-                    <div class="profile-edit-toggle" id="hrInfoToggle">ℹ️ For more information on recycling locally...</div>
-                    <div class="profile-edit-pane" id="hrInfoPane">
-                        <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">COMING SOON</h4>
-                        <p style="font-size: 13px; font-style: italic; color: #6b7280; line-height: 1.6;">
-                            Recycling in Montgomery is challenging. We're working to identify accessible alternatives for residents.
-                        </p>
+                <div class="form-group">
+                    <label class="form-label">Handle</label>
+                    <input type="text" class="form-input" id="editHandle" disabled style="background: #f3f4f6; color: #6b7280;">
+                    <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">Handle cannot be changed</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Organization</label>
+                    <select class="form-select" id="editOrgSelect">
+                        <option value="Baled It!">Baled It!</option>
+                        <option value="Help A Brother Out Foundation">Help A Brother Out Foundation</option>
+                        <option value="West Montgomery Action Committee">West Montgomery Action Committee</option>
+                        <option value="other">Other...</option>
+                    </select>
+                    <div class="custom-org-input" id="editCustomOrg">
+                        <input type="text" class="form-input" id="editCustomOrgText" placeholder="Enter organization name">
                     </div>
                 </div>
 
-                <!-- Dropoff Locations Placeholder -->
-                <div style="margin-bottom: 20px;">
-                    <div class="profile-edit-toggle" id="dropoffToggle">📍 View validated dropoff locations...</div>
-                    <div class="profile-edit-pane" id="dropoffPane">
-                        <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">COMING SOON</h4>
-                        <p style="font-size: 13px; font-style: italic; color: #6b7280; line-height: 1.6;">
-                            We're building a directory of verified recycling dropoff points in Montgomery. This will include:
-                        </p>
-                        <ul style="font-size: 13px; color: #6b7280; line-height: 1.6; margin-left: 20px; margin-top: 8px;">
-                            <li>Municipal dropoff centers</li>
-                            <li>Private recycling facilities</li>
-                            <li>Community collection events</li>
-                            <li>Hours, accepted materials, and contact info</li>
-                        </ul>
-                    </div>
+                <h3 style="font-size: 15px; color: #1f2937; margin: 20px 0 12px;">📍 Addresses</h3>
+                <div id="addressesContainer"></div>
+                <button class="add-bag-btn" id="addAddressBtn">+ Add Address</button>
+
+                <button class="btn btn-primary" id="saveProfileBtn" style="margin-top: 20px;">Save Changes</button>
+                <button class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
+            </div>
+
+            <!-- ==================== HOUSEHOLD RECYCLING SCREEN ==================== -->
+            <div id="recycleScreen" class="hidden">
+                <h2 style="font-size: 18px; margin-bottom: 16px; color: #1f2937;">♻️ Log Recycling</h2>
+
+                <div class="info-dropdown-toggle" id="hrInfoToggle">ℹ️ For more information on recycling locally...</div>
+                <div class="info-dropdown-pane" id="hrInfoPane">
+                    <h4>COMING SOON</h4>
+                    <p>Recycling in Montgomery is challenging. We're working to identify accessible alternatives for residents.</p>
+                </div>
+
+                <div class="info-dropdown-toggle" id="dropoffToggle">📍 View validated dropoff locations...</div>
+                <div class="info-dropdown-pane" id="dropoffPane">
+                    <h4>COMING SOON</h4>
+                    <p>We're building a directory of verified recycling dropoff points in Montgomery.</p>
                 </div>
 
                 <div class="form-group">
@@ -755,8 +1231,8 @@
                     </select>
                 </div>
 
-                <div class="form-group" id="hrDescriptionWrap" style="display: none;">
-                    <label class="form-label">Description (required for Mixed or Other)</label>
+                <div class="form-group hidden" id="hrDescriptionWrap">
+                    <label class="form-label">Description (required for Mixed/Other)</label>
                     <input type="text" class="form-input" id="hrDescription" placeholder="Describe the materials">
                 </div>
 
@@ -764,16 +1240,13 @@
                     <label class="form-label">Estimated Weight (lbs)</label>
                     <input type="number" class="form-input" id="hrWeight" placeholder="0.0" step="0.1" min="0">
                     <div class="scale-tip">
-                        💡 <strong>No handheld scale?</strong> If you have a bathroom scale, weigh yourself holding the bag, then without. Subtract.
+                        💡 <strong>No scale?</strong> Weigh yourself holding the bag, then without. Subtract.
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Date Bagged/Sealed</label>
                     <input type="date" class="form-input" id="hrDateBagged">
-                    <div class="scale-tip">
-                        The date you sealed the bag, even if you haven't dropped it off yet (e.g., allows for temporary storage before pickup/dropoff)
-                    </div>
                 </div>
 
                 <div class="form-group">
@@ -794,34 +1267,152 @@
         </div>
     </div>
 
+    <!-- ==================== MODALS ==================== -->
+    
+    <!-- Getting Started Modal -->
+    <div class="modal-overlay" id="gettingStartedModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">💡 Getting Started</div>
+            </div>
+            <div class="modal-content">
+                <p><strong>Welcome to CHIMERA!</strong></p>
+                <p>Choose a mode from the menu:</p>
+                <h4>🔍 Rate Location</h4>
+                <p>Scout a location and rate litter density (0-10). Your ratings get validated when collectors clean nearby.</p>
+                <h4>🗑️ Live Track: √CPUE</h4>
+                <p>Track your cleanup with GPS. Record bags collected to calculate your efficiency score.</p>
+                <h4>♻️ Recycle</h4>
+                <p>Log household recycling to support the case for expanded infrastructure.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="closeGettingStarted">Got It</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Safety/Legal Modal -->
+    <div class="modal-overlay" id="safetyLegalModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">⚠️ Safety & Legal</div>
+            </div>
+            <div class="modal-content">
+                <h4>Safety Guidelines</h4>
+                <ul>
+                    <li>Watch for traffic when crossing streets</li>
+                    <li>Wear gloves when handling litter</li>
+                    <li>Stay hydrated and take breaks</li>
+                    <li>Work in pairs when possible</li>
+                    <li><strong>Do NOT operate a vehicle while tracking</strong></li>
+                    <li>Stay aware of your surroundings</li>
+                    <li>Watch for hazards (glass, sharp objects, wildlife)</li>
+                </ul>
+
+                <h4>Data Collection</h4>
+                <p>CHIMERA collects GPS location, litter ratings, collection weights, and photos during sessions.</p>
+
+                <h4>Data Retention</h4>
+                <p>GPS coordinates archived after validation, deleted after 30 days. Photos retained unless you request deletion.</p>
+
+                <h4>Liability</h4>
+                <p>You participate at your own risk. Always prioritize safety.</p>
+                
+                <div class="safety-checkbox">
+                    <input type="checkbox" id="safetyLegalAck">
+                    <label for="safetyLegalAck">I understand and agree</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="acceptSafetyLegal" disabled>Accept & Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Address Modal -->
+    <div class="modal-overlay" id="addAddressModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">📍 Add Address</div>
+            </div>
+            <div class="modal-content">
+                <div class="form-group">
+                    <label class="form-label">Address Type</label>
+                    <select class="form-select" id="newAddressType">
+                        <option value="Home">Home</option>
+                        <option value="Work">Work</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Street Address</label>
+                    <input type="text" class="form-input" id="newAddressStreet" placeholder="123 Main St">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Neighborhood</label>
+                    <input type="text" class="form-input" id="newAddressNeighborhood" placeholder="e.g. Cloverdale">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Zip Code</label>
+                    <input type="text" class="form-input" id="newAddressZip" placeholder="36104" maxlength="5">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="saveNewAddress">Save Address</button>
+                <button class="btn btn-secondary" id="cancelNewAddress">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ==========================================
-        // CONFIGURATION
+        // VERSION & CONFIG
         // ==========================================
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyZSKDx1Z_cVeyNTQCRNqiWIhX8Caju1dUdcCLByxxIEvzDQXaYJNzcZxfW1TeTlZT/exec';
-        const GPS_INTERVAL = 10000;
+        const UI_VERSION = 'V5.4-260209-1800';
+        console.log('🔧 CHIMERA UI Version:', UI_VERSION);
 
-        // ==========================================
-        // SESSION AUTH STATE
-        // ==========================================
-        let currentUser = {
-            userId: null,
-            handle: null,
-            organization: null,
-            streetAddress: '',
-            neighborhood: '',
-            zipCode: '',
-            tcAccepted: false
+        const CONFIG = {
+            appsScriptUrl: 'https://script.google.com/macros/s/AKfycbysweOefC4Y8Ed4w_6OZzfDZ-vEoqZLqKRCboH9AivIZ_-jSbwkj70VXTRPP0jZJme0NA/exec',
+            gpsInterval: 10000,
+            organizations: ['Baled It!', 'Help A Brother Out Foundation', 'West Montgomery Action Committee'],
+            urls: { fieldTestMap: 'feb_3_fieldtest.html', demoGame: 'gone-feral.html' }
         };
 
-        // Restore from sessionStorage if available
+        // ==========================================
+        // STATE
+        // ==========================================
+        let currentUser = {
+            userId: null, handle: null, organization: null,
+            addresses: [], safetyLegalAccepted: false, lastSafetyLegalCheck: null
+        };
+
+        let sessionState = {
+            sessionId: null, isTracking: false, startTime: null,
+            gpsPoints: [], photos: [], totalDistance: 0, mode: null,
+            durationTimer: null, gpsTimer: null, ratingTouched: false
+        };
+
+        let bags = [];
+        let bagCounter = 0;
+        let sunLocked = false;
+
+        // Rating descriptions (5 buckets)
+        const ratingDescriptions = {
+            0: 'Clean/Minimal', 1: 'Clean/Minimal', 2: 'Clean/Minimal',
+            3: 'Light litter', 4: 'Light litter',
+            5: 'Moderate litter', 6: 'Moderate litter',
+            7: 'Heavy litter', 8: 'Heavy litter',
+            9: 'Severe litter', 10: 'Severe litter'
+        };
+
+        // ==========================================
+        // SESSION STORAGE
+        // ==========================================
         function restoreSession() {
             const saved = sessionStorage.getItem('chimera_user');
             if (saved) {
-                try {
-                    currentUser = JSON.parse(saved);
-                    return true;
-                } catch (e) { return false; }
+                try { currentUser = JSON.parse(saved); return true; }
+                catch (e) { return false; }
             }
             return false;
         }
@@ -831,278 +1422,44 @@
         }
 
         function clearSession() {
-            currentUser = { userId: null, handle: null, organization: null, streetAddress: '', neighborhood: '', zipCode: '', tcAccepted: false };
+            currentUser = { userId: null, handle: null, organization: null, addresses: [], safetyLegalAccepted: false, lastSafetyLegalCheck: null };
             sessionStorage.removeItem('chimera_user');
         }
 
         // ==========================================
-        // SUNSET LOCKOUT STATE
+        // TOAST NOTIFICATIONS
         // ==========================================
-        let sunLocked = false;
-
-        // ==========================================
-        // ACTIVITY FEED
-        // ==========================================
-        // CLIENT HTML - Enhanced Activity Feed Rendering
-
-async function loadActivityFeed() {
-    try {
-        const response = await fetch(APPS_SCRIPT_URL);
-        const result = await response.json();
-
-        if (result.status === 'success') {
-            const data = result.data;
-
-            // Update stats
-            document.getElementById('sessionsToday').textContent = data.totalCollections;
-            document.getElementById('unvalidatedScouts').textContent = data.unvalidatedScouts;
-
-            const activityList = document.getElementById('activityList');
-
-            if (data.recentActivity.length === 0) {
-                activityList.innerHTML = '<div style="text-align: center; color: #9ca3af; font-size: 13px; padding: 20px;">No recent activity</div>';
-            } else {
-                let html = '';
-                data.recentActivity.forEach(activity => {
-                    
-                    // SPECIAL ITEM: Awaiting Validation
-                    if (activity.type === 'awaiting_validation') {
-                        const sinceTime = new Date(activity.since);
-                        const elapsed = getTimeElapsed(sinceTime);
-                        
-                        html += '<div class="activity-item" style="padding: 14px; background: #fef3c7; border: 2px solid #fbbf24; border-radius: 8px; margin-bottom: 12px;">';
-                        html += '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">';
-                        html += '<span style="font-size: 20px;">⏳</span>';
-                        html += '<div style="font-weight: 700; color: #92400e; font-size: 15px;">';
-                        html += activity.count + ' litter rating' + (activity.count !== 1 ? 's' : '') + ' awaiting validation';
-                        html += '</div>';
-                        html += '</div>';
-                        html += '<div style="font-size: 12px; color: #78350f; margin-left: 28px;">';
-                        html += 'Since ' + formatTime(sinceTime) + ' (' + elapsed + ')';
-                        html += '</div>';
-                        html += '</div>';
-                        return;
-                    }
-
-                    // SPECIAL ITEM: Daily Accuracy
-                    if (activity.type === 'daily_accuracy') {
-                        const accuracyColor = activity.accuracyPct >= 80 ? '#059669' : 
-                                             activity.accuracyPct >= 60 ? '#0284c7' : '#dc2626';
-                        
-                        html += '<div class="activity-item" style="padding: 14px; background: #f0f9f4; border: 2px solid #10b981; border-radius: 8px; margin-bottom: 12px;">';
-                        html += '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">';
-                        html += '<span style="font-size: 20px;">📊</span>';
-                        html += '<div style="font-weight: 700; color: #065f46; font-size: 15px;">';
-                        html += 'Today\'s Scout Accuracy';
-                        html += '</div>';
-                        html += '</div>';
-                        html += '<div style="margin-left: 28px;">';
-                        html += '<div style="font-size: 24px; font-weight: 700; color: ' + accuracyColor + ';">';
-                        html += activity.accuracyPct + '% spot on';
-                        html += '</div>';
-                        html += '<div style="font-size: 12px; color: #6b7280; margin-top: 2px;">';
-                        html += activity.spotOn + ' of ' + activity.total + ' scout' + (activity.total !== 1 ? 's' : '') + ' validated today';
-                        html += '</div>';
-                        html += '</div>';
-                        html += '</div>';
-                        return;
-                    }
-
-                    // NORMAL ITEM: Collection
-                    if (activity.type === 'collection') {
-                        const timeAgo = getTimeAgo(new Date(activity.timestamp));
-
-                        let itemHtml = '<div class="activity-item" style="padding: 12px 0;">';
-                        itemHtml += '<div style="font-weight: 600; color: #1f2937;">🗑️ ' + activity.volunteer + '</div>';
-                        itemHtml += '<div style="font-size: 12px; color: #6b7280; margin-top: 2px;">';
-                        itemHtml += 'collected ' + activity.weight.toFixed(1) + ' lbs';
-                        
-                        if (activity.rating !== null && activity.rating !== undefined) {
-                            itemHtml += ', rated ' + activity.rating + '/10';
-                        }
-                        
-                        if (activity.sqrtCpue) {
-                            itemHtml += ' (√CPUE: ' + activity.sqrtCpue.toFixed(2) + ')';
-                        }
-                        itemHtml += ' — ' + timeAgo + '</div>';
-
-                        const val = activity.validation;
-                        const totalValidated = val.accurate.length + val.close.length + val.off.length;
-
-                        if (totalValidated > 0) {
-                            itemHtml += '<div style="margin-top: 8px; margin-left: 16px; padding: 8px; background: #f9fafb; border-radius: 6px; border-left: 3px solid #2D5F3F;">';
-                            itemHtml += '<div style="font-size: 11px; font-weight: 700; color: #2D5F3F; margin-bottom: 6px;">👀 SCOUT RATINGS VALIDATED 📈</div>';
-
-                            if (val.accurate.length > 0) {
-                                itemHtml += '<div style="font-size: 11px; color: #059669; margin-bottom: 3px;">';
-                                itemHtml += '<strong>Spot on:</strong> ' + val.accurate.join(', ') + '</div>';
-                            }
-                            if (val.close.length > 0) {
-                                itemHtml += '<div style="font-size: 11px; color: #0284c7; margin-bottom: 3px;">';
-                                itemHtml += '<strong>Under:</strong> ' + val.close.join(', ') + '</div>';
-                            }
-                            if (val.off.length > 0) {
-                                itemHtml += '<div style="font-size: 11px; color: #dc2626;">';
-                                itemHtml += '<strong>Over:</strong> ' + val.off.join(', ') + '</div>';
-                            }
-
-                            itemHtml += '</div>';
-                        } else {
-                            itemHtml += '<div style="margin-top: 6px; margin-left: 16px; font-size: 11px; color: #9ca3af; font-style: italic;">No scouts validated</div>';
-                        }
-
-                        itemHtml += '</div>';
-                        html += itemHtml;
-                    }
-                });
-                activityList.innerHTML = html;
-            }
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icon = type === 'success' ? '✓' : type === 'error' ? '✗' : '⚠';
+            toast.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-message">${message}</div>`;
+            container.appendChild(toast);
+            container.classList.add('show');
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    toast.remove();
+                    if (container.children.length === 0) container.classList.remove('show');
+                }, 300);
+            }, 3000);
         }
-    } catch (error) {
-        console.error('Activity feed error:', error);
-        document.getElementById('activityList').innerHTML = '<div style="text-align: center; color: #dc2626; font-size: 13px; padding: 20px;">Failed to load activity</div>';
-    }
-}
-
-// Helper: Format time as "3:45 PM"
-function formatTime(date) {
-    let hours = date.getHours();
-    const minutes = date.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12 || 12;
-    const mins = minutes < 10 ? '0' + minutes : minutes;
-    return hours + ':' + mins + ' ' + ampm;
-}
-
-// Helper: Get elapsed time in readable format
-function getTimeElapsed(sinceDate) {
-    const now = new Date();
-    const elapsed = now - sinceDate;
-    const seconds = Math.floor(elapsed / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    
-    if (hours > 0) {
-        return hours + ' hour' + (hours !== 1 ? 's' : '') + ' ago';
-    } else if (minutes > 0) {
-        return minutes + ' min ago';
-    } else {
-        return 'just now';
-    }
-}
-
-// Existing helper function (keep this)
-function getTimeAgo(date) {
-    const seconds = Math.floor((new Date() - date) / 1000);
-    if (seconds < 60) return 'just now';
-    if (seconds < 3600) return Math.floor(seconds / 60) + ' min ago';
-    if (seconds < 86400) return Math.floor(seconds / 3600) + ' hr ago';
-    if (seconds < 604800) return Math.floor(seconds / 86400) + ' days ago';
-    return Math.floor(seconds / 604800) + ' weeks ago';
-}
-
-        function getTimeAgo(date) {
-            const seconds = Math.floor((new Date() - date) / 1000);
-            if (seconds < 60) return 'just now';
-            if (seconds < 3600) return Math.floor(seconds / 60) + ' min ago';
-            if (seconds < 86400) return Math.floor(seconds / 3600) + ' hr ago';
-            if (seconds < 604800) return Math.floor(seconds / 86400) + ' days ago';
-            return Math.floor(seconds / 604800) + ' weeks ago';
-        }
-
-        // ==========================================
-        // SUN CHECK
-        // ==========================================
-        async function checkSunSchedule() {
-            try {
-                const response = await fetch(APPS_SCRIPT_URL + '?action=sun_check');
-                const result = await response.json();
-
-                if (result.status === 'success') {
-                    sunLocked = result.locked;
-
-                    if (sunLocked) {
-                        document.getElementById('lockoutBanner').classList.remove('hidden');
-                        document.getElementById('lockoutSunrise').textContent = result.tomorrowSunrise;
-                        // Disable outdoor mode buttons
-                        document.getElementById('scoutOnlyBtn').disabled = true;
-                        document.getElementById('collectTrackBtn').disabled = true;
-                    }
-                }
-            } catch (error) {
-                console.error('Sun check error:', error);
-                // Fail open — don't lock out on error
-            }
-        }
-
-        // ==========================================
-        // STATE
-        // ==========================================
-        let sessionState = {
-            sessionId: null,
-            isTracking: false,
-            startTime: null,
-            gpsPoints: [],
-            photos: [],
-            totalDistance: 0,
-            durationTimer: null,
-            gpsTimer: null,
-            activityFeedConsent: false,
-            photoConsent: false,
-            mode: null  // 'scout-only' or 'collection'
-        };
-
-        let bags = [];
-        let bagCounter = 0;
-
-        // ==========================================
-        // RATING DESCRIPTIONS
-        // ==========================================
-        const descriptions = {
-            0: 'Skipped / Pristine',
-            1: 'Very clean, minimal debris',
-            2: 'Clean with occasional items',
-            3: 'Light litter present',
-            4: 'Noticeable litter',
-            5: 'Moderate litter density',
-            6: 'Heavy litter presence',
-            7: 'Very heavy litter',
-            8: 'Severely littered area',
-            9: 'Extreme litter accumulation',
-            10: 'Worst ever seen, like a landfill'
-        };
 
         // ==========================================
         // UTILITIES
         // ==========================================
-        function generateSessionId(prefix) {
-            prefix = prefix || 'session';
-            return prefix + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        }
-
-        function showMessage(text, type) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = text;
-            messageDiv.className = 'message show ' + type;
-            setTimeout(() => messageDiv.classList.remove('show'), 5000);
-        }
-
         function togglePIN(inputId, toggleElement) {
             const input = document.getElementById(inputId);
-            if (input.type === 'password') {
-                input.type = 'text';
-                toggleElement.textContent = '🙈';
-            } else {
-                input.type = 'password';
-                toggleElement.textContent = '👁️';
-            }
+            if (input.type === 'password') { input.type = 'text'; toggleElement.textContent = '🙈'; }
+            else { input.type = 'password'; toggleElement.textContent = '👁️'; }
         }
 
-        function showScreen(screenId) {
-            const screens = ['loginScreen', 'tcScreen', 'volunteerInfoScreen', 'scoutOnlyScreen',
-                             'activeTrackingScreen', 'postTrackingScreen', 'recycleScreen'];
-            screens.forEach(id => document.getElementById(id).classList.add('hidden'));
-            document.getElementById(screenId).classList.remove('hidden');
+        function hideAllScreens() {
+            ['loginScreen', 'mainScreen', 'scoutScreen', 'activeTrackingScreen', 
+             'postTrackingScreen', 'editProfileScreen', 'recycleScreen'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
         }
 
         function formatDuration(seconds) {
@@ -1115,10 +1472,199 @@ function getTimeAgo(date) {
             const R = 3959;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const a = Math.sin(dLat/2)**2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2)**2;
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        function formatTimeShort(date) {
+            let h = date.getHours(), m = date.getMinutes();
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            return `${h}:${m.toString().padStart(2, '0')} ${ampm}`;
+        }
+
+        function formatTimeVague(date) {
+            const now = new Date();
+            const diffHours = (now - date) / (1000 * 60 * 60);
+            if (diffHours < 24) return 'earlier today';
+            if (diffHours < 48) return 'yesterday';
+            return 'this week';
+        }
+
+        // ==========================================
+        // HAMBURGER MENU
+        // ==========================================
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const menuOverlay = document.getElementById('menuOverlay');
+        const slideMenu = document.getElementById('slideMenu');
+
+        function openMenu() { menuOverlay.classList.add('show'); slideMenu.classList.add('show'); }
+        function closeMenu() { menuOverlay.classList.remove('show'); slideMenu.classList.remove('show'); }
+
+        hamburgerBtn.addEventListener('click', openMenu);
+        menuOverlay.addEventListener('click', closeMenu);
+
+        document.getElementById('menuEditProfile').addEventListener('click', () => { closeMenu(); showEditProfile(); });
+        document.getElementById('menuGettingStarted').addEventListener('click', () => { closeMenu(); document.getElementById('gettingStartedModal').classList.add('show'); });
+        document.getElementById('menuWiki').addEventListener('click', () => showToast('CHIMERAwiki coming soon!', 'warning'));
+        document.getElementById('menuFieldTest').addEventListener('click', () => { window.location.href = CONFIG.urls.fieldTestMap; });
+        document.getElementById('menuDemo').addEventListener('click', () => { window.location.href = CONFIG.urls.demoGame; });
+
+        document.getElementById('menuScout').addEventListener('click', () => {
+            if (sunLocked) { showToast('Unavailable after sunset', 'warning'); return; }
+            closeMenu(); showScoutMode();
+        });
+        document.getElementById('menuPin').addEventListener('click', () => showToast('Pin Location coming soon!', 'warning'));
+        document.getElementById('menuTrack').addEventListener('click', () => {
+            if (sunLocked) { showToast('Unavailable after sunset', 'warning'); return; }
+            closeMenu(); startCollection();
+        });
+        document.getElementById('menuRecycle').addEventListener('click', () => { closeMenu(); showRecycleScreen(); });
+        document.getElementById('menuLogout').addEventListener('click', () => { if (confirm('Log out?')) { clearSession(); location.reload(); } });
+
+        // ==========================================
+        // MODALS
+        // ==========================================
+        document.getElementById('closeGettingStarted').addEventListener('click', () => {
+            document.getElementById('gettingStartedModal').classList.remove('show');
+        });
+
+        document.getElementById('safetyLegalAck').addEventListener('change', function() {
+            document.getElementById('acceptSafetyLegal').disabled = !this.checked;
+        });
+
+        document.getElementById('acceptSafetyLegal').addEventListener('click', async () => {
+            currentUser.safetyLegalAccepted = true;
+            currentUser.lastSafetyLegalCheck = new Date().toISOString();
+            saveSession();
+            
+            try {
+                await fetch(CONFIG.appsScriptUrl, {
+                    method: 'POST', headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'updateProfile', userId: currentUser.userId, safetyLegalAccepted: true })
+                });
+            } catch (e) { console.error('Safety save error:', e); }
+            
+            document.getElementById('safetyLegalModal').classList.remove('show');
+            showToast('Safety guidelines acknowledged', 'success');
+            showMainScreen();
+        });
+
+        // ==========================================
+        // ACTIVITY FEED
+        // ==========================================
+        async function loadActivityFeed(isLoggedIn = true) {
+            const scrollId = isLoggedIn ? 'feedScroll' : 'preLoginFeedScroll';
+            const feedScroll = document.getElementById(scrollId);
+            
+            try {
+                const response = await fetch(CONFIG.appsScriptUrl + '?action=getActivityFeed');
+                const result = await response.json();
+                
+                if (result.status !== 'success') {
+                    feedScroll.innerHTML = '<div style="text-align: center; color: #dc2626; padding: 40px;">Failed to load</div>';
+                    return;
+                }
+
+                const data = result.data;
+                let html = '';
+
+                // Sticky: Awaiting Validation
+                if (data.unvalidatedScouts > 0) {
+                    const sinceTime = data.oldestUnvalidated ? new Date(data.oldestUnvalidated) : new Date();
+                    const timeStr = isLoggedIn ? `Since ${formatTimeShort(sinceTime)}` : 'Since earlier today';
+                    html += `<div class="feed-sticky-item">
+                        <div class="feed-sticky-header"><span>⏳</span> ${data.unvalidatedScouts} rating${data.unvalidatedScouts !== 1 ? 's' : ''} awaiting validation</div>
+                        <div class="feed-sticky-detail">${timeStr}</div>
+                    </div>`;
+                }
+
+                // Sticky: Daily Accuracy
+                if (data.dailyAccuracy !== undefined && data.dailyAccuracy !== null) {
+                    html += `<div class="feed-sticky-item accuracy">
+                        <div class="feed-sticky-header"><span>📊</span> Today's Scout Accuracy</div>
+                        <div class="accuracy-value">${data.dailyAccuracy}% spot on</div>
+                        <div class="feed-sticky-detail">${data.validatedToday || 0} of ${data.scoutsToday || 0} scouts validated today</div>
+                    </div>`;
+                }
+
+                // Collection items
+                if (!data.recentActivity || data.recentActivity.length === 0) {
+                    html += '<div style="text-align: center; color: #9ca3af; padding: 40px;">No recent activity</div>';
+                } else {
+                    data.recentActivity.forEach(activity => {
+                        if (activity.type !== 'collection') return;
+
+                        const time = new Date(activity.timestamp);
+                        const timeStr = isLoggedIn ? formatTimeShort(time) : formatTimeVague(time);
+                        const name = isLoggedIn ? activity.volunteer : 'Volunteer';
+                        const district = activity.district ? `<span class="district-badge">[D${activity.district}]</span>` : '';
+
+                        html += `<div class="activity-item">
+                            <div class="activity-header">
+                                <span class="activity-icon">🗑️</span>
+                                <span class="activity-volunteer">${name}</span>
+                                <span class="activity-time">• ${timeStr}</span>
+                                ${district}
+                            </div>
+                            <div class="activity-details">collected ${activity.weight.toFixed(1)} lbs`;
+                        
+                        if (activity.sqrtCpue) html += ` (√CPUE: ${activity.sqrtCpue.toFixed(2)})`;
+                        html += `</div>`;
+
+                        // Validation box
+                        const val = activity.validation || { accurate: [], close: [], off: [] };
+                        const totalValidated = val.accurate.length + val.close.length + val.off.length;
+
+                        if (totalValidated > 0) {
+                            html += `<div class="validation-box">
+                                <div class="validation-header">👀 SCOUT RATINGS VALIDATED</div>`;
+                            
+                            if (isLoggedIn) {
+                                if (val.accurate.length > 0) html += `<div class="validation-line spot-on"><strong>Spot on:</strong> ${val.accurate.join(', ')}</div>`;
+                                if (val.close.length > 0) html += `<div class="validation-line under"><strong>Under:</strong> ${val.close.join(', ')}</div>`;
+                                if (val.off.length > 0) html += `<div class="validation-line over"><strong>Over:</strong> ${val.off.join(', ')}</div>`;
+                            } else {
+                                const parts = [];
+                                if (val.accurate.length > 0) parts.push(`${val.accurate.length} spot on`);
+                                if (val.close.length > 0) parts.push(`${val.close.length} under`);
+                                if (val.off.length > 0) parts.push(`${val.off.length} over`);
+                                html += `<div class="validation-line">${parts.join(', ')}</div>`;
+                            }
+                            html += `</div>`;
+                        } else {
+                            html += `<div class="no-validation">No scouts validated</div>`;
+                        }
+
+                        html += `</div>`;
+                    });
+                }
+
+                feedScroll.innerHTML = html;
+            } catch (error) {
+                console.error('Activity feed error:', error);
+                feedScroll.innerHTML = '<div style="text-align: center; color: #dc2626; padding: 40px;">Failed to load</div>';
+            }
+        }
+
+        // ==========================================
+        // SUN CHECK
+        // ==========================================
+        async function checkSunSchedule() {
+            try {
+                const response = await fetch(CONFIG.appsScriptUrl + '?action=sun_check');
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    sunLocked = result.locked;
+                    if (sunLocked) {
+                        document.getElementById('menuLockoutBanner').classList.add('show');
+                        document.getElementById('menuLockoutSunrise').textContent = result.tomorrowSunrise || '--:--';
+                        document.getElementById('menuScout').classList.add('disabled');
+                        document.getElementById('menuTrack').classList.add('disabled');
+                    }
+                }
+            } catch (error) { console.error('Sun check error:', error); }
         }
 
         // ==========================================
@@ -1137,23 +1683,19 @@ function getTimeAgo(date) {
             document.getElementById('loginForm').classList.add('hidden');
             document.getElementById('createForm').classList.remove('hidden');
         });
-
         document.getElementById('showLoginToggle').addEventListener('click', () => {
             document.getElementById('createForm').classList.add('hidden');
             document.getElementById('loginForm').classList.remove('hidden');
         });
 
-        // PIN format: 2 letters + 2 numbers
         const PIN_REGEX = /^[a-zA-Z]{2}[0-9]{2}$/;
 
-        // Login validation
         loginHandle.addEventListener('input', validateLogin);
         loginPIN.addEventListener('input', validateLogin);
         function validateLogin() {
             loginBtn.disabled = !(loginHandle.value.trim().length >= 2 && PIN_REGEX.test(loginPIN.value.trim()));
         }
 
-        // Create validation
         createHandle.addEventListener('input', validateCreate);
         createPIN.addEventListener('input', validateCreate);
         createOrgSelect.addEventListener('change', function() {
@@ -1165,95 +1707,69 @@ function getTimeAgo(date) {
         function validateCreate() {
             const handleOk = createHandle.value.trim().length >= 2;
             const pinOk = PIN_REGEX.test(createPIN.value.trim());
-            const orgOk = createOrgSelect.value !== '' &&
-                         (createOrgSelect.value !== 'other' || createCustomOrgText.value.trim() !== '');
+            const orgOk = createOrgSelect.value !== '' && (createOrgSelect.value !== 'other' || createCustomOrgText.value.trim() !== '');
             createProfileBtn.disabled = !(handleOk && pinOk && orgOk);
         }
 
-        // Login submit
         loginBtn.addEventListener('click', async function() {
             loginBtn.disabled = true;
             loginBtn.textContent = 'Logging in...';
 
             try {
-                const params = new URLSearchParams({
-                    action: 'login',
-                    handle: loginHandle.value.trim(),
-                    pin: loginPIN.value.trim().toLowerCase()
+                const response = await fetch(CONFIG.appsScriptUrl, {
+                    method: 'POST', headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'login', handle: loginHandle.value.trim(), pin: loginPIN.value.trim().toLowerCase() })
                 });
-                const response = await fetch(APPS_SCRIPT_URL + '?' + params.toString());
                 const result = await response.json();
 
                 if (result.status === 'success') {
                     currentUser = {
-                        userId: result.userId,
-                        handle: result.handle,
-                        organization: result.organization,
-                        addressType: result.addressType || 'Home',
-                        streetAddress: result.streetAddress || '',
-                        neighborhood: result.neighborhood || '',
-                        zipCode: result.zipCode || '',
-                        addressId: result.addressId || '',
-                        tcAccepted: result.tcAccepted
+                        userId: result.userId, handle: result.handle, organization: result.organization,
+                        addresses: result.addresses || [],
+                        safetyLegalAccepted: result.safetyLegalAccepted || false,
+                        lastSafetyLegalCheck: result.lastSafetyLegalCheck || null
                     };
                     saveSession();
                     enterApp();
                 } else {
-                    showMessage(result.message || 'Login failed', 'error');
+                    showToast(result.message || 'Login failed', 'error');
                 }
             } catch (error) {
                 console.error('Login error:', error);
-                showMessage('Connection error. Please try again.', 'error');
+                showToast('Connection error', 'error');
             }
 
             loginBtn.disabled = false;
             loginBtn.textContent = 'Log In';
         });
 
-        // Create profile submit
         createProfileBtn.addEventListener('click', async function() {
             createProfileBtn.disabled = true;
             createProfileBtn.textContent = 'Creating...';
 
-            const org = createOrgSelect.value === 'other'
-                ? createCustomOrgText.value.trim()
-                : createOrgSelect.value;
+            const org = createOrgSelect.value === 'other' ? createCustomOrgText.value.trim() : createOrgSelect.value;
 
             try {
-                const params = new URLSearchParams({
-                    action: 'create_profile',
-                    handle: createHandle.value.trim(),
-                    pin: createPIN.value.trim().toLowerCase(),
-                    organization: org,
-                    streetAddress: document.getElementById('createStreet').value.trim(),
-                    neighborhood: document.getElementById('createNeighborhood').value.trim(),
-                    zipCode: document.getElementById('createZip').value.trim()
+                const response = await fetch(CONFIG.appsScriptUrl, {
+                    method: 'POST', headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'createProfile', handle: createHandle.value.trim(), pin: createPIN.value.trim().toLowerCase(), organization: org })
                 });
-                const response = await fetch(APPS_SCRIPT_URL + '?' + params.toString());
                 const result = await response.json();
 
                 if (result.status === 'success') {
                     currentUser = {
-                        userId: result.userId,
-                        handle: result.handle,
-                        organization: org,
-                        addressType: 'Home',
-                        streetAddress: document.getElementById('createStreet').value.trim(),
-                        neighborhood: document.getElementById('createNeighborhood').value.trim(),
-                        zipCode: document.getElementById('createZip').value.trim(),
-                        addressId: result.addressId || '',
-                        tcAccepted: false,
-                        tempPIN: createPIN.value.trim().toLowerCase() // Store for T&C verification
+                        userId: result.userId, handle: result.handle, organization: org,
+                        addresses: [], safetyLegalAccepted: false, lastSafetyLegalCheck: null
                     };
                     saveSession();
-                    showMessage('✓ Profile created!', 'success');
+                    showToast('Profile created!', 'success');
                     enterApp();
                 } else {
-                    showMessage(result.message || 'Creation failed', 'error');
+                    showToast(result.message || 'Creation failed', 'error');
                 }
             } catch (error) {
-                console.error('Create profile error:', error);
-                showMessage('Connection error. Please try again.', 'error');
+                console.error('Create error:', error);
+                showToast('Connection error', 'error');
             }
 
             createProfileBtn.disabled = false;
@@ -1261,448 +1777,247 @@ function getTimeAgo(date) {
         });
 
         // ==========================================
-        // PROFILE EDIT
-        // ==========================================
-        const profileEditToggle = document.getElementById('profileEditToggle');
-        const profileEditPane = document.getElementById('profileEditPane');
-        const editAddressType = document.getElementById('editAddressType');
-        const editStreet = document.getElementById('editStreet');
-        const editNeighborhood = document.getElementById('editNeighborhood');
-        const editZip = document.getElementById('editZip');
-        const editOrgSelect = document.getElementById('editOrgSelect');
-        const editCustomOrgText = document.getElementById('editCustomOrgText');
-        const editPIN = document.getElementById('editPIN');
-        const saveProfileBtn = document.getElementById('saveProfileBtn');
-        const cancelEditBtn = document.getElementById('cancelEditBtn');
-
-        profileEditToggle.addEventListener('click', () => {
-            profileEditPane.classList.toggle('show');
-            if (profileEditPane.classList.contains('show')) {
-                // Populate current values
-                editAddressType.value = currentUser.addressType || 'Home';
-                editStreet.value = currentUser.streetAddress || '';
-                editNeighborhood.value = currentUser.neighborhood || '';
-                editZip.value = currentUser.zipCode || '';
-                if (currentUser.organization === 'Baled It!' || 
-                    currentUser.organization === 'Help A Brother Out Foundation' || 
-                    currentUser.organization === 'West Montgomery Action Committee') {
-                    editOrgSelect.value = currentUser.organization;
-                    document.getElementById('editCustomOrg').classList.remove('show');
-                } else {
-                    editOrgSelect.value = 'other';
-                    editCustomOrgText.value = currentUser.organization || '';
-                    document.getElementById('editCustomOrg').classList.add('show');
-                }
-                editPIN.value = '';
-            }
-        });
-
-        editOrgSelect.addEventListener('change', () => {
-            document.getElementById('editCustomOrg').classList.toggle('show', editOrgSelect.value === 'other');
-        });
-
-        cancelEditBtn.addEventListener('click', () => {
-            profileEditPane.classList.remove('show');
-            editPIN.value = '';
-        });
-
-        saveProfileBtn.addEventListener('click', async function() {
-            saveProfileBtn.disabled = true;
-            saveProfileBtn.textContent = 'Saving...';
-
-            const org = editOrgSelect.value === 'other'
-                ? editCustomOrgText.value.trim()
-                : editOrgSelect.value;
-
-            try {
-                // Update address if addressId exists
-                if (currentUser.addressId) {
-                    const addressData = {
-                        action: 'update_address',
-                        addressId: currentUser.addressId,
-                        addressType: editAddressType.value,
-                        streetAddress: editStreet.value.trim(),
-                        neighborhood: editNeighborhood.value.trim(),
-                        zipCode: editZip.value.trim()
-                    };
-
-                    await fetch(APPS_SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(addressData)
-                    });
-
-                    // Update local currentUser object
-                    currentUser.addressType = editAddressType.value;
-                    currentUser.streetAddress = editStreet.value.trim();
-                    currentUser.neighborhood = editNeighborhood.value.trim();
-                    currentUser.zipCode = editZip.value.trim();
-                }
-
-                // Update profile (organization and/or PIN)
-                const profileUpdates = {
-                    action: 'update_profile',
-                    userId: currentUser.userId,
-                    organization: org
-                };
-
-                // Only include newPin if user entered one
-                if (editPIN.value.trim()) {
-                    const pin = editPIN.value.trim().toLowerCase();
-                    if (!/^[a-zA-Z]{2}[0-9]{2}$/.test(pin)) {
-                        showMessage('PIN must be 2 letters + 2 numbers (e.g. jb07)', 'error');
-                        saveProfileBtn.disabled = false;
-                        saveProfileBtn.textContent = 'Save Changes';
-                        return;
-                    }
-                    profileUpdates.newPin = pin;
-                }
-
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(profileUpdates)
-                });
-
-                currentUser.organization = org;
-                
-                saveSession();
-                document.getElementById('displayOrg').textContent = org || '—';
-                
-                showMessage('✓ Profile updated!', 'success');
-                profileEditPane.classList.remove('show');
-                editPIN.value = '';
-            } catch (error) {
-                console.error('Profile update error:', error);
-                showMessage('Update failed. Please try again.', 'error');
-            }
-
-            saveProfileBtn.disabled = false;
-            saveProfileBtn.textContent = 'Save Changes';
-        });
-
-        // ==========================================
-        // T&C SCREEN
-        // ==========================================
-        const tcPIN = document.getElementById('tcPIN');
-        const tcContinueBtn = document.getElementById('tcContinueBtn');
-
-        tcPIN.addEventListener('input', () => {
-            const pinValue = tcPIN.value.trim().toLowerCase();
-            tcContinueBtn.disabled = pinValue.length !== 4 || !/^[a-z]{2}[0-9]{2}$/.test(pinValue);
-        });
-
-        tcContinueBtn.addEventListener('click', async function() {
-            const enteredPIN = tcPIN.value.trim().toLowerCase();
-            
-            // Verify PIN matches (it was stored temporarily in currentUser during profile creation)
-            if (enteredPIN !== currentUser.tempPIN) {
-                showMessage('Incorrect PIN. Please try again.', 'error');
-                return;
-            }
-
-            tcContinueBtn.disabled = true;
-            tcContinueBtn.textContent = 'Saving...';
-
-            try {
-                const params = new URLSearchParams({
-                    action: 'accept_tc',
-                    userId: currentUser.userId
-                });
-                await fetch(APPS_SCRIPT_URL + '?' + params.toString());
-            } catch (e) { /* best effort */ }
-
-            currentUser.tcAccepted = true;
-            delete currentUser.tempPIN; // Remove temporary PIN
-            saveSession();
-            showMainScreen();
-
-            tcContinueBtn.disabled = false;
-            tcContinueBtn.textContent = 'Accept & Continue';
-            tcPIN.value = '';
-        });
-
-        // ==========================================
-        // APP ENTRY LOGIC
+        // APP ENTRY
         // ==========================================
         function enterApp() {
-            if (!currentUser.tcAccepted) {
-                showScreen('tcScreen');
+            const needsCheck = !currentUser.safetyLegalAccepted || !currentUser.lastSafetyLegalCheck ||
+                              (new Date() - new Date(currentUser.lastSafetyLegalCheck)) > 7 * 24 * 60 * 60 * 1000;
+            
+            if (needsCheck) {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('safetyLegalModal').classList.add('show');
             } else {
                 showMainScreen();
             }
         }
 
-        async function showMainScreen() {
-            document.getElementById('displayHandle').textContent = currentUser.handle;
-            document.getElementById('displayOrg').textContent = currentUser.organization || '—';
-
-            showScreen('volunteerInfoScreen');
-            loadActivityFeed();
-            await checkSunSchedule();
+        function showMainScreen() {
+            hideAllScreens();
+            document.getElementById('mainScreen').classList.remove('hidden');
+            document.getElementById('menuUsername').textContent = currentUser.handle;
+            document.getElementById('hamburgerBtn').classList.remove('hidden');
+            
+            loadActivityFeed(true);
+            checkSunSchedule();
         }
 
-        // Logout
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            clearSession();
-            location.reload();
-        });
-
         // ==========================================
-        // SAFETY + MODE BUTTONS
+        // SCOUT MODE (Single Capture)
         // ==========================================
-        const safetyAcknowledge = document.getElementById('safetyAcknowledge');
-        const scoutOnlyBtn = document.getElementById('scoutOnlyBtn');
-        const collectTrackBtn = document.getElementById('collectTrackBtn');
-        const recycleBtn = document.getElementById('recycleBtn');
+        function showScoutMode() {
+            hideAllScreens();
+            document.getElementById('scoutScreen').classList.remove('hidden');
+            
+            // Reset
+            sessionState = { sessionId: 'scout_' + Date.now(), gpsPoints: [], ratingTouched: false, mode: 'scout-only' };
+            document.getElementById('scoutRatingSlider').value = 5;
+            document.getElementById('scoutRatingSlider').classList.add('untouched');
+            document.getElementById('scoutRatingValue').textContent = '—';
+            document.getElementById('scoutRatingValue').classList.add('untouched');
+            document.getElementById('scoutRatingDesc').textContent = 'Tap the slider to rate';
+            document.getElementById('scoutNotes').value = '';
+            document.getElementById('scoutNotesCount').textContent = '0';
+            document.getElementById('scoutGPSStatus').textContent = 'Capturing...';
+            document.getElementById('scoutGPSStatus').style.color = '#1f2937';
+            document.querySelectorAll('input[name="scoutFeed"]').forEach(r => r.checked = false);
+            document.getElementById('submitScoutBtn').disabled = true;
 
-        safetyAcknowledge.addEventListener('change', function() {
-            if (!sunLocked) {
-                scoutOnlyBtn.disabled = !this.checked;
-                collectTrackBtn.disabled = !this.checked;
+            // Capture GPS once
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        sessionState.gpsPoints = [{ lat: pos.coords.latitude, lon: pos.coords.longitude, timestamp: new Date().toISOString() }];
+                        document.getElementById('scoutGPSStatus').textContent = 'Captured ✓';
+                        document.getElementById('scoutGPSStatus').style.color = '#10b981';
+                    },
+                    (err) => {
+                        console.error('GPS error:', err);
+                        document.getElementById('scoutGPSStatus').textContent = 'Error';
+                        document.getElementById('scoutGPSStatus').style.color = '#dc2626';
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
             }
-        });
-
-        // ==========================================
-        // SCOUT ONLY FLOW
-        // ==========================================
-        scoutOnlyBtn.addEventListener('click', function() {
-            sessionState.sessionId = generateSessionId();
-            sessionState.mode = 'scout-only';
-            sessionState.startTime = Date.now();
-            sessionState.gpsPoints = [];
-            sessionState.photos = [];
-            showScreen('scoutOnlyScreen');
-            captureScoutOnlyGPS();
-        });
-
-        function captureScoutOnlyGPS() {
-            if (!navigator.geolocation) {
-                showMessage('GPS not supported', 'error');
-                document.getElementById('scoutLocationStatus').textContent = 'Not Available';
-                document.getElementById('scoutLocationStatus').style.color = '#dc2626';
-                return;
-            }
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    sessionState.gpsPoints.push({
-                        timestamp: new Date().toISOString(),
-                        lat: pos.coords.latitude,
-                        lon: pos.coords.longitude
-                    });
-                    document.getElementById('scoutLocationStatus').textContent = 'Captured';
-                    document.getElementById('scoutLocationStatus').style.color = '#10b981';
-                },
-                (err) => {
-                    console.error('GPS error:', err);
-                    document.getElementById('scoutLocationStatus').textContent = 'Error';
-                    document.getElementById('scoutLocationStatus').style.color = '#dc2626';
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
         }
 
-        document.getElementById('scoutOnlyRating').addEventListener('input', function() {
-            document.getElementById('scoutOnlyRatingValue').textContent = this.value;
-            document.getElementById('scoutOnlyRatingDescription').textContent = descriptions[this.value];
+        document.getElementById('scoutRatingSlider').addEventListener('input', function() {
+            sessionState.ratingTouched = true;
+            this.classList.remove('untouched');
+            document.getElementById('scoutRatingValue').textContent = this.value;
+            document.getElementById('scoutRatingValue').classList.remove('untouched');
+            document.getElementById('scoutRatingDesc').textContent = ratingDescriptions[this.value];
+            validateScoutSubmit();
         });
 
-        document.getElementById('scoutOnlyNotes').addEventListener('input', function() {
-            document.getElementById('scoutOnlyNotesCounter').textContent = this.value.length;
+        document.getElementById('scoutNotes').addEventListener('input', function() {
+            document.getElementById('scoutNotesCount').textContent = this.value.length;
         });
 
-        document.querySelectorAll('input[name="scoutOnlyActivityFeed"]').forEach(radio => {
-            radio.addEventListener('change', () => {
-                document.getElementById('submitScoutOnlyBtn').disabled = false;
-            });
-        });
+        document.querySelectorAll('input[name="scoutFeed"]').forEach(r => r.addEventListener('change', validateScoutSubmit));
 
-        document.getElementById('submitScoutOnlyBtn').addEventListener('click', async function() {
+        function validateScoutSubmit() {
+            const consentOk = document.querySelector('input[name="scoutFeed"]:checked');
+            document.getElementById('submitScoutBtn').disabled = !consentOk;
+        }
+
+        document.getElementById('submitScoutBtn').addEventListener('click', async function() {
+            if (sessionState.gpsPoints.length === 0) { showToast('No GPS captured', 'error'); return; }
+
             this.disabled = true;
             this.textContent = 'Submitting...';
 
-            // V5.3 format
-            const rating = parseInt(document.getElementById('scoutOnlyRating').value);
-
-            const data = {
-                mode: 'scout-only',
-                sessionId: sessionState.sessionId,
-                userId: currentUser.userId,
-                volunteerName: currentUser.handle,
-                organization: currentUser.organization,
-                gpsPoints: sessionState.gpsPoints,
-                photos: [],
-                duration: 0,
-                distance: 0,
-                photoCount: 0,
-                litterRating: rating > 0 ? rating : null,  // V5.3: nullable
-                notes: document.getElementById('scoutOnlyNotes').value.trim() || '',
-                weight: 0,
-                bagCount: 0,
-                activityFeedConsent: document.querySelector('input[name="scoutOnlyActivityFeed"]:checked').value === 'yes',
-                photoConsent: false
-            };
+            const rating = sessionState.ratingTouched ? parseInt(document.getElementById('scoutRatingSlider').value) : null;
 
             try {
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST', mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
+                const response = await fetch(CONFIG.appsScriptUrl, {
+                    method: 'POST', headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'submitSession', mode: 'scout-only', sessionId: sessionState.sessionId,
+                        userId: currentUser.userId, volunteerName: currentUser.handle, organization: currentUser.organization,
+                        gpsPoints: sessionState.gpsPoints,
+                        startLat: sessionState.gpsPoints[0].lat, startLon: sessionState.gpsPoints[0].lon,
+                        endLat: sessionState.gpsPoints[0].lat, endLon: sessionState.gpsPoints[0].lon,
+                        rating: rating, notes: document.getElementById('scoutNotes').value.trim(),
+                        activityFeedConsent: document.querySelector('input[name="scoutFeed"]:checked').value === 'yes',
+                        timestamp: new Date().toISOString()
+                    })
                 });
-                showMessage('✓ Scout report submitted!', 'success');
-                setTimeout(() => { resetSession(); showMainScreen(); }, 2000);
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    showToast('Scout submitted!', 'success');
+                    setTimeout(() => showMainScreen(), 1500);
+                } else {
+                    showToast(result.message || 'Submission failed', 'error');
+                }
             } catch (error) {
-                showMessage('Submission failed. Please try again.', 'error');
-                this.disabled = false;
-                this.textContent = 'Submit Scout Report';
+                console.error('Submit error:', error);
+                showToast('Connection error', 'error');
             }
+
+            this.disabled = false;
+            this.textContent = 'Submit Scout Report';
         });
 
-        document.getElementById('cancelScoutOnlyBtn').addEventListener('click', function() {
-            if (confirm('Discard scout data?')) { resetSession(); showMainScreen(); }
+        document.getElementById('cancelScoutBtn').addEventListener('click', () => {
+            if (confirm('Cancel scout?')) showMainScreen();
         });
 
         // ==========================================
-        // COLLECTION TRACKING FLOW
+        // COLLECTION TRACKING
         // ==========================================
-        collectTrackBtn.addEventListener('click', function() {
-            sessionState.sessionId = generateSessionId();
-            sessionState.mode = 'collection';  // V5.3: store mode
-            sessionState.isTracking = true;
-            sessionState.startTime = Date.now();
-            sessionState.gpsPoints = [];
-            sessionState.photos = [];
-            sessionState.totalDistance = 0;
+        function startCollection() {
+            hideAllScreens();
+            document.getElementById('activeTrackingScreen').classList.remove('hidden');
 
+            sessionState = {
+                sessionId: 'collection_' + Date.now(), isTracking: true, startTime: Date.now(),
+                gpsPoints: [], photos: [], totalDistance: 0, mode: 'collection', ratingTouched: false
+            };
+
+            // Start GPS tracking
             captureGPSPoint();
-            sessionState.gpsTimer = setInterval(captureGPSPoint, GPS_INTERVAL);
-            sessionState.durationTimer = setInterval(updateDuration, 1000);
+            sessionState.gpsTimer = setInterval(captureGPSPoint, CONFIG.gpsInterval);
+            sessionState.durationTimer = setInterval(updateTrackingDisplay, 1000);
 
-            showScreen('activeTrackingScreen');
-            showMessage('Tracking started! GPS capturing every 10 seconds.', 'success');
-        });
+            showToast('Tracking started!', 'success');
+        }
 
         function captureGPSPoint() {
-            if (!navigator.geolocation) return;
+            if (!navigator.geolocation || !sessionState.isTracking) return;
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
-                    const point = {
-                        timestamp: new Date().toISOString(),
-                        lat: pos.coords.latitude,
-                        lon: pos.coords.longitude
-                    };
+                    const point = { lat: pos.coords.latitude, lon: pos.coords.longitude, timestamp: new Date().toISOString() };
                     if (sessionState.gpsPoints.length > 0) {
                         const last = sessionState.gpsPoints[sessionState.gpsPoints.length - 1];
                         sessionState.totalDistance += calculateDistance(last.lat, last.lon, point.lat, point.lon);
-                        document.getElementById('distanceDisplay').textContent = sessionState.totalDistance.toFixed(2) + ' mi';
                     }
                     sessionState.gpsPoints.push(point);
+                    document.getElementById('trackingDistance').textContent = sessionState.totalDistance.toFixed(2) + ' mi';
                 },
                 (err) => console.error('GPS error:', err),
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         }
 
-        function updateDuration() {
+        function updateTrackingDisplay() {
             if (!sessionState.isTracking) return;
             const elapsed = Math.floor((Date.now() - sessionState.startTime) / 1000);
-            document.getElementById('durationDisplay').textContent = formatDuration(elapsed);
+            document.getElementById('trackingDuration').textContent = formatDuration(elapsed);
         }
 
-        document.getElementById('stopTrackingBtn').addEventListener('click', function() {
-            sessionState.isTracking = false;
-            clearInterval(sessionState.gpsTimer);
-            clearInterval(sessionState.durationTimer);
-            captureGPSPoint();
-
-            const totalSeconds = Math.floor((Date.now() - sessionState.startTime) / 1000);
-            document.getElementById('finalDuration').textContent = formatDuration(totalSeconds);
-            document.getElementById('finalDistance').textContent = sessionState.totalDistance.toFixed(2) + ' mi';
-
-            // V5.3: Show mode indicator
-            document.getElementById('postModeIndicator').textContent = 
-                sessionState.mode === 'scout-only' ? 'Scout-Only' : 'Collection';
-
-            document.getElementById('photoConsentQuestion').style.display =
-                sessionState.photos.length > 0 ? 'block' : 'none';
-
-            // V5.3: Always add at least one bag for collection mode
-            if (sessionState.mode === 'collection' && bags.length === 0) {
-                addBag();
-            }
-
-            showScreen('postTrackingScreen');
-        });
-
-        // Photo capture
-        document.getElementById('photoInput').addEventListener('change', function(e) {
+        document.getElementById('trackingPhotoInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
             navigator.geolocation.getCurrentPosition((pos) => {
                 const reader = new FileReader();
-                reader.onload = function(event) {
-                    sessionState.photos.push({
-                        timestamp: new Date().toISOString(),
-                        lat: pos.coords.latitude,
-                        lon: pos.coords.longitude,
-                        data: event.target.result
-                    });
-                    document.getElementById('photoCount').textContent =
-                        sessionState.photos.length + ' photo' + (sessionState.photos.length !== 1 ? 's' : '') + ' captured';
-                    showMessage('Photo captured!', 'success');
+                reader.onload = (event) => {
+                    sessionState.photos.push({ timestamp: new Date().toISOString(), lat: pos.coords.latitude, lon: pos.coords.longitude, data: event.target.result });
+                    document.getElementById('trackingPhotoCount').textContent = sessionState.photos.length + ' photo' + (sessionState.photos.length !== 1 ? 's' : '') + ' captured';
+                    showToast('Photo captured!', 'success');
                 };
                 reader.readAsDataURL(file);
             });
             this.value = '';
         });
 
-        // V5.3: Skip rating button
-        document.getElementById('skipRatingBtn').addEventListener('click', function() {
-            const slider = document.getElementById('litterRating');
-            const value = document.getElementById('ratingValue');
-            const desc = document.getElementById('ratingDescription');
-            
-            slider.value = 0;
-            slider.classList.add('skipped');
-            value.textContent = 'Skipped';
-            value.classList.add('skipped');
-            desc.textContent = descriptions[0];
+        document.getElementById('stopTrackingBtn').addEventListener('click', function() {
+            sessionState.isTracking = false;
+            clearInterval(sessionState.gpsTimer);
+            clearInterval(sessionState.durationTimer);
+            captureGPSPoint();
+            showPostTrackingScreen();
         });
 
-        // V5.3: Rating slider
-        document.getElementById('litterRating').addEventListener('input', function() {
-            const value = document.getElementById('ratingValue');
-            const desc = document.getElementById('ratingDescription');
+        function showPostTrackingScreen() {
+            hideAllScreens();
+            document.getElementById('postTrackingScreen').classList.remove('hidden');
+
+            const totalSeconds = Math.floor((Date.now() - sessionState.startTime) / 1000);
+            document.getElementById('finalDuration').textContent = formatDuration(totalSeconds);
+            document.getElementById('finalDistance').textContent = sessionState.totalDistance.toFixed(2) + ' mi';
+
+            // Reset form
+            document.getElementById('postRatingSlider').value = 5;
+            document.getElementById('postRatingSlider').classList.add('untouched');
+            document.getElementById('postRatingValue').textContent = '—';
+            document.getElementById('postRatingValue').classList.add('untouched');
+            document.getElementById('postRatingDesc').textContent = 'Tap the slider to rate';
+            document.getElementById('postNotes').value = '';
+            document.getElementById('postNotesCount').textContent = '0';
+            document.getElementById('bagsContainer').innerHTML = '';
+            bags = []; bagCounter = 0;
+            addBag(); // Start with one bag
+
+            document.querySelectorAll('input[name="postFeed"]').forEach(r => r.checked = false);
+            document.querySelectorAll('input[name="photoConsent"]').forEach(r => r.checked = false);
             
-            // Un-skip if user moves slider
-            this.classList.remove('skipped');
-            value.classList.remove('skipped');
-            
-            value.textContent = this.value;
-            desc.textContent = descriptions[this.value];
-        });
+            if (sessionState.photos.length > 0) {
+                document.getElementById('photoConsentQuestion').classList.remove('hidden');
+            } else {
+                document.getElementById('photoConsentQuestion').classList.add('hidden');
+            }
 
-        document.getElementById('scoutNotes').addEventListener('input', function() {
-            document.getElementById('notesCounter').textContent = this.value.length;
-        });
-
-        // V5.3: Consent validation
-        document.querySelectorAll('input[name="activityFeed"]').forEach(r => r.addEventListener('change', validatePostTrackingSubmit));
-        document.querySelectorAll('input[name="photoConsent"]').forEach(r => r.addEventListener('change', validatePostTrackingSubmit));
-
-        function validatePostTrackingSubmit() {
-            const activityFeedOk = document.querySelector('input[name="activityFeed"]:checked');
-            const photoConsentOk = sessionState.photos.length > 0
-                ? document.querySelector('input[name="photoConsent"]:checked') : true;
-            document.getElementById('submitBtn').disabled = !(activityFeedOk && photoConsentOk);
+            document.getElementById('submitCollectionBtn').disabled = true;
         }
+
+        document.getElementById('postRatingSlider').addEventListener('input', function() {
+            sessionState.ratingTouched = true;
+            this.classList.remove('untouched');
+            document.getElementById('postRatingValue').textContent = this.value;
+            document.getElementById('postRatingValue').classList.remove('untouched');
+            document.getElementById('postRatingDesc').textContent = ratingDescriptions[this.value];
+        });
+
+        document.getElementById('postNotes').addEventListener('input', function() {
+            document.getElementById('postNotesCount').textContent = this.value.length;
+        });
 
         // Bag management
         function addBag() {
             bagCounter++;
             const bagId = 'bag_' + bagCounter;
+            bags.push(bagId);
             const bagDiv = document.createElement('div');
             bagDiv.className = 'bag-entry';
             bagDiv.id = bagId;
@@ -1711,257 +2026,336 @@ function getTimeAgo(date) {
                     <span class="bag-number">Bag ${bagCounter}</span>
                     <span class="remove-bag" onclick="removeBag('${bagId}')">Remove</span>
                 </div>
-                <input type="number" class="bag-input" placeholder="Weight in lbs" step="0.1" min="0">
+                <input type="number" class="form-input" placeholder="Weight (lbs)" step="0.1" min="0">
             `;
             document.getElementById('bagsContainer').appendChild(bagDiv);
-            bags.push(bagId);
         }
 
-        function removeBag(bagId) {
-            document.getElementById(bagId).remove();
+        window.removeBag = function(bagId) {
+            document.getElementById(bagId)?.remove();
             bags = bags.filter(id => id !== bagId);
-        }
+        };
 
         document.getElementById('addBagBtn').addEventListener('click', addBag);
 
-        // V5.3: Submit post-tracking
-        document.getElementById('submitBtn').addEventListener('click', async function() {
-            this.disabled = true;
-            this.textContent = 'Submitting...';
+        document.querySelectorAll('input[name="postFeed"]').forEach(r => r.addEventListener('change', validateCollectionSubmit));
+        document.querySelectorAll('input[name="photoConsent"]').forEach(r => r.addEventListener('change', validateCollectionSubmit));
 
-            // Collect bag weights
-            const bagData = [];
-            document.getElementById('bagsContainer').querySelectorAll('.bag-input').forEach(input => {
-                const w = parseFloat(input.value) || 0;
-                if (w > 0) bagData.push(w);
-            });
-
-            const totalSeconds = Math.floor((Date.now() - sessionState.startTime) / 1000);
-            const activityFeedConsent = document.querySelector('input[name="activityFeed"]:checked').value === 'yes';
-            const photoConsent = sessionState.photos.length > 0
-                ? document.querySelector('input[name="photoConsent"]:checked').value === 'yes' : false;
-
-            const rating = parseInt(document.getElementById('litterRating').value);
-
-            // V5.3 format
-            const data = {
-                mode: sessionState.mode,
-                sessionId: sessionState.sessionId,
-                userId: currentUser.userId,
-                volunteerName: currentUser.handle,
-                organization: currentUser.organization,
-                gpsPoints: sessionState.gpsPoints,
-                photos: sessionState.photos,
-                duration: totalSeconds,
-                distance: sessionState.totalDistance,
-                photoCount: sessionState.photos.length,
-                litterRating: rating > 0 ? rating : null,  // V5.3: nullable
-                notes: document.getElementById('scoutNotes').value.trim() || '',
-                weight: bagData.reduce((sum, w) => sum + w, 0),
-                bagCount: bagData.length,
-                activityFeedConsent: activityFeedConsent,
-                photoConsent: photoConsent
-            };
-
-            try {
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST', mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                showMessage('✓ Report submitted!', 'success');
-                setTimeout(() => { resetSession(); showMainScreen(); }, 2000);
-            } catch (error) {
-                showMessage('Submission failed. Please try again.', 'error');
-                this.disabled = false;
-                this.textContent = 'Submit Report';
-            }
-        });
-
-        document.getElementById('cancelBtn').addEventListener('click', function() {
-            if (confirm('Discard tracking data?')) { resetSession(); showMainScreen(); }
-        });
-
-        // ==========================================
-        // HOUSEHOLD RECYCLING FLOW
-        // ==========================================
-        recycleBtn.addEventListener('click', function() {
-            showScreen('recycleScreen');
-        });
-
-        // HR info dropdown toggle
-        document.getElementById('hrInfoToggle').addEventListener('click', () => {
-            document.getElementById('hrInfoPane').classList.toggle('show');
-        });
-
-        // Dropoff locations dropdown toggle
-        document.getElementById('dropoffToggle').addEventListener('click', () => {
-            document.getElementById('dropoffPane').classList.toggle('show');
-        });
-
-        // HR material type - show/hide description field
-        document.getElementById('hrMaterialType').addEventListener('change', function() {
-            const needsDescription = this.value === 'Mixed' || this.value === 'Other';
-            document.getElementById('hrDescriptionWrap').style.display = needsDescription ? 'block' : 'none';
-            if (!needsDescription) {
-                document.getElementById('hrDescription').value = '';
-            }
-            validateHR();
-        });
-
-        // HR destination "Other" toggle
-        document.getElementById('hrDestination').addEventListener('change', function() {
-            document.getElementById('hrDestOtherWrap').classList.toggle('show', this.value === 'Other');
-            validateHR();
-        });
-
-        // HR validation
-        ['hrMaterialType', 'hrDescription', 'hrWeight', 'hrDateBagged', 'hrDestination'].forEach(id => {
-            document.getElementById(id).addEventListener('input', validateHR);
-            document.getElementById(id).addEventListener('change', validateHR);
-        });
-
-        function validateHR() {
-            const materialType = document.getElementById('hrMaterialType').value;
-            const materialOk = materialType !== '';
-            
-            // Check if description is required and filled
-            const needsDescription = materialType === 'Mixed' || materialType === 'Other';
-            const descriptionOk = !needsDescription || document.getElementById('hrDescription').value.trim() !== '';
-            
-            const weightOk = parseFloat(document.getElementById('hrWeight').value) > 0;
-            const dateOk = document.getElementById('hrDateBagged').value !== '';
-            const destOk = document.getElementById('hrDestination').value !== '';
-            
-            document.getElementById('submitHRBtn').disabled = !(materialOk && descriptionOk && weightOk && dateOk && destOk);
+        function validateCollectionSubmit() {
+            const feedOk = document.querySelector('input[name="postFeed"]:checked');
+            const photoOk = sessionState.photos.length === 0 || document.querySelector('input[name="photoConsent"]:checked');
+            document.getElementById('submitCollectionBtn').disabled = !(feedOk && photoOk);
         }
 
-        document.getElementById('submitHRBtn').addEventListener('click', async function() {
+        document.getElementById('submitCollectionBtn').addEventListener('click', async function() {
             this.disabled = true;
             this.textContent = 'Submitting...';
 
-            const materialType = document.getElementById('hrMaterialType').value;
-            let materialDescription = materialType;
-            
-            // Append description for Mixed/Other
-            if (materialType === 'Mixed' || materialType === 'Other') {
-                const desc = document.getElementById('hrDescription').value.trim();
-                materialDescription = materialType + ': ' + desc;
+            const bagWeights = [];
+            document.querySelectorAll('#bagsContainer .form-input').forEach(input => {
+                const w = parseFloat(input.value) || 0;
+                if (w > 0) bagWeights.push(w);
+            });
+            const totalWeight = bagWeights.reduce((sum, w) => sum + w, 0);
+
+            if (totalWeight === 0) {
+                showToast('Enter at least one bag weight', 'error');
+                this.disabled = false;
+                this.textContent = 'Submit Report';
+                return;
             }
 
-            const data = {
-                action: 'submit_household',
-                userId: currentUser.userId,
-                addressId: currentUser.addressId || '',
-                materialType: materialDescription,
-                weightLbs: parseFloat(document.getElementById('hrWeight').value) || 0,
-                dateBagged: document.getElementById('hrDateBagged').value,
-                destination: document.getElementById('hrDestination').value,
-                destinationOther: document.getElementById('hrDestOther').value.trim()
-            };
+            const rating = sessionState.ratingTouched ? parseInt(document.getElementById('postRatingSlider').value) : null;
+            const duration = Math.floor((Date.now() - sessionState.startTime) / 1000);
 
             try {
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST', mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
+                const response = await fetch(CONFIG.appsScriptUrl, {
+                    method: 'POST', headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'submitSession', mode: 'collection', sessionId: sessionState.sessionId,
+                        userId: currentUser.userId, volunteerName: currentUser.handle, organization: currentUser.organization,
+                        gpsPoints: sessionState.gpsPoints,
+                        startLat: sessionState.gpsPoints[0]?.lat, startLon: sessionState.gpsPoints[0]?.lon,
+                        endLat: sessionState.gpsPoints[sessionState.gpsPoints.length - 1]?.lat,
+                        endLon: sessionState.gpsPoints[sessionState.gpsPoints.length - 1]?.lon,
+                        rating: rating, notes: document.getElementById('postNotes').value.trim(),
+                        weight: totalWeight, bagCount: bagWeights.length,
+                        duration: duration, distance: sessionState.totalDistance,
+                        photoCount: sessionState.photos.length,
+                        activityFeedConsent: document.querySelector('input[name="postFeed"]:checked').value === 'yes',
+                        photoConsent: sessionState.photos.length > 0 && document.querySelector('input[name="photoConsent"]:checked')?.value === 'yes',
+                        timestamp: new Date().toISOString()
+                    })
                 });
-                showMessage('✓ Recycling logged!', 'success');
-                setTimeout(() => {
-                    resetHRForm();
-                    showMainScreen();
-                }, 2000);
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    showToast('Collection submitted!', 'success');
+                    setTimeout(() => showMainScreen(), 1500);
+                } else {
+                    showToast(result.message || 'Submission failed', 'error');
+                }
             } catch (error) {
-                showMessage('Submission failed. Please try again.', 'error');
-                this.disabled = false;
-                this.textContent = 'Submit Recycling Log';
+                console.error('Submit error:', error);
+                showToast('Connection error', 'error');
             }
+
+            this.disabled = false;
+            this.textContent = 'Submit Report';
         });
 
-        document.getElementById('cancelHRBtn').addEventListener('click', function() {
-            resetHRForm();
-            showMainScreen();
+        document.getElementById('cancelCollectionBtn').addEventListener('click', () => {
+            if (confirm('Discard collection data?')) showMainScreen();
         });
 
-        function resetHRForm() {
+        // ==========================================
+        // EDIT PROFILE
+        // ==========================================
+        function showEditProfile() {
+            hideAllScreens();
+            document.getElementById('editProfileScreen').classList.remove('hidden');
+
+            document.getElementById('editHandle').value = currentUser.handle;
+            
+            const orgSelect = document.getElementById('editOrgSelect');
+            if (CONFIG.organizations.includes(currentUser.organization)) {
+                orgSelect.value = currentUser.organization;
+                document.getElementById('editCustomOrg').classList.remove('show');
+            } else {
+                orgSelect.value = 'other';
+                document.getElementById('editCustomOrg').classList.add('show');
+                document.getElementById('editCustomOrgText').value = currentUser.organization;
+            }
+
+            renderAddresses();
+        }
+
+        document.getElementById('editOrgSelect').addEventListener('change', function() {
+            document.getElementById('editCustomOrg').classList.toggle('show', this.value === 'other');
+        });
+
+        function renderAddresses() {
+            const container = document.getElementById('addressesContainer');
+            container.innerHTML = '';
+            
+            if (!currentUser.addresses || currentUser.addresses.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #9ca3af; font-size: 13px; padding: 20px;">No addresses saved</div>';
+                return;
+            }
+
+            currentUser.addresses.forEach((addr, index) => {
+                const card = document.createElement('div');
+                card.className = 'address-card';
+                card.innerHTML = `
+                    <div class="address-card-header">
+                        <span class="address-type-badge">${addr.type || 'Home'}</span>
+                        <div class="address-actions">
+                            <span class="address-action" onclick="editAddress(${index})">Edit</span>
+                            <span class="address-action delete" onclick="deleteAddress(${index})">Delete</span>
+                        </div>
+                    </div>
+                    <div class="address-text">
+                        ${addr.street || ''}${addr.street && addr.neighborhood ? ', ' : ''}${addr.neighborhood || ''}${(addr.street || addr.neighborhood) && addr.zip ? ' ' : ''}${addr.zip || ''}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        document.getElementById('addAddressBtn').addEventListener('click', () => {
+            document.getElementById('newAddressType').value = 'Home';
+            document.getElementById('newAddressStreet').value = '';
+            document.getElementById('newAddressNeighborhood').value = '';
+            document.getElementById('newAddressZip').value = '';
+            document.getElementById('addAddressModal').classList.add('show');
+        });
+
+        document.getElementById('cancelNewAddress').addEventListener('click', () => {
+            document.getElementById('addAddressModal').classList.remove('show');
+        });
+
+        document.getElementById('saveNewAddress').addEventListener('click', () => {
+            const newAddr = {
+                type: document.getElementById('newAddressType').value,
+                street: document.getElementById('newAddressStreet').value.trim(),
+                neighborhood: document.getElementById('newAddressNeighborhood').value.trim(),
+                zip: document.getElementById('newAddressZip').value.trim()
+            };
+            
+            if (!newAddr.street && !newAddr.neighborhood && !newAddr.zip) {
+                showToast('Enter at least one field', 'error');
+                return;
+            }
+
+            if (!currentUser.addresses) currentUser.addresses = [];
+            currentUser.addresses.push(newAddr);
+            renderAddresses();
+            document.getElementById('addAddressModal').classList.remove('show');
+            showToast('Address added', 'success');
+        });
+
+        window.editAddress = function(index) {
+            const addr = currentUser.addresses[index];
+            document.getElementById('newAddressType').value = addr.type || 'Home';
+            document.getElementById('newAddressStreet').value = addr.street || '';
+            document.getElementById('newAddressNeighborhood').value = addr.neighborhood || '';
+            document.getElementById('newAddressZip').value = addr.zip || '';
+            
+            // Remove old, save will add new
+            currentUser.addresses.splice(index, 1);
+            renderAddresses();
+            document.getElementById('addAddressModal').classList.add('show');
+        };
+
+        window.deleteAddress = function(index) {
+            if (confirm('Delete this address?')) {
+                currentUser.addresses.splice(index, 1);
+                renderAddresses();
+            }
+        };
+
+        document.getElementById('saveProfileBtn').addEventListener('click', async function() {
+            this.disabled = true;
+            this.textContent = 'Saving...';
+
+            const org = document.getElementById('editOrgSelect').value === 'other'
+                ? document.getElementById('editCustomOrgText').value.trim()
+                : document.getElementById('editOrgSelect').value;
+
+            try {
+                await fetch(CONFIG.appsScriptUrl, {
+                    method: 'POST', headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'updateProfile', userId: currentUser.userId,
+                        organization: org, addresses: currentUser.addresses
+                    })
+                });
+
+                currentUser.organization = org;
+                saveSession();
+                showToast('Profile updated!', 'success');
+                setTimeout(() => showMainScreen(), 1000);
+            } catch (error) {
+                console.error('Profile update error:', error);
+                showToast('Update failed', 'error');
+            }
+
+            this.disabled = false;
+            this.textContent = 'Save Changes';
+        });
+
+        document.getElementById('cancelEditBtn').addEventListener('click', () => showMainScreen());
+
+        // ==========================================
+        // HOUSEHOLD RECYCLING
+        // ==========================================
+        function showRecycleScreen() {
+            hideAllScreens();
+            document.getElementById('recycleScreen').classList.remove('hidden');
+            resetRecycleForm();
+        }
+
+        function resetRecycleForm() {
             document.getElementById('hrMaterialType').value = '';
             document.getElementById('hrDescription').value = '';
-            document.getElementById('hrDescriptionWrap').style.display = 'none';
+            document.getElementById('hrDescriptionWrap').classList.add('hidden');
             document.getElementById('hrWeight').value = '';
             document.getElementById('hrDateBagged').value = '';
             document.getElementById('hrDestination').value = '';
             document.getElementById('hrDestOther').value = '';
             document.getElementById('hrDestOtherWrap').classList.remove('show');
             document.getElementById('submitHRBtn').disabled = true;
-            document.getElementById('submitHRBtn').textContent = 'Submit Recycling Log';
         }
 
-        // ==========================================
-        // SESSION RESET
-        // ==========================================
-        function resetSession() {
-            sessionState = {
-                sessionId: null, isTracking: false, startTime: null,
-                gpsPoints: [], photos: [], totalDistance: 0,
-                durationTimer: null, gpsTimer: null,
-                activityFeedConsent: false, photoConsent: false, mode: null
-            };
+        document.getElementById('hrInfoToggle').addEventListener('click', () => {
+            document.getElementById('hrInfoPane').classList.toggle('show');
+        });
+        document.getElementById('dropoffToggle').addEventListener('click', () => {
+            document.getElementById('dropoffPane').classList.toggle('show');
+        });
 
-            // Reset post-tracking form
-            const slider = document.getElementById('litterRating');
-            slider.value = 5;
-            slider.classList.remove('skipped');
-            document.getElementById('ratingValue').textContent = '5';
-            document.getElementById('ratingValue').classList.remove('skipped');
-            document.getElementById('ratingDescription').textContent = descriptions[5];
-            document.getElementById('scoutNotes').value = '';
-            document.getElementById('notesCounter').textContent = '0';
-            document.getElementById('bagsContainer').innerHTML = '';
-            bags = [];
-            bagCounter = 0;
+        document.getElementById('hrMaterialType').addEventListener('change', function() {
+            const needsDesc = this.value === 'Mixed' || this.value === 'Other';
+            document.getElementById('hrDescriptionWrap').classList.toggle('hidden', !needsDesc);
+            if (!needsDesc) document.getElementById('hrDescription').value = '';
+            validateRecycleForm();
+        });
 
-            // Reset scout-only form
-            document.getElementById('scoutOnlyRating').value = 5;
-            document.getElementById('scoutOnlyRatingValue').textContent = '5';
-            document.getElementById('scoutOnlyRatingDescription').textContent = descriptions[5];
-            document.getElementById('scoutOnlyNotes').value = '';
-            document.getElementById('scoutOnlyNotesCounter').textContent = '0';
-            document.getElementById('scoutLocationStatus').textContent = 'Capturing...';
-            document.getElementById('scoutLocationStatus').style.color = '#1f2937';
+        document.getElementById('hrDestination').addEventListener('change', function() {
+            document.getElementById('hrDestOtherWrap').classList.toggle('show', this.value === 'Other');
+            validateRecycleForm();
+        });
 
-            // Reset consents
-            document.querySelectorAll('input[name="activityFeed"]').forEach(r => r.checked = false);
-            document.querySelectorAll('input[name="photoConsent"]').forEach(r => r.checked = false);
-            document.querySelectorAll('input[name="scoutOnlyActivityFeed"]').forEach(r => r.checked = false);
+        ['hrMaterialType', 'hrDescription', 'hrWeight', 'hrDateBagged', 'hrDestination', 'hrDestOther'].forEach(id => {
+            document.getElementById(id).addEventListener('input', validateRecycleForm);
+            document.getElementById(id).addEventListener('change', validateRecycleForm);
+        });
 
-            document.getElementById('photoConsentQuestion').style.display = 'none';
-            document.getElementById('durationDisplay').textContent = '00:00';
-            document.getElementById('distanceDisplay').textContent = '0.00 mi';
-            document.getElementById('photoCount').textContent = '0 photos captured';
-
-            document.getElementById('submitBtn').disabled = true;
-            document.getElementById('submitBtn').textContent = 'Submit Report';
-            document.getElementById('submitScoutOnlyBtn').disabled = true;
-            document.getElementById('submitScoutOnlyBtn').textContent = 'Submit Scout Report';
-
-            safetyAcknowledge.checked = false;
-            scoutOnlyBtn.disabled = true;
-            collectTrackBtn.disabled = true;
+        function validateRecycleForm() {
+            const material = document.getElementById('hrMaterialType').value;
+            const needsDesc = material === 'Mixed' || material === 'Other';
+            const descOk = !needsDesc || document.getElementById('hrDescription').value.trim() !== '';
+            const weightOk = parseFloat(document.getElementById('hrWeight').value) > 0;
+            const dateOk = document.getElementById('hrDateBagged').value !== '';
+            const destOk = document.getElementById('hrDestination').value !== '';
+            document.getElementById('submitHRBtn').disabled = !(material && descOk && weightOk && dateOk && destOk);
         }
+
+        document.getElementById('submitHRBtn').addEventListener('click', async function() {
+            this.disabled = true;
+            this.textContent = 'Submitting...';
+
+            const material = document.getElementById('hrMaterialType').value;
+            let materialDesc = material;
+            if (material === 'Mixed' || material === 'Other') {
+                materialDesc += ': ' + document.getElementById('hrDescription').value.trim();
+            }
+
+            try {
+                await fetch(CONFIG.appsScriptUrl, {
+                    method: 'POST', headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'submitHousehold', userId: currentUser.userId,
+                        materialType: materialDesc,
+                        weightLbs: parseFloat(document.getElementById('hrWeight').value),
+                        dateBagged: document.getElementById('hrDateBagged').value,
+                        destination: document.getElementById('hrDestination').value,
+                        destinationOther: document.getElementById('hrDestOther').value.trim()
+                    })
+                });
+
+                showToast('Recycling logged!', 'success');
+                setTimeout(() => showMainScreen(), 1500);
+            } catch (error) {
+                console.error('HR submit error:', error);
+                showToast('Submission failed', 'error');
+            }
+
+            this.disabled = false;
+            this.textContent = 'Submit Recycling Log';
+        });
+
+        document.getElementById('cancelHRBtn').addEventListener('click', () => showMainScreen());
 
         // ==========================================
         // PAGE LOAD
         // ==========================================
         window.addEventListener('load', function() {
+            loadActivityFeed(false); // Pre-login feed
+            
             if (restoreSession() && currentUser.userId) {
                 enterApp();
             } else {
-                showScreen('loginScreen');
+                document.getElementById('loginScreen').classList.remove('hidden');
             }
         });
 
-        setInterval(loadActivityFeed, 60000);
-
+        // Auto-refresh feed
+        setInterval(() => {
+            if (!document.getElementById('mainScreen').classList.contains('hidden')) {
+                loadActivityFeed(true);
+            }
+        }, 60000);
     </script>
 </body>
 </html>
