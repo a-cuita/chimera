@@ -112,6 +112,10 @@
             transition: background 0.2s;
         }
         .menu-item:hover { background: #f9fafb; }
+        .menu-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
         .menu-item-icon { font-size: 20px; width: 24px; text-align: center; }
         
         .menu-divider {
@@ -306,10 +310,6 @@
         }
         .validation-line:last-child { margin-bottom: 0; }
         .validation-line strong { color: #1f2937; }
-        
-        .spot-on { color: #059669; }
-        .close-rating { color: #0284c7; }
-        .off-rating { color: #dc2626; }
 
         /* ==================== MODALS ==================== */
         .modal-overlay {
@@ -395,6 +395,7 @@
             background: white;
             color: #2D5F3F;
             border: 2px solid #2D5F3F;
+            margin-top: 10px;
         }
         .btn:disabled {
             background: #d1d5db;
@@ -710,17 +711,17 @@
                 <span class="menu-item-icon">🔍</span>
                 <span>Rate Location</span>
             </div>
-            <div class="menu-item" id="menuPin">
+            <div class="menu-item disabled" id="menuPin" title="Coming soon">
                 <span class="menu-item-icon">📍</span>
-                <span>Pin Location</span>
+                <span>Pin Location (coming soon)</span>
             </div>
             <div class="menu-item" id="menuTrack">
                 <span class="menu-item-icon">🗑️</span>
                 <span>Live Track: √CPUE</span>
             </div>
-            <div class="menu-item" id="menuRecycle">
+            <div class="menu-item disabled" id="menuRecycle" title="Coming soon">
                 <span class="menu-item-icon">♻️</span>
-                <span>Recycle</span>
+                <span>Recycle (coming soon)</span>
             </div>
         </div>
         
@@ -923,7 +924,7 @@
                     </div>
                     <div class="status-row">
                         <span class="status-label">Distance</span>
-                        <span class="status-value" id="scoutDistance">0.00 mi</span>
+                        <span class="status-value" id="scoutDistance">N/A</span>
                     </div>
                     <div class="status-row">
                         <span class="status-label">Duration</span>
@@ -940,45 +941,6 @@
                 <button class="btn btn-primary" id="startScoutBtn">Start Scout</button>
                 <button class="btn btn-primary hidden" id="endScoutBtn">End Scout Session</button>
                 <button class="btn btn-secondary" id="cancelScoutBtn">Cancel</button>
-            </div>
-
-            <!-- ==================== PIN LOCATION ==================== -->
-            <div id="pinScreen" class="hidden">
-                <div class="instructions">
-                    <strong>📍 Pin Location</strong><br>
-                    Drop a pin at your current location to mark a point of interest.
-                </div>
-
-                <div class="status-box">
-                    <div class="status-row">
-                        <span class="status-label">GPS Status</span>
-                        <span class="status-value" id="pinGPSStatus">Getting location...</span>
-                    </div>
-                    <div class="status-row">
-                        <span class="status-label">Coordinates</span>
-                        <span class="status-value" id="pinCoords">--</span>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Pin Type</label>
-                    <select class="form-select" id="pinType">
-                        <option value="litter_hotspot">Litter Hotspot</option>
-                        <option value="hazard">Hazard</option>
-                        <option value="dumping_site">Illegal Dumping Site</option>
-                        <option value="needs_attention">Needs Attention</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Description</label>
-                    <textarea class="notes-textarea" id="pinDescription" placeholder="Describe what you found..." maxlength="500"></textarea>
-                    <div class="char-counter"><span id="pinDescCount">0</span>/500</div>
-                </div>
-
-                <button class="btn btn-primary" id="dropPinBtn" disabled>Drop Pin</button>
-                <button class="btn btn-secondary" id="cancelPinBtn">Cancel</button>
             </div>
 
             <!-- ==================== COLLECTION TRACKING ==================== -->
@@ -1018,7 +980,7 @@
                 <div class="form-group" style="margin-top: 20px;">
                     <label class="form-label">Photos (Optional)</label>
                     <input type="file" accept="image/*" capture="environment" multiple id="collectionPhotos" style="display: none;">
-                    <button class="btn btn-secondary" id="capturePhotoBtn">📷 Capture Photo</button>
+                    <button class="btn btn-secondary" id="capturePhotoBtn" style="margin-top: 0;">📷 Capture Photo</button>
                     <div id="photoPreviewContainer" style="margin-top: 12px;"></div>
                 </div>
 
@@ -1033,7 +995,7 @@
                     <div class="consent-question">
                         <label class="consent-label">Include my session in the Activity Feed?</label>
                         <div style="font-size: 12px; color: #78350f; margin-bottom: 8px;">
-                            Your name and organization will be visible to logged-in users. Anonymous stats will appear on the public feed.
+                            Your name and organization will be visible to logged-in users.
                         </div>
                         <div class="consent-options">
                             <div class="radio-option">
@@ -1065,48 +1027,6 @@
                 <button class="btn btn-primary" id="startCollectionBtn">Start Collection</button>
                 <button class="btn btn-primary hidden" id="endCollectionBtn">End Collection</button>
                 <button class="btn btn-secondary" id="cancelCollectionBtn">Cancel</button>
-            </div>
-
-            <!-- ==================== RECYCLE MODE ==================== -->
-            <div id="recycleScreen" class="hidden">
-                <div class="instructions">
-                    <strong>♻️ Log Household Recycling</strong><br>
-                    Track what you're recycling to support expanded recycling infrastructure.
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Material Type</label>
-                    <select class="form-select" id="recycleMaterial">
-                        <option value="">Select material</option>
-                        <option value="plastic">Plastic</option>
-                        <option value="glass">Glass</option>
-                        <option value="metal">Metal (aluminum, steel)</option>
-                        <option value="paper">Paper/Cardboard</option>
-                        <option value="electronics">Electronics</option>
-                        <option value="mixed">Mixed Materials</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Quantity</label>
-                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
-                        <input type="number" class="form-input" id="recycleQuantity" placeholder="Amount" min="0" step="0.1">
-                        <select class="form-select" id="recycleUnit">
-                            <option value="lbs">lbs</option>
-                            <option value="bags">bags</option>
-                            <option value="items">items</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Notes (Optional)</label>
-                    <textarea class="notes-textarea" id="recycleNotes" placeholder="e.g., Weekly recycling pickup" maxlength="500"></textarea>
-                    <div class="char-counter"><span id="recycleNotesCount">0</span>/500</div>
-                </div>
-
-                <button class="btn btn-primary" id="submitRecycleBtn" disabled>Log Recycling</button>
-                <button class="btn btn-secondary" id="cancelRecycleBtn">Cancel</button>
             </div>
 
             <!-- ==================== EDIT PROFILE ==================== -->
@@ -1163,17 +1083,15 @@
             <div class="modal-header">
                 <div class="modal-title">💡 Getting Started</div>
             </div>
-            <div class="modal-content" id="gettingStartedContent">
+            <div class="modal-content">
                 <strong>Welcome to CHIMERA!</strong><br><br>
                 <p>Choose a mode to start tracking litter in your community:</p>
                 <h4>🔍 Rate Location</h4>
                 <p>Scout a location and rate the litter density on a scale of 0-10. Your ratings help validate cleanup efforts.</p>
                 <h4>🗑️ Live Track: √CPUE</h4>
                 <p>Track your cleanup session with GPS. Record weight collected and distance traveled to calculate your efficiency score.</p>
-                <h4>♻️ Recycle</h4>
+                <h4>♻️ Recycle (Coming Soon)</h4>
                 <p>Log household recycling to support the case for expanded recycling infrastructure.</p>
-                <br>
-                <p><em>More tips and guidance coming soon!</em></p>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-primary" id="closeGettingStarted">Got It</button>
@@ -1227,6 +1145,12 @@
 
     <script>
         // ==========================================
+        // VERSION TRACKING
+        // ==========================================
+        const UI_VERSION = 'V5.4-260209-1600';
+        console.log('🔧 CHIMERA UI Version:', UI_VERSION);
+
+        // ==========================================
         // DEPLOYMENT CONFIGURATION
         // ==========================================
         const CONFIG = {
@@ -1234,16 +1158,17 @@
             stateName: 'Alabama',
             timezone: 'America/Chicago',
             
-            // API Endpoints
+            // API Endpoint
             appsScriptUrl: 'https://script.google.com/macros/s/AKfycbysweOefC4Y8Ed4w_6OZzfDZ-vEoqZLqKRCboH9AivIZ_-jSbwkj70VXTRPP0jZJme0NA/exec',
             
             // Feature flags
             features: {
                 districts: true,
                 sunsetLockout: true,
-                householdRecycling: true,
+                householdRecycling: false, // Not implemented yet
                 photoCapture: true,
-                scoutValidation: true
+                scoutValidation: true,
+                pinLocation: false // Not implemented yet
             },
             
             // URLs
@@ -1255,20 +1180,13 @@
             // GPS tracking
             gpsInterval: 10000, // 10 seconds
             
-            // Organizations (can be customized per deployment)
+            // Organizations
             organizations: [
                 'Baled It!',
                 'Help A Brother Out Foundation',
                 'West Montgomery Action Committee'
             ]
         };
-
-        // Update dynamic text
-        document.getElementById('headerSubtitle').textContent = 
-            `Data Hub for Litter Scouting, Collecting & Recycling • V5.4`;
-        
-        document.getElementById('createLocationHelp').textContent = 
-            `Your address, neighborhood, or zip code will be used for household recycling market research to support the case for expanded recycling infrastructure in ${CONFIG.cityName}.`;
 
         // ==========================================
         // SESSION STATE
@@ -1297,7 +1215,8 @@
         let bags = [];
         let bagCounter = 0;
         let sunLocked = false;
-        let greyAlert = false;
+        let scoutStartTime = null;
+        let collectionStartTime = null;
 
         // ==========================================
         // SESSION STORAGE
@@ -1367,8 +1286,7 @@
         });
 
         document.getElementById('menuPin').addEventListener('click', () => {
-            closeMenu();
-            showPinMode();
+            showToast('Pin Location coming soon!', 'warning');
         });
 
         document.getElementById('menuTrack').addEventListener('click', () => {
@@ -1381,8 +1299,7 @@
         });
 
         document.getElementById('menuRecycle').addEventListener('click', () => {
-            closeMenu();
-            showRecycleMode();
+            showToast('Recycle feature coming soon!', 'warning');
         });
 
         document.getElementById('menuFieldTest').addEventListener('click', () => {
@@ -1447,33 +1364,33 @@
         });
 
         document.getElementById('acceptSafetyLegal').addEventListener('click', async () => {
-    currentUser.safetyLegalAccepted = true;
-    currentUser.lastSafetyLegalCheck = new Date().toISOString();
-    saveSession();
-    
-    // Persist to backend
-    try {
-        const response = await fetch(CONFIG.appsScriptUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify({
-                action: 'updateProfile',
-                userId: currentUser.userId,
-                safetyLegalAccepted: true
-            })
+            currentUser.safetyLegalAccepted = true;
+            currentUser.lastSafetyLegalCheck = new Date().toISOString();
+            saveSession();
+            
+            // Persist to backend
+            try {
+                const response = await fetch(CONFIG.appsScriptUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'updateProfile',
+                        userId: currentUser.userId,
+                        safetyLegalAccepted: true
+                    })
+                });
+                const result = await response.json();
+                if (result.status !== 'success') {
+                    console.error('Failed to save safety acceptance:', result.message);
+                }
+            } catch (error) {
+                console.error('Error saving safety acceptance:', error);
+            }
+            
+            document.getElementById('safetyLegalModal').classList.remove('show');
+            showToast('Safety guidelines acknowledged', 'success');
+            showMainScreen();
         });
-        const result = await response.json();
-        if (result.status !== 'success') {
-            console.error('Failed to save safety acceptance:', result.message);
-        }
-    } catch (error) {
-        console.error('Error saving safety acceptance:', error);
-    }
-    
-    document.getElementById('safetyLegalModal').classList.remove('show');
-showToast('Safety guidelines acknowledged', 'success');
-showMainScreen();
-});
 
         // ==========================================
         // ACTIVITY FEED
@@ -1491,13 +1408,7 @@ showMainScreen();
                     // Update stats
                     document.getElementById('statCollections').textContent = data.totalCollections || 0;
                     document.getElementById('statUnvalidated').textContent = data.unvalidatedScouts || 0;
-                    
-                    // Calculate accuracy if available
-                    if (data.dailyAccuracy !== undefined) {
-                        document.getElementById('statAccuracy').textContent = data.dailyAccuracy + '%';
-                    } else {
-                        document.getElementById('statAccuracy').textContent = '-';
-                    }
+                    document.getElementById('statAccuracy').textContent = data.dailyAccuracy !== undefined ? data.dailyAccuracy + '%' : '-';
 
                     const feedScroll = document.getElementById('feedScroll');
 
@@ -1507,20 +1418,19 @@ showMainScreen();
                         let html = '';
                         
                         data.recentActivity.forEach(activity => {
+                            const activityTime = new Date(activity.timestamp);
+                            const timeStr = formatTimeHHMM(activityTime);
+                            
+                            // District badges
+                            let districtBadges = '';
+                            if (CONFIG.features.districts && activity.zones && activity.zones.length > 0) {
+                                districtBadges = activity.zones.map(z => {
+                                    const num = z.replace('District ', '');
+                                    return `<span class="district-badge">[D${num}]</span>`;
+                                }).join('');
+                            }
+                            
                             if (activity.type === 'collection') {
-                                // Parse timestamp
-                                const activityTime = new Date(activity.timestamp);
-                                const timeStr = formatTimeHHMM(activityTime);
-                                
-                                // District badges
-                                let districtBadges = '';
-                                if (CONFIG.features.districts && activity.zones && activity.zones.length > 0) {
-                                    districtBadges = activity.zones.map(z => {
-                                        const num = z.replace('District ', '');
-                                        return `<span class="district-badge">[D${num}]</span>`;
-                                    }).join('');
-                                }
-                                
                                 html += '<div class="activity-item">';
                                 html += '<div class="activity-header">';
                                 html += `<span class="activity-volunteer">${activity.volunteer}</span>`;
@@ -1532,16 +1442,21 @@ showMainScreen();
                                     html += `<div style="font-size: 12px; color: #6b7280; margin-top: 2px;">${activity.organization}</div>`;
                                 }
                                 
-                                // Validation section (if validated)
                                 if (activity.validated && activity.divergence !== null) {
-                                    // For now, show simplified validation
-                                    // Full validation breakdown will come from enhanced endpoint
                                     html += '<div class="validation-box">';
-                                    html += '<div class="validation-header">👀 SCOUT RATINGS VALIDATED (-hrs prior)</div>';
+                                    html += '<div class="validation-header">👀 SCOUT RATINGS VALIDATED</div>';
                                     html += `<div class="validation-line">Divergence: ${activity.divergence > 0 ? '+' : ''}${activity.divergence.toFixed(2)}</div>`;
                                     html += '</div>';
                                 }
                                 
+                                html += '</div>';
+                            } else if (activity.type === 'scout') {
+                                html += '<div class="activity-item">';
+                                html += '<div class="activity-header">';
+                                html += `<span class="activity-volunteer">${activity.volunteer}</span>`;
+                                html += `<span class="activity-time">• ${timeStr}</span>`;
+                                html += '</div>';
+                                html += `<div class="activity-details">scouted rating: ${activity.rating} ${districtBadges}</div>`;
                                 html += '</div>';
                             }
                         });
@@ -1554,7 +1469,7 @@ showMainScreen();
             } catch (error) {
                 console.error('Activity feed error:', error);
                 document.getElementById('feedScroll').innerHTML = 
-                    '<div style="text-align: center; color: #dc2626; font-size: 13px; padding: 40px 20px;">Failed to load activity. Check console.</div>';
+                    '<div style="text-align: center; color: #dc2626; font-size: 13px; padding: 40px 20px;">Failed to load activity.</div>';
             }
         }
 
@@ -1582,16 +1497,11 @@ showMainScreen();
                         document.getElementById('sunOverlay').classList.add('show');
                         document.getElementById('lockoutSunrise').textContent = result.tomorrowSunrise || '--:--';
                     }
-                    
-                    // Grey alert logic (future: personalized timing)
-                    // For now, show 30 min before sunset
-                    greyAlert = false; // Will implement once we have per-user timing
                 } else {
                     console.error('Sun check failed:', result.message);
                 }
             } catch (error) {
                 console.error('Sun check error:', error);
-                // Don't block app on sun check failure - just log it
             }
         }
 
@@ -1652,31 +1562,24 @@ showMainScreen();
             }
         }
 
+        // LOGIN
         loginBtn.addEventListener('click', async function() {
             loginBtn.disabled = true;
             loginBtn.textContent = 'Logging in...';
 
             try {
-                const loginData = {
-                    action: 'login',
-                    handle: loginHandle.value.trim(),
-                    pin: loginPIN.value.trim().toLowerCase()
-                };
-                
-                console.log('Attempting login with:', { handle: loginData.handle, pin: '***' });
-                console.log('Endpoint:', CONFIG.appsScriptUrl);
-                
                 const response = await fetch(CONFIG.appsScriptUrl, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain'
-                    },
-                    body: JSON.stringify(loginData)
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'login',
+                        handle: loginHandle.value.trim(),
+                        pin: loginPIN.value.trim().toLowerCase()
+                    })
                 });
                 
-                console.log('Response status:', response.status);
                 const result = await response.json();
-                console.log('Response data:', result);
+                console.log('Login response:', result);
 
                 if (result.status === 'success') {
                     currentUser = {
@@ -1693,17 +1596,17 @@ showMainScreen();
                     enterApp();
                 } else {
                     showToast(result.message || 'Login failed', 'error');
-                    console.error('Login failed:', result.message);
                 }
             } catch (error) {
                 console.error('Login error:', error);
-                showToast('Connection error. Check console for details.', 'error');
+                showToast('Connection error', 'error');
             }
 
             loginBtn.disabled = false;
             loginBtn.textContent = 'Log In';
         });
 
+        // CREATE PROFILE
         createProfileBtn.addEventListener('click', async function() {
             createProfileBtn.disabled = true;
             createProfileBtn.textContent = 'Creating...';
@@ -1713,35 +1616,31 @@ showMainScreen();
                 : createOrgSelect.value;
 
             try {
-                const profileData = {
-                    action: 'createProfile',
-                    handle: createHandle.value.trim(),
-                    pin: createPIN.value.trim().toLowerCase(),
-                    organization: org,
-                    streetAddress: document.getElementById('createStreet').value.trim(),
-                    neighborhood: document.getElementById('createNeighborhood').value.trim(),
-                    zipCode: document.getElementById('createZip').value.trim()
-                };
-                
-                console.log('Creating profile:', { handle: profileData.handle, org: profileData.organization });
-                
                 const response = await fetch(CONFIG.appsScriptUrl, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain'
-                    },
-                    body: JSON.stringify(profileData)
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'createProfile',
+                        handle: createHandle.value.trim(),
+                        pin: createPIN.value.trim().toLowerCase(),
+                        organization: org,
+                        streetAddress: document.getElementById('createStreet').value.trim(),
+                        neighborhood: document.getElementById('createNeighborhood').value.trim(),
+                        zipCode: document.getElementById('createZip').value.trim()
+                    })
                 });
+                
                 const result = await response.json();
+                console.log('Create profile response:', result);
 
                 if (result.status === 'success') {
                     currentUser = {
                         userId: result.userId,
                         handle: result.handle,
                         organization: org,
-                        streetAddress: profileData.streetAddress,
-                        neighborhood: profileData.neighborhood,
-                        zipCode: profileData.zipCode,
+                        streetAddress: document.getElementById('createStreet').value.trim(),
+                        neighborhood: document.getElementById('createNeighborhood').value.trim(),
+                        zipCode: document.getElementById('createZip').value.trim(),
                         safetyLegalAccepted: false,
                         lastSafetyLegalCheck: null
                     };
@@ -1750,11 +1649,10 @@ showMainScreen();
                     enterApp();
                 } else {
                     showToast(result.message || 'Creation failed', 'error');
-                    console.error('Create profile failed:', result.message);
                 }
             } catch (error) {
                 console.error('Create profile error:', error);
-                showToast('Connection error. Check console for details.', 'error');
+                showToast('Connection error', 'error');
             }
 
             createProfileBtn.disabled = false;
@@ -1765,7 +1663,6 @@ showMainScreen();
         // APP ENTRY
         // ==========================================
         function enterApp() {
-            // Check if safety/legal needs acknowledgement (weekly)
             const needsCheck = !currentUser.safetyLegalAccepted || 
                               !currentUser.lastSafetyLegalCheck ||
                               (new Date() - new Date(currentUser.lastSafetyLegalCheck)) > 7 * 24 * 60 * 60 * 1000;
@@ -1783,14 +1680,11 @@ showMainScreen();
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('mainScreen').classList.remove('hidden');
             document.getElementById('menuUsername').textContent = currentUser.handle;
-            
-            // Show hamburger menu
             document.getElementById('hamburgerBtn').classList.remove('hidden');
             
             loadActivityFeed();
             checkSunSchedule();
             
-            // Auto-refresh feed every minute (only set once)
             if (!window.feedRefreshInterval) {
                 window.feedRefreshInterval = setInterval(loadActivityFeed, 60000);
             }
@@ -1802,28 +1696,30 @@ showMainScreen();
         function hideAllScreens() {
             document.getElementById('mainScreen').classList.add('hidden');
             document.getElementById('scoutScreen').classList.add('hidden');
-            document.getElementById('pinScreen').classList.add('hidden');
             document.getElementById('collectionScreen').classList.add('hidden');
-            document.getElementById('recycleScreen').classList.add('hidden');
             document.getElementById('editProfileScreen').classList.add('hidden');
         }
 
         // ==========================================
         // SCOUT MODE
         // ==========================================
-        let scoutInterval = null;
-        let scoutStartTime = null;
-
         function showScoutMode() {
             hideAllScreens();
             document.getElementById('scoutScreen').classList.remove('hidden');
             
             // Reset
             document.getElementById('scoutRatingSlider').value = 5;
+            document.getElementById('scoutRatingSlider').disabled = false;
             updateScoutRating();
             document.getElementById('scoutNotes').value = '';
             document.getElementById('scoutNotesCount').textContent = '0';
-            sessionState = { sessionId: null, isTracking: false, startTime: null, gpsPoints: [], photos: [], totalDistance: 0, mode: 'scout' };
+            document.getElementById('scoutGPSStatus').textContent = 'Not tracking';
+            document.getElementById('scoutDistance').textContent = 'N/A';
+            document.getElementById('scoutDuration').textContent = '00:00';
+            document.getElementById('startScoutBtn').classList.remove('hidden');
+            document.getElementById('endScoutBtn').classList.add('hidden');
+            
+            sessionState = { sessionId: null, isTracking: false, startTime: null, gpsPoints: [], photos: [], totalDistance: 0, mode: 'scout-only' };
         }
 
         document.getElementById('scoutRatingSlider').addEventListener('input', updateScoutRating);
@@ -1844,60 +1740,51 @@ showMainScreen();
             document.getElementById('scoutNotesCount').textContent = this.value.length;
         });
 
-        document.getElementById('startScoutBtn').addEventListener('click', async function() {
+        document.getElementById('startScoutBtn').addEventListener('click', function() {
             sessionState.sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
             sessionState.isTracking = true;
             sessionState.startTime = new Date();
-            sessionState.mode = 'scout-only';
             scoutStartTime = Date.now();
             
             document.getElementById('startScoutBtn').classList.add('hidden');
             document.getElementById('endScoutBtn').classList.remove('hidden');
             document.getElementById('scoutRatingSlider').disabled = true;
             
-            // Start GPS tracking
+            // Capture single GPS point
             if (navigator.geolocation) {
-                document.getElementById('scoutGPSStatus').textContent = 'Tracking...';
-                watchScoutGPS();
+                document.getElementById('scoutGPSStatus').textContent = 'Getting location...';
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        sessionState.gpsPoints = [{
+                            lat: position.coords.latitude,
+                            lon: position.coords.longitude,
+                            timestamp: new Date().toISOString()
+                        }];
+                        document.getElementById('scoutGPSStatus').textContent = 'Location captured';
+                        startScoutTimer();
+                    },
+                    (error) => {
+                        console.error('GPS error:', error);
+                        document.getElementById('scoutGPSStatus').textContent = 'GPS error';
+                    }
+                );
             }
             
             showToast('Scout session started', 'success');
         });
 
-function watchScoutGPS() {
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            // Capture single point only
-            sessionState.gpsPoints = [{
-                lat: position.coords.latitude,
-                lon: position.coords.longitude,
-                timestamp: new Date().toISOString()
-            }];
+        function startScoutTimer() {
+            if (!sessionState.isTracking) return;
             
-            document.getElementById('scoutGPSStatus').textContent = 'Location captured';
-            document.getElementById('scoutDistance').textContent = 'N/A';
+            const elapsed = Math.floor((Date.now() - scoutStartTime) / 1000);
+            const mins = Math.floor(elapsed / 60);
+            const secs = elapsed % 60;
+            document.getElementById('scoutDuration').textContent = 
+                (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
             
-            // Start duration timer (separate from GPS)
-            startScoutTimer();
-        },
-        (error) => {
-            console.error('GPS error:', error);
-            document.getElementById('scoutGPSStatus').textContent = 'GPS error';
+            setTimeout(startScoutTimer, 1000);
         }
-    );
-}
 
-function startScoutTimer() {
-    if (!sessionState.isTracking) return;
-    
-    const elapsed = Math.floor((Date.now() - scoutStartTime) / 1000);
-    const mins = Math.floor(elapsed / 60);
-    const secs = elapsed % 60;
-    document.getElementById('scoutDuration').textContent = 
-        (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
-    
-    setTimeout(startScoutTimer, 1000);
-}
         document.getElementById('endScoutBtn').addEventListener('click', async function() {
             if (sessionState.gpsPoints.length === 0) {
                 showToast('No GPS data recorded', 'error');
@@ -1906,52 +1793,51 @@ function startScoutTimer() {
             
             this.disabled = true;
             this.textContent = 'Submitting...';
+            sessionState.isTracking = false;
             
             const rating = parseFloat(document.getElementById('scoutRatingSlider').value);
             const notes = document.getElementById('scoutNotes').value.trim();
             const duration = Math.floor((Date.now() - scoutStartTime) / 1000);
             
             try {
-                const submitData = {
-                    action: 'submitSession',
-                    sessionId: sessionState.sessionId,
-                    mode: 'scout-only',
-                    userId: currentUser.userId,
-                    handle: currentUser.handle,
-                    organization: currentUser.organization,
-                    startLat: sessionState.gpsPoints[0].lat,
-                    startLon: sessionState.gpsPoints[0].lon,
-                    endLat: sessionState.gpsPoints[sessionState.gpsPoints.length - 1].lat,
-                    endLon: sessionState.gpsPoints[sessionState.gpsPoints.length - 1].lon,
-                    rating: rating,
-                    duration: duration,
-                    distance: sessionState.totalDistance,
-                    notes: notes,
-                    photoCount: 0,
-                    gpsPoints: JSON.stringify(sessionState.gpsPoints),
-                    activityFeedConsent: 'yes',
-                    photoConsent: 'no'
-                };
-                
                 const response = await fetch(CONFIG.appsScriptUrl, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain'
-                    },
-                    body: JSON.stringify(submitData)
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'submitSession',
+                        sessionId: sessionState.sessionId,
+                        mode: 'scout-only',
+                        timestamp: new Date().toISOString(),
+                        userId: currentUser.userId,
+                        volunteerName: currentUser.handle,
+                        organization: currentUser.organization,
+                        startLat: sessionState.gpsPoints[0].lat,
+                        startLon: sessionState.gpsPoints[0].lon,
+                        endLat: sessionState.gpsPoints[0].lat,
+                        endLon: sessionState.gpsPoints[0].lon,
+                        rating: rating,
+                        duration: duration,
+                        distance: 0,
+                        notes: notes,
+                        photoCount: 0,
+                        gpsPoints: sessionState.gpsPoints,
+                        activityFeedConsent: true,
+                        photoConsent: false
+                    })
                 });
+                
                 const result = await response.json();
+                console.log('Scout submit response:', result);
                 
                 if (result.status === 'success') {
                     showToast('✓ Scout session submitted!', 'success');
-                    sessionState.isTracking = false;
                     setTimeout(() => showMainScreen(), 1000);
                 } else {
                     showToast(result.message || 'Submission failed', 'error');
                 }
             } catch (error) {
                 console.error('Submit error:', error);
-                showToast('Connection error. Please try again.', 'error');
+                showToast('Connection error', 'error');
             }
             
             this.disabled = false;
@@ -1960,7 +1846,7 @@ function startScoutTimer() {
 
         document.getElementById('cancelScoutBtn').addEventListener('click', () => {
             if (sessionState.isTracking) {
-                if (confirm('Cancel this scout session? GPS data will be lost.')) {
+                if (confirm('Cancel this scout session?')) {
                     sessionState.isTracking = false;
                     showMainScreen();
                 }
@@ -1970,126 +1856,38 @@ function startScoutTimer() {
         });
 
         // ==========================================
-        // PIN LOCATION MODE
+        // COLLECTION MODE
         // ==========================================
-        let pinCoordinates = null;
-
-        function showPinMode() {
-            hideAllScreens();
-            document.getElementById('pinScreen').classList.remove('hidden');
-            
-            document.getElementById('pinType').value = '';
-            document.getElementById('pinDescription').value = '';
-            document.getElementById('pinDescCount').textContent = '0';
-            document.getElementById('dropPinBtn').disabled = true;
-            pinCoordinates = null;
-            
-            // Get current location
-            document.getElementById('pinGPSStatus').textContent = 'Getting location...';
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    pinCoordinates = {
-                        lat: position.coords.latitude,
-                        lon: position.coords.longitude
-                    };
-                    document.getElementById('pinGPSStatus').textContent = 'Location acquired';
-                    document.getElementById('pinCoords').textContent = 
-                        pinCoordinates.lat.toFixed(6) + ', ' + pinCoordinates.lon.toFixed(6);
-                    validatePin();
-                },
-                (error) => {
-                    document.getElementById('pinGPSStatus').textContent = 'GPS error';
-                    showToast('Could not get GPS location', 'error');
-                }
-            );
-        }
-
-        document.getElementById('pinType').addEventListener('change', validatePin);
-        document.getElementById('pinDescription').addEventListener('input', function() {
-            document.getElementById('pinDescCount').textContent = this.value.length;
-            validatePin();
-        });
-
-        function validatePin() {
-            const typeOk = document.getElementById('pinType').value !== '';
-            const descOk = document.getElementById('pinDescription').value.trim().length >= 10;
-            const gpsOk = pinCoordinates !== null;
-            document.getElementById('dropPinBtn').disabled = !(typeOk && descOk && gpsOk);
-        }
-
-        document.getElementById('dropPinBtn').addEventListener('click', async function() {
-            this.disabled = true;
-            this.textContent = 'Dropping pin...';
-            
-            try {
-                const pinData = {
-                    action: 'dropPin',
-                    userId: currentUser.userId,
-                    handle: currentUser.handle,
-                    organization: currentUser.organization,
-                    pinType: document.getElementById('pinType').value,
-                    description: document.getElementById('pinDescription').value.trim(),
-                    latitude: pinCoordinates.lat,
-                    longitude: pinCoordinates.lon,
-                    timestamp: new Date().toISOString()
-                };
-                
-                const response = await fetch(CONFIG.appsScriptUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain'
-                    },
-                    body: JSON.stringify(pinData)
-                });
-                const result = await response.json();
-                
-                if (result.status === 'success') {
-                    showToast('✓ Pin dropped successfully!', 'success');
-                    setTimeout(() => showMainScreen(), 1000);
-                } else {
-                    showToast(result.message || 'Failed to drop pin', 'error');
-                }
-            } catch (error) {
-                console.error('Pin error:', error);
-                showToast('Connection error. Please try again.', 'error');
-            }
-            
-            this.disabled = false;
-            this.textContent = 'Drop Pin';
-        });
-
-        document.getElementById('cancelPinBtn').addEventListener('click', () => showMainScreen());
-
-        // ==========================================
-        // COLLECTION TRACKING MODE
-        // ==========================================
-        let collectionInterval = null;
-        let collectionStartTime = null;
-
         function showCollectionMode() {
             hideAllScreens();
             document.getElementById('collectionScreen').classList.remove('hidden');
             
-            // Reset state
+            // Reset
             sessionState = { sessionId: null, isTracking: false, startTime: null, gpsPoints: [], photos: [], totalDistance: 0, mode: 'collection' };
             bags = [];
             bagCounter = 0;
             document.getElementById('bagsContainer').innerHTML = '';
             document.getElementById('collectionNotes').value = '';
             document.getElementById('collectionNotesCount').textContent = '0';
+            document.getElementById('collectionGPSStatus').textContent = 'Not tracking';
+            document.getElementById('collectionDistance').textContent = '0.00 mi';
+            document.getElementById('collectionDuration').textContent = '00:00';
+            document.getElementById('collectionWeight').textContent = '0.0 lbs';
+            document.getElementById('collectionCPUE').textContent = '--';
             document.getElementById('consentFeedYes').checked = false;
             document.getElementById('consentFeedNo').checked = false;
             document.getElementById('consentPhotoYes').checked = false;
             document.getElementById('consentPhotoNo').checked = false;
             document.getElementById('photoPreviewContainer').innerHTML = '';
+            document.getElementById('startCollectionBtn').classList.remove('hidden');
+            document.getElementById('endCollectionBtn').classList.add('hidden');
         }
 
         document.getElementById('addBagBtn').addEventListener('click', addBag);
 
         function addBag() {
             bagCounter++;
-            const bagId = 'bag_' + bagCounter;
-            bags.push({ id: bagId, weight: 0 });
+            bags.push({ id: 'bag_' + bagCounter, weight: 0 });
             renderBags();
         }
 
@@ -2106,7 +1904,7 @@ function startScoutTimer() {
                         <span class="remove-bag" onclick="removeBag('${bag.id}')">Remove</span>
                     </div>
                     <input type="number" class="form-input" placeholder="Weight (lbs)" min="0" step="0.1" 
-                           value="${bag.weight}" onchange="updateBagWeight('${bag.id}', this.value)">
+                           value="${bag.weight || ''}" onchange="updateBagWeight('${bag.id}', this.value)">
                 `;
                 container.appendChild(bagDiv);
             });
@@ -2131,8 +1929,7 @@ function startScoutTimer() {
             const total = bags.reduce((sum, bag) => sum + bag.weight, 0);
             document.getElementById('collectionWeight').textContent = total.toFixed(1) + ' lbs';
             
-            // Update CPUE if tracking
-            if (sessionState.isTracking && sessionState.totalDistance > 0) {
+            if (sessionState.totalDistance > 0) {
                 const cpue = total / sessionState.totalDistance;
                 const sqrtCpue = Math.sqrt(cpue);
                 document.getElementById('collectionCPUE').textContent = sqrtCpue.toFixed(2);
@@ -2149,27 +1946,15 @@ function startScoutTimer() {
 
         document.getElementById('collectionPhotos').addEventListener('change', function(e) {
             sessionState.photos = Array.from(e.target.files);
-            renderPhotoPreview();
+            document.getElementById('photoPreviewContainer').innerHTML = 
+                sessionState.photos.length > 0 
+                    ? `<div style="font-size: 13px; color: #6b7280;">${sessionState.photos.length} photo(s) captured</div>`
+                    : '';
         });
 
-        function renderPhotoPreview() {
-            const container = document.getElementById('photoPreviewContainer');
-            if (sessionState.photos.length === 0) {
-                container.innerHTML = '';
-            } else {
-                container.innerHTML = `<div style="font-size: 13px; color: #6b7280;">${sessionState.photos.length} photo(s) captured</div>`;
-            }
-        }
-
-        document.getElementById('startCollectionBtn').addEventListener('click', async function() {
+        document.getElementById('startCollectionBtn').addEventListener('click', function() {
             if (!document.getElementById('consentFeedYes').checked && !document.getElementById('consentFeedNo').checked) {
-                showToast('Please answer activity feed consent question', 'warning');
-                return;
-            }
-            if (sessionState.photos.length > 0 && 
-                !document.getElementById('consentPhotoYes').checked && 
-                !document.getElementById('consentPhotoNo').checked) {
-                showToast('Please answer photo consent question', 'warning');
+                showToast('Please answer activity feed consent', 'warning');
                 return;
             }
             
@@ -2181,13 +1966,12 @@ function startScoutTimer() {
             document.getElementById('startCollectionBtn').classList.add('hidden');
             document.getElementById('endCollectionBtn').classList.remove('hidden');
             
-            // Start GPS tracking
             if (navigator.geolocation) {
                 document.getElementById('collectionGPSStatus').textContent = 'Tracking...';
                 watchCollectionGPS();
             }
             
-            showToast('Collection started - track your cleanup!', 'success');
+            showToast('Collection started!', 'success');
         });
 
         function watchCollectionGPS() {
@@ -2209,7 +1993,7 @@ function startScoutTimer() {
                     }
                     
                     document.getElementById('collectionDistance').textContent = sessionState.totalDistance.toFixed(2) + ' mi';
-                    updateTotalWeight(); // Recalc CPUE
+                    updateTotalWeight();
                     
                     // Update duration
                     const elapsed = Math.floor((Date.now() - collectionStartTime) / 1000);
@@ -2245,54 +2029,52 @@ function startScoutTimer() {
             
             this.disabled = true;
             this.textContent = 'Submitting...';
+            sessionState.isTracking = false;
             
             const duration = Math.floor((Date.now() - collectionStartTime) / 1000);
-            const notes = document.getElementById('collectionNotes').value.trim();
-            const activityFeedConsent = document.getElementById('consentFeedYes').checked ? 'yes' : 'no';
-            const photoConsent = document.getElementById('consentPhotoYes').checked ? 'yes' : 'no';
+            const activityFeedConsent = document.getElementById('consentFeedYes').checked;
+            const photoConsent = document.getElementById('consentPhotoYes').checked;
             
             try {
-                const submitData = {
-                    action: 'submitSession',
-                    sessionId: sessionState.sessionId,
-                    mode: 'collection',
-                    userId: currentUser.userId,
-                    handle: currentUser.handle,
-                    organization: currentUser.organization,
-                    startLat: sessionState.gpsPoints[0].lat,
-                    startLon: sessionState.gpsPoints[0].lon,
-                    endLat: sessionState.gpsPoints[sessionState.gpsPoints.length - 1].lat,
-                    endLon: sessionState.gpsPoints[sessionState.gpsPoints.length - 1].lon,
-                    weight: totalWeight,
-                    bagCount: bags.length,
-                    duration: duration,
-                    distance: sessionState.totalDistance,
-                    notes: notes,
-                    photoCount: sessionState.photos.length,
-                    gpsPoints: JSON.stringify(sessionState.gpsPoints),
-                    activityFeedConsent: activityFeedConsent,
-                    photoConsent: photoConsent
-                };
-                
                 const response = await fetch(CONFIG.appsScriptUrl, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain'
-                    },
-                    body: JSON.stringify(submitData)
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'submitSession',
+                        sessionId: sessionState.sessionId,
+                        mode: 'collection',
+                        timestamp: new Date().toISOString(),
+                        userId: currentUser.userId,
+                        volunteerName: currentUser.handle,
+                        organization: currentUser.organization,
+                        startLat: sessionState.gpsPoints[0].lat,
+                        startLon: sessionState.gpsPoints[0].lon,
+                        endLat: sessionState.gpsPoints[sessionState.gpsPoints.length - 1].lat,
+                        endLon: sessionState.gpsPoints[sessionState.gpsPoints.length - 1].lon,
+                        weight: totalWeight,
+                        bagCount: bags.length,
+                        duration: duration,
+                        distance: sessionState.totalDistance,
+                        notes: document.getElementById('collectionNotes').value.trim(),
+                        photoCount: sessionState.photos.length,
+                        gpsPoints: sessionState.gpsPoints,
+                        activityFeedConsent: activityFeedConsent,
+                        photoConsent: photoConsent
+                    })
                 });
+                
                 const result = await response.json();
+                console.log('Collection submit response:', result);
                 
                 if (result.status === 'success') {
                     showToast('✓ Collection submitted!', 'success');
-                    sessionState.isTracking = false;
                     setTimeout(() => showMainScreen(), 1000);
                 } else {
                     showToast(result.message || 'Submission failed', 'error');
                 }
             } catch (error) {
                 console.error('Submit error:', error);
-                showToast('Connection error. Please try again.', 'error');
+                showToast('Connection error', 'error');
             }
             
             this.disabled = false;
@@ -2301,7 +2083,7 @@ function startScoutTimer() {
 
         document.getElementById('cancelCollectionBtn').addEventListener('click', () => {
             if (sessionState.isTracking) {
-                if (confirm('Cancel this collection? All data will be lost.')) {
+                if (confirm('Cancel this collection?')) {
                     sessionState.isTracking = false;
                     showMainScreen();
                 }
@@ -2311,92 +2093,18 @@ function startScoutTimer() {
         });
 
         // ==========================================
-        // RECYCLE MODE
-        // ==========================================
-        function showRecycleMode() {
-            hideAllScreens();
-            document.getElementById('recycleScreen').classList.remove('hidden');
-            
-            document.getElementById('recycleMaterial').value = '';
-            document.getElementById('recycleQuantity').value = '';
-            document.getElementById('recycleUnit').value = 'lbs';
-            document.getElementById('recycleNotes').value = '';
-            document.getElementById('recycleNotesCount').textContent = '0';
-            document.getElementById('submitRecycleBtn').disabled = true;
-        }
-
-        document.getElementById('recycleMaterial').addEventListener('change', validateRecycle);
-        document.getElementById('recycleQuantity').addEventListener('input', validateRecycle);
-
-        function validateRecycle() {
-            const materialOk = document.getElementById('recycleMaterial').value !== '';
-            const quantityOk = parseFloat(document.getElementById('recycleQuantity').value) > 0;
-            document.getElementById('submitRecycleBtn').disabled = !(materialOk && quantityOk);
-        }
-
-        document.getElementById('recycleNotes').addEventListener('input', function() {
-            document.getElementById('recycleNotesCount').textContent = this.value.length;
-        });
-
-        document.getElementById('submitRecycleBtn').addEventListener('click', async function() {
-            this.disabled = true;
-            this.textContent = 'Submitting...';
-            
-            try {
-                const recycleData = {
-                    action: 'logRecycling',
-                    userId: currentUser.userId,
-                    handle: currentUser.handle,
-                    streetAddress: currentUser.streetAddress,
-                    neighborhood: currentUser.neighborhood,
-                    zipCode: currentUser.zipCode,
-                    material: document.getElementById('recycleMaterial').value,
-                    quantity: parseFloat(document.getElementById('recycleQuantity').value),
-                    unit: document.getElementById('recycleUnit').value,
-                    notes: document.getElementById('recycleNotes').value.trim(),
-                    timestamp: new Date().toISOString()
-                };
-                
-                const response = await fetch(CONFIG.appsScriptUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain'
-                    },
-                    body: JSON.stringify(recycleData)
-                });
-                const result = await response.json();
-                
-                if (result.status === 'success') {
-                    showToast('✓ Recycling logged!', 'success');
-                    setTimeout(() => showMainScreen(), 1000);
-                } else {
-                    showToast(result.message || 'Failed to log recycling', 'error');
-                }
-            } catch (error) {
-                console.error('Recycle error:', error);
-                showToast('Connection error. Please try again.', 'error');
-            }
-            
-            this.disabled = false;
-            this.textContent = 'Log Recycling';
-        });
-
-        document.getElementById('cancelRecycleBtn').addEventListener('click', () => showMainScreen());
-
-        // ==========================================
         // EDIT PROFILE
         // ==========================================
         function showEditProfile() {
             hideAllScreens();
             document.getElementById('editProfileScreen').classList.remove('hidden');
             
-            // Populate current values
             document.getElementById('editHandle').value = currentUser.handle;
             
-            // Set organization
             const orgSelect = document.getElementById('editOrgSelect');
             if (CONFIG.organizations.includes(currentUser.organization)) {
                 orgSelect.value = currentUser.organization;
+                document.getElementById('editCustomOrg').classList.remove('show');
             } else {
                 orgSelect.value = 'other';
                 document.getElementById('editCustomOrg').classList.add('show');
@@ -2421,29 +2129,26 @@ function startScoutTimer() {
                 : document.getElementById('editOrgSelect').value;
             
             try {
-                const updateData = {
-                    action: 'updateProfile',
-                    userId: currentUser.userId,
-                    organization: org,
-                    streetAddress: document.getElementById('editStreet').value.trim(),
-                    neighborhood: document.getElementById('editNeighborhood').value.trim(),
-                    zipCode: document.getElementById('editZip').value.trim()
-                };
-                
                 const response = await fetch(CONFIG.appsScriptUrl, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain'
-                    },
-                    body: JSON.stringify(updateData)
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'updateProfile',
+                        userId: currentUser.userId,
+                        organization: org,
+                        streetAddress: document.getElementById('editStreet').value.trim(),
+                        neighborhood: document.getElementById('editNeighborhood').value.trim(),
+                        zipCode: document.getElementById('editZip').value.trim()
+                    })
                 });
+                
                 const result = await response.json();
                 
                 if (result.status === 'success') {
                     currentUser.organization = org;
-                    currentUser.streetAddress = updateData.streetAddress;
-                    currentUser.neighborhood = updateData.neighborhood;
-                    currentUser.zipCode = updateData.zipCode;
+                    currentUser.streetAddress = document.getElementById('editStreet').value.trim();
+                    currentUser.neighborhood = document.getElementById('editNeighborhood').value.trim();
+                    currentUser.zipCode = document.getElementById('editZip').value.trim();
                     saveSession();
                     showToast('✓ Profile updated!', 'success');
                     setTimeout(() => showMainScreen(), 1000);
@@ -2452,7 +2157,7 @@ function startScoutTimer() {
                 }
             } catch (error) {
                 console.error('Update error:', error);
-                showToast('Connection error. Please try again.', 'error');
+                showToast('Connection error', 'error');
             }
             
             this.disabled = false;
@@ -2485,7 +2190,6 @@ function startScoutTimer() {
                 document.getElementById('loginScreen').classList.remove('hidden');
             }
         });
-
     </script>
 </body>
 </html>
