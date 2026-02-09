@@ -1913,7 +1913,7 @@ function startScoutTimer() {
             
             try {
                 const submitData = {
-                    action: 'submit_session',
+                    action: 'submitSession',
                     sessionId: sessionState.sessionId,
                     mode: 'scout-only',
                     userId: currentUser.userId,
@@ -2023,7 +2023,7 @@ function startScoutTimer() {
             
             try {
                 const pinData = {
-                    action: 'drop_pin',
+                    action: 'dropPin',
                     userId: currentUser.userId,
                     handle: currentUser.handle,
                     organization: currentUser.organization,
@@ -2253,7 +2253,7 @@ function startScoutTimer() {
             
             try {
                 const submitData = {
-                    action: 'submit_session',
+                    action: 'submitSession',
                     sessionId: sessionState.sessionId,
                     mode: 'collection',
                     userId: currentUser.userId,
@@ -2344,7 +2344,7 @@ function startScoutTimer() {
             
             try {
                 const recycleData = {
-                    action: 'log_recycling',
+                    action: 'logRecycling',
                     userId: currentUser.userId,
                     handle: currentUser.handle,
                     streetAddress: currentUser.streetAddress,
@@ -2422,7 +2422,7 @@ function startScoutTimer() {
             
             try {
                 const updateData = {
-                    action: 'update_profile',
+                    action: 'updateProfile',
                     userId: currentUser.userId,
                     organization: org,
                     streetAddress: document.getElementById('editStreet').value.trim(),
