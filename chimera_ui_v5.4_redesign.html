@@ -1843,42 +1843,40 @@
             showToast('Scout session started', 'success');
         });
 
-        function watchScoutGPS() {
-            if (!sessionState.isTracking) return;
+function watchScoutGPS() {
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            // Capture single point only
+            sessionState.gpsPoints = [{
+                lat: position.coords.latitude,
+                lon: position.coords.longitude,
+                timestamp: new Date().toISOString()
+            }];
             
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    sessionState.gpsPoints.push({
-                        lat: position.coords.latitude,
-                        lon: position.coords.longitude,
-                        timestamp: new Date().toISOString()
-                    });
-                    
-                    // Calculate distance
-                    if (sessionState.gpsPoints.length > 1) {
-                        const last = sessionState.gpsPoints[sessionState.gpsPoints.length - 2];
-                        const curr = sessionState.gpsPoints[sessionState.gpsPoints.length - 1];
-                        sessionState.totalDistance += calculateDistance(last.lat, last.lon, curr.lat, curr.lon);
-                    }
-                    
-                    document.getElementById('scoutDistance').textContent = sessionState.totalDistance.toFixed(2) + ' mi';
-                    
-                    // Update duration
-                    const elapsed = Math.floor((Date.now() - scoutStartTime) / 1000);
-                    const mins = Math.floor(elapsed / 60);
-                    const secs = elapsed % 60;
-                    document.getElementById('scoutDuration').textContent = 
-                        (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
-                    
-                    setTimeout(watchScoutGPS, CONFIG.gpsInterval);
-                },
-                (error) => {
-                    console.error('GPS error:', error);
-                    document.getElementById('scoutGPSStatus').textContent = 'GPS error';
-                }
-            );
+            document.getElementById('scoutGPSStatus').textContent = 'Location captured';
+            document.getElementById('scoutDistance').textContent = 'N/A';
+            
+            // Start duration timer (separate from GPS)
+            startScoutTimer();
+        },
+        (error) => {
+            console.error('GPS error:', error);
+            document.getElementById('scoutGPSStatus').textContent = 'GPS error';
         }
+    );
+}
 
+function startScoutTimer() {
+    if (!sessionState.isTracking) return;
+    
+    const elapsed = Math.floor((Date.now() - scoutStartTime) / 1000);
+    const mins = Math.floor(elapsed / 60);
+    const secs = elapsed % 60;
+    document.getElementById('scoutDuration').textContent = 
+        (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+    
+    setTimeout(startScoutTimer, 1000);
+}
         document.getElementById('endScoutBtn').addEventListener('click', async function() {
             if (sessionState.gpsPoints.length === 0) {
                 showToast('No GPS data recorded', 'error');
