@@ -252,10 +252,14 @@
             gap: 6px;
             flex-wrap: wrap;
         }
-        .activity-icon { font-size: 16px; }
-        .activity-volunteer {
-            font-weight: 600;
+        .activity-icon { font-size: 16px; flex-shrink: 0; }
+        .activity-text {
+            font-size: 14px;
             color: #1f2937;
+            flex: 1;
+        }
+        .activity-text strong, .activity-volunteer {
+            font-weight: 600;
         }
         .activity-time {
             font-size: 13px;
@@ -269,7 +273,7 @@
             border-radius: 4px;
             font-size: 11px;
             font-weight: 600;
-            margin-left: auto;
+            flex-shrink: 0;
         }
         .activity-details {
             color: #4b5563;
@@ -1040,6 +1044,9 @@
 
             <!-- ==================== MAIN SCREEN ==================== -->
             <div id="mainScreen" class="hidden">
+                <!-- Upcoming Events Placeholder -->
+                <div class="upcoming-events">📅 Upcoming Cleanups - COMING SOON</div>
+
                 <!-- Activity Feed -->
                 <div class="activity-feed">
                     <div class="feed-header">
@@ -1053,9 +1060,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Upcoming Events Placeholder -->
-                <div class="upcoming-events">📅 Upcoming Cleanups - COMING SOON</div>
             </div>
 
             <!-- ==================== SCOUT MODE (Single Capture) ==================== -->
@@ -1521,10 +1525,11 @@
         }
 
         function formatTimeShort(date) {
-            let h = date.getHours(), m = date.getMinutes();
-            const ampm = h >= 12 ? 'PM' : 'AM';
-            h = h % 12 || 12;
-            return `${h}:${m.toString().padStart(2, '0')} ${ampm}`;
+            const m = date.getMonth() + 1;
+            const d = date.getDate();
+            const h = date.getHours().toString().padStart(2, '0');
+            const min = date.getMinutes().toString().padStart(2, '0');
+            return `${m}/${d} ${h}:${min}`;
         }
 
         function formatTimeVague(date) {
@@ -1647,14 +1652,9 @@
                         html += `<div class="activity-item">
                             <div class="activity-header">
                                 <span class="activity-icon">🗑️</span>
-                                <span class="activity-volunteer">${name}</span>
-                                <span class="activity-time">• ${timeStr}</span>
+                                <span class="activity-text">${name} collected ${activity.weight.toFixed(1)} lbs${activity.sqrtCpue ? ` (√CPUE: ${activity.sqrtCpue.toFixed(2)})` : ''} ${timeStr}</span>
                                 ${district}
-                            </div>
-                            <div class="activity-details">collected ${activity.weight.toFixed(1)} lbs`;
-                        
-                        if (activity.sqrtCpue) html += ` (√CPUE: ${activity.sqrtCpue.toFixed(2)})`;
-                        html += `</div>`;
+                            </div>`;
 
                         // Validation box
                         const val = activity.validation || { accurate: [], close: [], off: [] };
