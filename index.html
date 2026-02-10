@@ -1331,80 +1331,81 @@
                 <button class="btn btn-secondary" id="cancelHRBtn">Cancel</button>
             </div>
         </div>
-    </div>
 
-    <!-- ==================== EVENT MANAGER SCREEN (Coordinator Only) ==================== -->
-    <div id="eventManagerScreen" class="hidden">
-        <div class="card">
-            <h2 class="card-title">📅 Event Manager</h2>
-            <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">
-                Propose and manage cleanup events. Events must be approved by admin before they appear publicly.
-            </p>
-            
-            <button class="btn btn-primary" id="proposeEventBtn" style="width: 100%; margin-bottom: 20px;">+ Propose New Event</button>
-            
-            <h3 style="font-size: 16px; margin-bottom: 12px;">My Events</h3>
-            <div id="myEventsList">
-                <div style="text-align: center; color: #6b7280; padding: 20px;">Loading...</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== PROPOSE EVENT SCREEN ==================== -->
-    <div id="proposeEventScreen" class="hidden">
-        <div class="card">
-            <h2 class="card-title">📝 Propose Event</h2>
-            
-            <div class="form-group">
-                <label class="form-label">Event Title *</label>
-                <input type="text" class="form-control" id="eventTitleInput" placeholder="e.g., Spring Cleanup at Oak Park">
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Event Date *</label>
-                <input type="date" class="form-control" id="eventDateInput">
-            </div>
-            
-            <div class="row" style="display: flex; gap: 12px;">
-                <div class="form-group" style="flex: 1;">
-                    <label class="form-label">Start Time</label>
-                    <input type="time" class="form-control" id="eventStartTimeInput">
-                </div>
-                <div class="form-group" style="flex: 1;">
-                    <label class="form-label">End Time</label>
-                    <input type="time" class="form-control" id="eventEndTimeInput">
+        <!-- ==================== EVENT MANAGER SCREEN (Coordinator Only) ==================== -->
+        <div id="eventManagerScreen" class="hidden">
+            <div class="card">
+                <h2 class="card-title">📅 Event Manager</h2>
+                <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">
+                    Propose and manage cleanup events. Events must be approved by admin before they appear publicly.
+                </p>
+                
+                <button class="btn btn-primary" id="proposeEventBtn" style="width: 100%; margin-bottom: 20px;">+ Propose New Event</button>
+                
+                <h3 style="font-size: 16px; margin-bottom: 12px;">My Events</h3>
+                <div id="myEventsList">
+                    <div style="text-align: center; color: #6b7280; padding: 20px;">Loading...</div>
                 </div>
             </div>
-            
-            <div class="form-group">
-                <label class="form-label">Location Name *</label>
-                <input type="text" class="form-control" id="eventLocationInput" placeholder="e.g., Oak Park Pavilion">
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Description</label>
-                <textarea class="form-control" id="eventDescriptionInput" rows="3" placeholder="What should participants know?"></textarea>
-            </div>
-            
-            <div class="btn-group">
-                <button class="btn btn-primary" id="submitEventProposalBtn">Submit for Approval</button>
-                <button class="btn btn-secondary" id="cancelEventProposalBtn">Cancel</button>
-            </div>
         </div>
-    </div>
 
-    <!-- ==================== UPCOMING EVENTS SCREEN ==================== -->
-    <div id="upcomingEventsScreen" class="hidden">
-        <div class="card">
-            <h2 class="card-title">📆 Upcoming Events</h2>
-            <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">
-                Community cleanup events organized by volunteer coordinators.
-            </p>
-            
-            <div id="upcomingEventsList">
-                <div style="text-align: center; color: #6b7280; padding: 20px;">Loading...</div>
+        <!-- ==================== PROPOSE EVENT SCREEN ==================== -->
+        <div id="proposeEventScreen" class="hidden">
+            <div class="card">
+                <h2 class="card-title">📝 Propose Event</h2>
+                
+                <div class="form-group">
+                    <label class="form-label">Event Title *</label>
+                    <input type="text" class="form-control" id="eventTitleInput" placeholder="e.g., Spring Cleanup at Oak Park">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Event Date *</label>
+                    <input type="date" class="form-control" id="eventDateInput">
+                </div>
+                
+                <div class="row" style="display: flex; gap: 12px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Start Time</label>
+                        <input type="time" class="form-control" id="eventStartTimeInput">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">End Time</label>
+                        <input type="time" class="form-control" id="eventEndTimeInput">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Location Name *</label>
+                    <input type="text" class="form-control" id="eventLocationInput" placeholder="e.g., Oak Park Pavilion">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" id="eventDescriptionInput" rows="3" placeholder="What should participants know?"></textarea>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="submitEventProposalBtn">Submit for Approval</button>
+                    <button class="btn btn-secondary" id="cancelEventProposalBtn">Cancel</button>
+                </div>
             </div>
         </div>
+
+        <!-- ==================== UPCOMING EVENTS SCREEN ==================== -->
+        <div id="upcomingEventsScreen" class="hidden">
+            <div class="card">
+                <h2 class="card-title">📆 Upcoming Events</h2>
+                <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">
+                    Community cleanup events organized by volunteer coordinators.
+                </p>
+                
+                <div id="upcomingEventsList">
+                    <div style="text-align: center; color: #6b7280; padding: 20px;">Loading...</div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- ==================== MODALS ==================== -->
