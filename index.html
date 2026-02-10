@@ -905,7 +905,7 @@
             </div>
             <div class="menu-item" id="menuDemo">
                 <span class="menu-item-icon">🐾</span>
-                <span>(DEMO) Gone Feral (working title)</span>
+                <span>(DEMO) The Chimera Hunt</span>
             </div>
         </div>
         
@@ -935,6 +935,24 @@
             <div class="menu-item" id="menuRecycle">
                 <span class="menu-item-icon">♻️</span>
                 <span>Recycle</span>
+            </div>
+        </div>
+        
+        <!-- Event Coordinator Section (hidden by default) -->
+        <div class="menu-section" id="coordinatorMenuSection" style="display: none;">
+            <div class="menu-item" id="menuEventManager">
+                <span class="menu-item-icon">📅</span>
+                <span>Event Manager</span>
+            </div>
+        </div>
+        
+        <div class="menu-divider"></div>
+        
+        <!-- Upcoming Events (visible to all) -->
+        <div class="menu-section">
+            <div class="menu-item" id="menuUpcomingEvents">
+                <span class="menu-item-icon">📆</span>
+                <span>Upcoming Events</span>
             </div>
         </div>
         
@@ -1315,6 +1333,80 @@
         </div>
     </div>
 
+    <!-- ==================== EVENT MANAGER SCREEN (Coordinator Only) ==================== -->
+    <div id="eventManagerScreen" class="hidden">
+        <div class="card">
+            <h2 class="card-title">📅 Event Manager</h2>
+            <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">
+                Propose and manage cleanup events. Events must be approved by admin before they appear publicly.
+            </p>
+            
+            <button class="btn btn-primary" id="proposeEventBtn" style="width: 100%; margin-bottom: 20px;">+ Propose New Event</button>
+            
+            <h3 style="font-size: 16px; margin-bottom: 12px;">My Events</h3>
+            <div id="myEventsList">
+                <div style="text-align: center; color: #6b7280; padding: 20px;">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== PROPOSE EVENT SCREEN ==================== -->
+    <div id="proposeEventScreen" class="hidden">
+        <div class="card">
+            <h2 class="card-title">📝 Propose Event</h2>
+            
+            <div class="form-group">
+                <label class="form-label">Event Title *</label>
+                <input type="text" class="form-control" id="eventTitleInput" placeholder="e.g., Spring Cleanup at Oak Park">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Event Date *</label>
+                <input type="date" class="form-control" id="eventDateInput">
+            </div>
+            
+            <div class="row" style="display: flex; gap: 12px;">
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Start Time</label>
+                    <input type="time" class="form-control" id="eventStartTimeInput">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">End Time</label>
+                    <input type="time" class="form-control" id="eventEndTimeInput">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Location Name *</label>
+                <input type="text" class="form-control" id="eventLocationInput" placeholder="e.g., Oak Park Pavilion">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" id="eventDescriptionInput" rows="3" placeholder="What should participants know?"></textarea>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-primary" id="submitEventProposalBtn">Submit for Approval</button>
+                <button class="btn btn-secondary" id="cancelEventProposalBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== UPCOMING EVENTS SCREEN ==================== -->
+    <div id="upcomingEventsScreen" class="hidden">
+        <div class="card">
+            <h2 class="card-title">📆 Upcoming Events</h2>
+            <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">
+                Community cleanup events organized by volunteer coordinators.
+            </p>
+            
+            <div id="upcomingEventsList">
+                <div style="text-align: center; color: #6b7280; padding: 20px;">Loading...</div>
+            </div>
+        </div>
+    </div>
+
     <!-- ==================== MODALS ==================== -->
     
     <!-- Getting Started Modal -->
@@ -1505,7 +1597,8 @@
 
         function hideAllScreens() {
             ['loginScreen', 'mainScreen', 'scoutScreen', 'activeTrackingScreen', 
-             'postTrackingScreen', 'editProfileScreen', 'recycleScreen'].forEach(id => {
+             'postTrackingScreen', 'editProfileScreen', 'recycleScreen',
+             'eventManagerScreen', 'proposeEventScreen', 'upcomingEventsScreen'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
         }
@@ -1570,8 +1663,12 @@
         });
         document.getElementById('menuRecycle').addEventListener('click', () => { closeMenu(); showRecycleScreen(); });
         document.getElementById('menuLogout').addEventListener('click', () => { if (confirm('Log out?')) { clearSession(); location.reload(); } });
+        
+        // Event Manager menu handlers
+        document.getElementById('menuEventManager').addEventListener('click', () => { closeMenu(); showEventManager(); });
+        document.getElementById('menuUpcomingEvents').addEventListener('click', () => { closeMenu(); showUpcomingEvents(); });
 
-        // ==========================================
+        // ===========================================
         // MODALS
         // ==========================================
         document.getElementById('closeGettingStarted').addEventListener('click', () => {
@@ -1851,6 +1948,7 @@
             
             loadActivityFeed(true);
             checkSunSchedule();
+            checkCoordinatorStatus();
         }
 
         // ==========================================
@@ -2437,6 +2535,236 @@
                 loadActivityFeed(true);
             }
         }, 60000);
+
+        // ==========================================
+        // COORDINATOR EVENTS SYSTEM
+        // ==========================================
+        
+        function checkCoordinatorStatus() {
+            // Check if user has event_coordinator in overrides
+            if (currentUser && currentUser.overrides && Array.isArray(currentUser.overrides)) {
+                if (currentUser.overrides.includes('event_coordinator')) {
+                    document.getElementById('coordinatorMenuSection').style.display = 'block';
+                    return true;
+                }
+            }
+            document.getElementById('coordinatorMenuSection').style.display = 'none';
+            return false;
+        }
+
+        function showEventManager() {
+            hideAllScreens();
+            document.getElementById('eventManagerScreen').classList.remove('hidden');
+            loadMyEvents();
+        }
+
+        async function loadMyEvents() {
+            const list = document.getElementById('myEventsList');
+            list.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 20px;">Loading...</div>';
+
+            try {
+                const response = await fetch(CONFIG.appsScriptUrl + '?action=get_my_events&userId=' + currentUser.userId);
+                const result = await response.json();
+
+                if (result.status !== 'success') {
+                    list.innerHTML = '<div style="text-align: center; color: #dc2626; padding: 20px;">Failed to load events</div>';
+                    return;
+                }
+
+                const events = result.events || [];
+
+                if (events.length === 0) {
+                    list.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 20px;">No events yet. Create one!</div>';
+                    return;
+                }
+
+                let html = '';
+                events.forEach(event => {
+                    const dateStr = event.eventDate ? new Date(event.eventDate).toLocaleDateString() : 'TBD';
+                    const statusColors = {
+                        'pending': '#f59e0b',
+                        'approved': '#22c55e',
+                        'rejected': '#dc2626',
+                        'cancelled': '#6b7280'
+                    };
+                    const statusColor = statusColors[event.status] || '#6b7280';
+
+                    html += `<div style="background: #f9fafb; border-radius: 12px; padding: 14px; margin-bottom: 12px; border-left: 4px solid ${statusColor};">
+                        <div style="font-weight: 600;">${event.title}</div>
+                        <div style="font-size: 13px; color: #6b7280; margin-top: 4px;">
+                            📅 ${dateStr} &nbsp;•&nbsp; 📍 ${event.locationName || 'TBD'}
+                        </div>
+                        <div style="margin-top: 8px;">
+                            <span style="font-size: 12px; background: ${statusColor}20; color: ${statusColor}; padding: 2px 8px; border-radius: 12px; font-weight: 500; text-transform: uppercase;">
+                                ${event.status}
+                            </span>
+                        </div>
+                        ${event.reviewNotes ? `<div style="font-size: 12px; color: #6b7280; margin-top: 8px; font-style: italic;">Note: ${event.reviewNotes}</div>` : ''}
+                        ${event.status === 'approved' ? `<button class="btn btn-secondary" style="margin-top: 8px; font-size: 12px; padding: 6px 12px;" onclick="postEventUpdate('${event.eventId}')">Post Update</button>` : ''}
+                    </div>`;
+                });
+
+                list.innerHTML = html;
+
+            } catch (error) {
+                console.error('Load my events error:', error);
+                list.innerHTML = '<div style="text-align: center; color: #dc2626; padding: 20px;">Error loading events</div>';
+            }
+        }
+
+        function showProposeEventScreen() {
+            hideAllScreens();
+            document.getElementById('proposeEventScreen').classList.remove('hidden');
+            
+            // Reset form
+            document.getElementById('eventTitleInput').value = '';
+            document.getElementById('eventDateInput').value = '';
+            document.getElementById('eventStartTimeInput').value = '';
+            document.getElementById('eventEndTimeInput').value = '';
+            document.getElementById('eventLocationInput').value = '';
+            document.getElementById('eventDescriptionInput').value = '';
+        }
+
+        document.getElementById('proposeEventBtn').addEventListener('click', showProposeEventScreen);
+        document.getElementById('cancelEventProposalBtn').addEventListener('click', showEventManager);
+
+        document.getElementById('submitEventProposalBtn').addEventListener('click', async () => {
+            const title = document.getElementById('eventTitleInput').value.trim();
+            const eventDate = document.getElementById('eventDateInput').value;
+            const startTime = document.getElementById('eventStartTimeInput').value;
+            const endTime = document.getElementById('eventEndTimeInput').value;
+            const locationName = document.getElementById('eventLocationInput').value.trim();
+            const description = document.getElementById('eventDescriptionInput').value.trim();
+
+            if (!title) { showToast('Event title required', 'error'); return; }
+            if (!eventDate) { showToast('Event date required', 'error'); return; }
+            if (!locationName) { showToast('Location required', 'error'); return; }
+
+            try {
+                const response = await fetch(CONFIG.appsScriptUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'proposeEvent',
+                        userId: currentUser.userId,
+                        coordinatorName: currentUser.name,
+                        title,
+                        eventDate,
+                        startTime,
+                        endTime,
+                        locationName,
+                        description
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    showToast('Event submitted for approval!', 'success');
+                    showEventManager();
+                } else {
+                    showToast(result.message || 'Submission failed', 'error');
+                }
+            } catch (error) {
+                showToast('Submission error', 'error');
+            }
+        });
+
+        async function postEventUpdate(eventId) {
+            const message = prompt('Enter your update message:');
+            if (!message || !message.trim()) return;
+
+            try {
+                const response = await fetch(CONFIG.appsScriptUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'postEventUpdate',
+                        userId: currentUser.userId,
+                        eventId: eventId,
+                        message: message.trim()
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    showToast('Update posted to activity feed!', 'success');
+                } else {
+                    showToast(result.message || 'Post failed', 'error');
+                }
+            } catch (error) {
+                showToast('Post error', 'error');
+            }
+        }
+
+        // Upcoming Events
+        function showUpcomingEvents() {
+            hideAllScreens();
+            document.getElementById('upcomingEventsScreen').classList.remove('hidden');
+            loadUpcomingEvents();
+        }
+
+        async function loadUpcomingEvents() {
+            const list = document.getElementById('upcomingEventsList');
+            list.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 20px;">Loading...</div>';
+
+            try {
+                const response = await fetch(CONFIG.appsScriptUrl + '?action=get_upcoming_events');
+                const result = await response.json();
+
+                if (result.status !== 'success') {
+                    list.innerHTML = '<div style="text-align: center; color: #dc2626; padding: 20px;">Failed to load events</div>';
+                    return;
+                }
+
+                const events = result.events || [];
+
+                if (events.length === 0) {
+                    list.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 20px;">No upcoming events scheduled.</div>';
+                    return;
+                }
+
+                let html = '';
+                events.forEach(event => {
+                    const dateStr = event.eventDate ? new Date(event.eventDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : 'TBD';
+                    const timeStr = event.startTime ? `${formatTime12Hour(event.startTime)}${event.endTime ? ' - ' + formatTime12Hour(event.endTime) : ''}` : '';
+
+                    html += `<div style="background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%); border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid #bbf7d0;">
+                        <div style="font-weight: 600; color: #166534; font-size: 16px;">${event.title}</div>
+                        <div style="font-size: 14px; color: #15803d; margin-top: 8px;">
+                            📅 ${dateStr} ${timeStr ? '&nbsp;•&nbsp; 🕐 ' + timeStr : ''}
+                        </div>
+                        <div style="font-size: 14px; color: #15803d; margin-top: 4px;">
+                            📍 ${event.locationName}
+                        </div>
+                        ${event.description ? `<div style="font-size: 13px; color: #166534; margin-top: 10px; padding-top: 10px; border-top: 1px solid #bbf7d0;">${event.description}</div>` : ''}
+                        <div style="font-size: 12px; color: #6b7280; margin-top: 8px;">Organized by ${event.coordinatorName}</div>
+                    </div>`;
+                });
+
+                list.innerHTML = html;
+
+            } catch (error) {
+                console.error('Load upcoming events error:', error);
+                list.innerHTML = '<div style="text-align: center; color: #dc2626; padding: 20px;">Error loading events</div>';
+            }
+        }
+
+        function formatTime12Hour(time24) {
+            if (!time24) return '';
+            const [hours, minutes] = time24.split(':');
+            const h = parseInt(hours);
+            const suffix = h >= 12 ? 'PM' : 'AM';
+            const h12 = h % 12 || 12;
+            return `${h12}:${minutes} ${suffix}`;
+        }
+
+        // Check coordinator status when user logs in
+        const originalOnLogin = window.onLogin;
+        window.checkCoordinatorOnLogin = function() {
+            setTimeout(checkCoordinatorStatus, 500);
+        };
     </script>
 </body>
 </html>
