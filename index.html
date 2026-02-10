@@ -889,8 +889,22 @@
             <div class="menu-edit" id="menuEditProfile">edit profile</div>
         </div>
         
+        <!-- Event Coordinator Section (hidden by default) - SPECIAL STYLING -->
+        <div class="menu-section" id="coordinatorMenuSection" style="display: none;">
+            <div class="menu-item" id="menuEventManager" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b; border-radius: 12px; margin: 4px 0;">
+                <span class="menu-item-icon">⭐</span>
+                <span style="color: #92400e; font-weight: 600;">Event Manager</span>
+            </div>
+        </div>
+        
+        <div class="menu-divider" id="coordinatorDivider" style="display: none;"></div>
+
         <!-- Info Section -->
         <div class="menu-section">
+            <div class="menu-item" id="menuActivityFeed">
+                <span class="menu-item-icon">📊</span>
+                <span>Activity Feed</span>
+            </div>
             <div class="menu-item" id="menuGettingStarted">
                 <span class="menu-item-icon">💡</span>
                 <span>Getting Started</span>
@@ -935,14 +949,6 @@
             <div class="menu-item" id="menuRecycle">
                 <span class="menu-item-icon">♻️</span>
                 <span>Recycle</span>
-            </div>
-        </div>
-        
-        <!-- Event Coordinator Section (hidden by default) -->
-        <div class="menu-section" id="coordinatorMenuSection" style="display: none;">
-            <div class="menu-item" id="menuEventManager">
-                <span class="menu-item-icon">📅</span>
-                <span>Event Manager</span>
             </div>
         </div>
         
@@ -1062,8 +1068,10 @@
 
             <!-- ==================== MAIN SCREEN ==================== -->
             <div id="mainScreen" class="hidden">
-                <!-- Upcoming Events Placeholder -->
-                <div class="upcoming-events">📅 Upcoming Cleanups - COMING SOON</div>
+                <!-- Upcoming Events Banner (clickable) -->
+                <div class="upcoming-events" id="upcomingEventsBanner" onclick="showUpcomingEvents()" style="cursor: pointer;">
+                    📅 <span id="upcomingBannerText">Loading events...</span>
+                </div>
 
                 <!-- Activity Feed -->
                 <div class="activity-feed">
@@ -1334,75 +1342,153 @@
 
         <!-- ==================== EVENT MANAGER SCREEN (Coordinator Only) ==================== -->
         <div id="eventManagerScreen" class="hidden">
-            <div class="card">
-                <h2 class="card-title">📅 Event Manager</h2>
-                <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">
-                    Propose and manage cleanup events. Events must be approved by admin before they appear publicly.
-                </p>
-                
-                <button class="btn btn-primary" id="proposeEventBtn" style="width: 100%; margin-bottom: 20px;">+ Propose New Event</button>
-                
-                <h3 style="font-size: 16px; margin-bottom: 12px;">My Events</h3>
-                <div id="myEventsList">
-                    <div style="text-align: center; color: #6b7280; padding: 20px;">Loading...</div>
+            <div class="instructions">
+                <strong>📅 Event Manager</strong><br>
+                Propose and manage cleanup events. Approved events appear publicly.
+            </div>
+
+            <button class="btn btn-primary" id="proposeEventBtn" style="width: 100%; margin-bottom: 16px;">+ Propose New Event</button>
+
+            <div class="form-group">
+                <label class="form-label">My Events</label>
+                <div id="myEventsList" style="background: #f9fafb; border-radius: 12px; min-height: 100px;">
+                    <div style="text-align: center; color: #6b7280; padding: 30px;">Loading...</div>
                 </div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-secondary" id="backFromEventManagerBtn">← Back</button>
             </div>
         </div>
 
         <!-- ==================== PROPOSE EVENT SCREEN ==================== -->
         <div id="proposeEventScreen" class="hidden">
-            <div class="card">
-                <h2 class="card-title">📝 Propose Event</h2>
-                
-                <div class="form-group">
-                    <label class="form-label">Event Title *</label>
-                    <input type="text" class="form-control" id="eventTitleInput" placeholder="e.g., Spring Cleanup at Oak Park">
+            <div class="instructions">
+                <strong>📝 Propose Event</strong><br>
+                Fill in event details. Admin approval required before it goes live.
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Event Title *</label>
+                <input type="text" class="form-input" id="eventTitleInput" placeholder="e.g., Spring Cleanup at Oak Park">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Event Date *</label>
+                <input type="date" class="form-input" id="eventDateInput">
+            </div>
+
+            <div style="display: flex; gap: 12px;">
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Start Time</label>
+                    <input type="time" class="form-input" id="eventStartTimeInput">
                 </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Event Date *</label>
-                    <input type="date" class="form-control" id="eventDateInput">
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">End Time</label>
+                    <input type="time" class="form-input" id="eventEndTimeInput">
                 </div>
-                
-                <div class="row" style="display: flex; gap: 12px;">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Location Name *</label>
+                <input type="text" class="form-input" id="eventLocationInput" placeholder="e.g., Oak Park Pavilion">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Location Address or Coordinates</label>
+                <input type="text" class="form-input" id="eventAddressInput" placeholder="123 Main St or 32.3792, -86.3077">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="notes-textarea" id="eventDescriptionInput" rows="3" placeholder="What should participants know? Parking info, what to bring, etc."></textarea>
+            </div>
+
+            <div class="consent-section" style="margin-top: 16px;">
+                <div class="consent-title">📞 Event Contact (Optional)</div>
+                <div class="form-group" style="margin-top: 8px;">
+                    <input type="text" class="form-input" id="eventContactName" placeholder="Contact Name">
+                </div>
+                <div style="display: flex; gap: 12px;">
                     <div class="form-group" style="flex: 1;">
-                        <label class="form-label">Start Time</label>
-                        <input type="time" class="form-control" id="eventStartTimeInput">
+                        <input type="tel" class="form-input" id="eventContactPhone" placeholder="Phone">
                     </div>
                     <div class="form-group" style="flex: 1;">
-                        <label class="form-label">End Time</label>
-                        <input type="time" class="form-control" id="eventEndTimeInput">
+                        <input type="email" class="form-input" id="eventContactEmail" placeholder="Email">
                     </div>
                 </div>
-                
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" id="submitEventProposalBtn">Submit for Approval</button>
+                <button class="btn btn-secondary" id="cancelEventProposalBtn">Cancel</button>
+            </div>
+        </div>
+
+        <!-- ==================== EVENT DETAIL SCREEN (For Coordinators) ==================== -->
+        <div id="eventDetailScreen" class="hidden">
+            <div class="instructions">
+                <strong>📅 <span id="eventDetailTitle">Event Details</span></strong><br>
+                <span id="eventDetailStatus" style="font-size: 12px;"></span>
+            </div>
+
+            <div class="status-box" id="eventDetailInfo">
+                <div class="status-row">
+                    <span class="status-label">📅 Date</span>
+                    <span class="status-value" id="eventDetailDate">-</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">🕐 Time</span>
+                    <span class="status-value" id="eventDetailTime">-</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">📍 Location</span>
+                    <span class="status-value" id="eventDetailLocation">-</span>
+                </div>
+            </div>
+
+            <div id="eventDetailDescription" style="background: #f0fdf4; border-radius: 12px; padding: 14px; margin-bottom: 16px; display: none;">
+                <div style="font-size: 12px; color: #166534; font-weight: 600; margin-bottom: 6px;">Description</div>
+                <div id="eventDetailDescText" style="color: #15803d; font-size: 14px;"></div>
+            </div>
+
+            <!-- Supplies Section (Coordinator only, approved events) -->
+            <div id="suppliesSection" style="display: none;">
+                <div class="consent-section">
+                    <div class="consent-title">📦 Supplies</div>
+                    <div id="suppliesList" style="margin-top: 8px;"></div>
+                    <button class="btn btn-secondary" id="addSupplyBtn" style="margin-top: 8px; font-size: 13px; padding: 8px 12px;">+ Add Supply</button>
+                </div>
+            </div>
+
+            <!-- Post Update (Coordinator only, approved events) -->
+            <div id="postUpdateSection" style="display: none; margin-top: 16px;">
                 <div class="form-group">
-                    <label class="form-label">Location Name *</label>
-                    <input type="text" class="form-control" id="eventLocationInput" placeholder="e.g., Oak Park Pavilion">
+                    <label class="form-label">Post Update to Activity Feed</label>
+                    <textarea class="notes-textarea" id="eventUpdateText" rows="2" placeholder="Share news about this event..."></textarea>
                 </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Description</label>
-                    <textarea class="form-control" id="eventDescriptionInput" rows="3" placeholder="What should participants know?"></textarea>
-                </div>
-                
-                <div class="btn-group">
-                    <button class="btn btn-primary" id="submitEventProposalBtn">Submit for Approval</button>
-                    <button class="btn btn-secondary" id="cancelEventProposalBtn">Cancel</button>
-                </div>
+                <button class="btn btn-primary" id="postEventUpdateBtn" style="width: 100%;">Post Update</button>
+            </div>
+
+            <div class="btn-group" style="margin-top: 20px;">
+                <button class="btn btn-secondary" id="backFromEventDetailBtn">← Back</button>
+                <button class="btn btn-danger" id="cancelEventBtn" style="display: none;">Cancel Event</button>
             </div>
         </div>
 
         <!-- ==================== UPCOMING EVENTS SCREEN ==================== -->
         <div id="upcomingEventsScreen" class="hidden">
-            <div class="card">
-                <h2 class="card-title">📆 Upcoming Events</h2>
-                <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">
-                    Community cleanup events organized by volunteer coordinators.
-                </p>
-                
-                <div id="upcomingEventsList">
-                    <div style="text-align: center; color: #6b7280; padding: 20px;">Loading...</div>
-                </div>
+            <div class="instructions">
+                <strong>📆 Upcoming Events</strong><br>
+                Community cleanup events organized by volunteer coordinators.
+            </div>
+
+            <div id="upcomingEventsList" style="min-height: 100px;">
+                <div style="text-align: center; color: #6b7280; padding: 30px;">Loading...</div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-secondary" id="backFromUpcomingBtn">← Back</button>
             </div>
         </div>
 
@@ -1599,7 +1685,7 @@
         function hideAllScreens() {
             ['loginScreen', 'mainScreen', 'scoutScreen', 'activeTrackingScreen', 
              'postTrackingScreen', 'editProfileScreen', 'recycleScreen',
-             'eventManagerScreen', 'proposeEventScreen', 'upcomingEventsScreen'].forEach(id => {
+             'eventManagerScreen', 'proposeEventScreen', 'upcomingEventsScreen', 'eventDetailScreen'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
         }
@@ -1664,6 +1750,9 @@
         });
         document.getElementById('menuRecycle').addEventListener('click', () => { closeMenu(); showRecycleScreen(); });
         document.getElementById('menuLogout').addEventListener('click', () => { if (confirm('Log out?')) { clearSession(); location.reload(); } });
+        
+        // Activity Feed menu handler
+        document.getElementById('menuActivityFeed').addEventListener('click', () => { closeMenu(); showMainScreen(); });
         
         // Event Manager menu handlers
         document.getElementById('menuEventManager').addEventListener('click', () => { closeMenu(); showEventManager(); });
@@ -1948,6 +2037,7 @@
             document.getElementById('hamburgerBtn').classList.remove('hidden');
             
             loadActivityFeed(true);
+            loadUpcomingBanner();
             checkSunSchedule();
             checkCoordinatorStatus();
         }
@@ -2541,15 +2631,19 @@
         // COORDINATOR EVENTS SYSTEM
         // ==========================================
         
+        let currentEventData = null; // Store currently viewed event
+        
         function checkCoordinatorStatus() {
             // Check if user has event_coordinator in overrides
             if (currentUser && currentUser.overrides && Array.isArray(currentUser.overrides)) {
                 if (currentUser.overrides.includes('event_coordinator')) {
                     document.getElementById('coordinatorMenuSection').style.display = 'block';
+                    document.getElementById('coordinatorDivider').style.display = 'block';
                     return true;
                 }
             }
             document.getElementById('coordinatorMenuSection').style.display = 'none';
+            document.getElementById('coordinatorDivider').style.display = 'none';
             return false;
         }
 
@@ -2561,21 +2655,21 @@
 
         async function loadMyEvents() {
             const list = document.getElementById('myEventsList');
-            list.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 20px;">Loading...</div>';
+            list.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 30px;">Loading...</div>';
 
             try {
                 const response = await fetch(CONFIG.appsScriptUrl + '?action=get_my_events&userId=' + currentUser.userId);
                 const result = await response.json();
 
                 if (result.status !== 'success') {
-                    list.innerHTML = '<div style="text-align: center; color: #dc2626; padding: 20px;">Failed to load events</div>';
+                    list.innerHTML = '<div style="text-align: center; color: #dc2626; padding: 30px;">Failed to load events</div>';
                     return;
                 }
 
                 const events = result.events || [];
 
                 if (events.length === 0) {
-                    list.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 20px;">No events yet. Create one!</div>';
+                    list.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 30px;">No events yet. Create one!</div>';
                     return;
                 }
 
@@ -2590,18 +2684,16 @@
                     };
                     const statusColor = statusColors[event.status] || '#6b7280';
 
-                    html += `<div style="background: #f9fafb; border-radius: 12px; padding: 14px; margin-bottom: 12px; border-left: 4px solid ${statusColor};">
-                        <div style="font-weight: 600;">${event.title}</div>
+                    html += `<div onclick="showEventDetail('${event.eventId}')" style="background: white; border-radius: 12px; padding: 14px; margin-bottom: 10px; border-left: 4px solid ${statusColor}; cursor: pointer; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.01)'" onmouseout="this.style.transform='scale(1)'">
+                        <div style="font-weight: 600; color: #1f2937;">${event.title}</div>
                         <div style="font-size: 13px; color: #6b7280; margin-top: 4px;">
                             📅 ${dateStr} &nbsp;•&nbsp; 📍 ${event.locationName || 'TBD'}
                         </div>
                         <div style="margin-top: 8px;">
-                            <span style="font-size: 12px; background: ${statusColor}20; color: ${statusColor}; padding: 2px 8px; border-radius: 12px; font-weight: 500; text-transform: uppercase;">
+                            <span style="font-size: 11px; background: ${statusColor}20; color: ${statusColor}; padding: 2px 8px; border-radius: 12px; font-weight: 600; text-transform: uppercase;">
                                 ${event.status}
                             </span>
                         </div>
-                        ${event.reviewNotes ? `<div style="font-size: 12px; color: #6b7280; margin-top: 8px; font-style: italic;">Note: ${event.reviewNotes}</div>` : ''}
-                        ${event.status === 'approved' ? `<button class="btn btn-secondary" style="margin-top: 8px; font-size: 12px; padding: 6px 12px;" onclick="postEventUpdate('${event.eventId}')">Post Update</button>` : ''}
                     </div>`;
                 });
 
@@ -2609,7 +2701,65 @@
 
             } catch (error) {
                 console.error('Load my events error:', error);
-                list.innerHTML = '<div style="text-align: center; color: #dc2626; padding: 20px;">Error loading events</div>';
+                list.innerHTML = '<div style="text-align: center; color: #dc2626; padding: 30px;">Error loading events</div>';
+            }
+        }
+
+        async function showEventDetail(eventId) {
+            // Fetch event details
+            try {
+                const response = await fetch(CONFIG.appsScriptUrl + '?action=get_my_events&userId=' + currentUser.userId);
+                const result = await response.json();
+                
+                if (result.status !== 'success') {
+                    showToast('Failed to load event', 'error');
+                    return;
+                }
+                
+                const event = (result.events || []).find(e => e.eventId === eventId);
+                if (!event) {
+                    showToast('Event not found', 'error');
+                    return;
+                }
+                
+                currentEventData = event;
+                
+                hideAllScreens();
+                document.getElementById('eventDetailScreen').classList.remove('hidden');
+                
+                // Populate details
+                document.getElementById('eventDetailTitle').textContent = event.title;
+                
+                const statusColors = { 'pending': '#f59e0b', 'approved': '#22c55e', 'rejected': '#dc2626', 'cancelled': '#6b7280' };
+                const statusColor = statusColors[event.status] || '#6b7280';
+                document.getElementById('eventDetailStatus').innerHTML = `Status: <span style="color: ${statusColor}; font-weight: 600; text-transform: uppercase;">${event.status}</span>`;
+                
+                document.getElementById('eventDetailDate').textContent = event.eventDate ? new Date(event.eventDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : 'TBD';
+                document.getElementById('eventDetailTime').textContent = event.startTime ? `${formatTime12Hour(event.startTime)}${event.endTime ? ' - ' + formatTime12Hour(event.endTime) : ''}` : 'TBD';
+                document.getElementById('eventDetailLocation').textContent = event.locationName || 'TBD';
+                
+                if (event.description) {
+                    document.getElementById('eventDetailDescription').style.display = 'block';
+                    document.getElementById('eventDetailDescText').textContent = event.description;
+                } else {
+                    document.getElementById('eventDetailDescription').style.display = 'none';
+                }
+                
+                // Show/hide sections based on status
+                const isApproved = event.status === 'approved';
+                const canCancel = event.status === 'pending' || event.status === 'approved';
+                
+                document.getElementById('postUpdateSection').style.display = isApproved ? 'block' : 'none';
+                document.getElementById('suppliesSection').style.display = isApproved ? 'block' : 'none';
+                document.getElementById('cancelEventBtn').style.display = canCancel ? 'inline-block' : 'none';
+                
+                if (isApproved) {
+                    loadSupplies(eventId);
+                }
+                
+            } catch (error) {
+                console.error('Show event detail error:', error);
+                showToast('Error loading event', 'error');
             }
         }
 
@@ -2623,11 +2773,18 @@
             document.getElementById('eventStartTimeInput').value = '';
             document.getElementById('eventEndTimeInput').value = '';
             document.getElementById('eventLocationInput').value = '';
+            document.getElementById('eventAddressInput').value = '';
             document.getElementById('eventDescriptionInput').value = '';
+            document.getElementById('eventContactName').value = '';
+            document.getElementById('eventContactPhone').value = '';
+            document.getElementById('eventContactEmail').value = '';
         }
 
         document.getElementById('proposeEventBtn').addEventListener('click', showProposeEventScreen);
         document.getElementById('cancelEventProposalBtn').addEventListener('click', showEventManager);
+        document.getElementById('backFromEventManagerBtn').addEventListener('click', showMainScreen);
+        document.getElementById('backFromEventDetailBtn').addEventListener('click', showEventManager);
+        document.getElementById('backFromUpcomingBtn').addEventListener('click', showMainScreen);
 
         document.getElementById('submitEventProposalBtn').addEventListener('click', async () => {
             const title = document.getElementById('eventTitleInput').value.trim();
@@ -2635,7 +2792,11 @@
             const startTime = document.getElementById('eventStartTimeInput').value;
             const endTime = document.getElementById('eventEndTimeInput').value;
             const locationName = document.getElementById('eventLocationInput').value.trim();
+            const locationAddress = document.getElementById('eventAddressInput').value.trim();
             const description = document.getElementById('eventDescriptionInput').value.trim();
+            const contactName = document.getElementById('eventContactName').value.trim();
+            const contactPhone = document.getElementById('eventContactPhone').value.trim();
+            const contactEmail = document.getElementById('eventContactEmail').value.trim();
 
             if (!title) { showToast('Event title required', 'error'); return; }
             if (!eventDate) { showToast('Event date required', 'error'); return; }
@@ -2654,7 +2815,11 @@
                         startTime,
                         endTime,
                         locationName,
-                        description
+                        locationAddress,
+                        description,
+                        contactName,
+                        contactPhone,
+                        contactEmail
                     })
                 });
 
@@ -2671,9 +2836,12 @@
             }
         });
 
-        async function postEventUpdate(eventId) {
-            const message = prompt('Enter your update message:');
-            if (!message || !message.trim()) return;
+        // Post event update
+        document.getElementById('postEventUpdateBtn').addEventListener('click', async () => {
+            if (!currentEventData) return;
+            
+            const message = document.getElementById('eventUpdateText').value.trim();
+            if (!message) { showToast('Enter a message', 'error'); return; }
 
             try {
                 const response = await fetch(CONFIG.appsScriptUrl, {
@@ -2682,22 +2850,141 @@
                     body: JSON.stringify({
                         action: 'postEventUpdate',
                         userId: currentUser.userId,
-                        eventId: eventId,
-                        message: message.trim()
+                        eventId: currentEventData.eventId,
+                        message: message
                     })
                 });
 
                 const result = await response.json();
 
                 if (result.status === 'success') {
-                    showToast('Update posted to activity feed!', 'success');
+                    showToast('Update posted!', 'success');
+                    document.getElementById('eventUpdateText').value = '';
                 } else {
                     showToast(result.message || 'Post failed', 'error');
                 }
             } catch (error) {
                 showToast('Post error', 'error');
             }
+        });
+
+        // Cancel event
+        document.getElementById('cancelEventBtn').addEventListener('click', async () => {
+            if (!currentEventData) return;
+            
+            const reason = prompt('Why are you cancelling this event? (This will be posted to the activity feed)');
+            if (reason === null) return; // User clicked Cancel
+            
+            try {
+                const response = await fetch(CONFIG.appsScriptUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'cancelEvent',
+                        userId: currentUser.userId,
+                        eventId: currentEventData.eventId,
+                        reason: reason.trim()
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    showToast('Event cancelled', 'success');
+                    showEventManager();
+                } else {
+                    showToast(result.message || 'Cancel failed', 'error');
+                }
+            } catch (error) {
+                showToast('Cancel error', 'error');
+            }
+        });
+
+        // Supplies management
+        let currentSupplies = [];
+        
+        function loadSupplies(eventId) {
+            const list = document.getElementById('suppliesList');
+            
+            // Get supplies from currentEventData
+            currentSupplies = currentEventData.supplies || [];
+            renderSupplies();
         }
+        
+        function renderSupplies() {
+            const list = document.getElementById('suppliesList');
+            
+            if (currentSupplies.length === 0) {
+                list.innerHTML = '<div style="font-size: 13px; color: #6b7280; padding: 10px 0;">No supplies listed yet.</div>';
+                return;
+            }
+            
+            let html = '<table style="width: 100%; font-size: 13px; border-collapse: collapse;">';
+            html += '<tr style="background: #f3f4f6; text-align: left;"><th style="padding: 8px;">Item</th><th style="padding: 8px;">Qty/$</th><th style="padding: 8px; text-align: center;">Got?</th><th></th></tr>';
+            
+            currentSupplies.forEach((supply, idx) => {
+                const checkmark = supply.acquired ? '✅' : '⬜';
+                html += `<tr style="border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 8px;">${supply.item}${supply.description ? '<br><span style="font-size: 11px; color: #6b7280;">' + supply.description + '</span>' : ''}</td>
+                    <td style="padding: 8px;">${supply.quantity || '-'}</td>
+                    <td style="padding: 8px; text-align: center; cursor: pointer;" onclick="toggleSupplyAcquired(${idx})">${checkmark}</td>
+                    <td style="padding: 4px;"><button onclick="removeSupply(${idx})" style="background: none; border: none; color: #dc2626; cursor: pointer; font-size: 14px;">✕</button></td>
+                </tr>`;
+            });
+            
+            html += '</table>';
+            list.innerHTML = html;
+        }
+        
+        async function saveSupplies() {
+            if (!currentEventData) return;
+            
+            try {
+                await fetch(CONFIG.appsScriptUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'updateEventSupplies',
+                        userId: currentUser.userId,
+                        eventId: currentEventData.eventId,
+                        supplies: currentSupplies
+                    })
+                });
+            } catch (e) {
+                console.error('Save supplies error:', e);
+            }
+        }
+        
+        function toggleSupplyAcquired(idx) {
+            currentSupplies[idx].acquired = !currentSupplies[idx].acquired;
+            renderSupplies();
+            saveSupplies();
+        }
+        
+        function removeSupply(idx) {
+            currentSupplies.splice(idx, 1);
+            renderSupplies();
+            saveSupplies();
+        }
+
+        document.getElementById('addSupplyBtn').addEventListener('click', () => {
+            const item = prompt('Supply item name:');
+            if (!item || !item.trim()) return;
+            
+            const description = prompt('Description (optional):') || '';
+            const quantity = prompt('Quantity or $ needed:') || '';
+            
+            currentSupplies.push({
+                item: item.trim(),
+                description: description.trim(),
+                quantity: quantity.trim(),
+                acquired: false
+            });
+            
+            renderSupplies();
+            saveSupplies();
+            showToast('Supply added', 'success');
+        });
 
         // Upcoming Events
         function showUpcomingEvents() {
@@ -2708,39 +2995,39 @@
 
         async function loadUpcomingEvents() {
             const list = document.getElementById('upcomingEventsList');
-            list.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 20px;">Loading...</div>';
+            list.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 30px;">Loading...</div>';
 
             try {
                 const response = await fetch(CONFIG.appsScriptUrl + '?action=get_upcoming_events');
                 const result = await response.json();
 
                 if (result.status !== 'success') {
-                    list.innerHTML = '<div style="text-align: center; color: #dc2626; padding: 20px;">Failed to load events</div>';
+                    list.innerHTML = '<div style="text-align: center; color: #dc2626; padding: 30px;">Failed to load events</div>';
                     return;
                 }
 
                 const events = result.events || [];
+                
+                // Also update the banner
+                updateUpcomingBanner(events);
 
                 if (events.length === 0) {
-                    list.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 20px;">No upcoming events scheduled.</div>';
+                    list.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 30px;">No upcoming events scheduled.</div>';
                     return;
                 }
 
                 let html = '';
                 events.forEach(event => {
-                    const dateStr = event.eventDate ? new Date(event.eventDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : 'TBD';
-                    const timeStr = event.startTime ? `${formatTime12Hour(event.startTime)}${event.endTime ? ' - ' + formatTime12Hour(event.endTime) : ''}` : '';
+                    const dateStr = event.eventDate ? new Date(event.eventDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'TBD';
+                    const timeStr = event.startTime ? formatTime12Hour(event.startTime) : '';
 
-                    html += `<div style="background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%); border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid #bbf7d0;">
-                        <div style="font-weight: 600; color: #166534; font-size: 16px;">${event.title}</div>
-                        <div style="font-size: 14px; color: #15803d; margin-top: 8px;">
-                            📅 ${dateStr} ${timeStr ? '&nbsp;•&nbsp; 🕐 ' + timeStr : ''}
+                    html += `<div style="background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%); border-radius: 12px; padding: 14px; margin-bottom: 10px; border: 1px solid #bbf7d0;">
+                        <div style="font-weight: 600; color: #166534;">${event.title}</div>
+                        <div style="font-size: 13px; color: #15803d; margin-top: 6px;">
+                            📅 ${dateStr} ${timeStr ? '• 🕐 ' + timeStr : ''} • 📍 ${event.locationName}
                         </div>
-                        <div style="font-size: 14px; color: #15803d; margin-top: 4px;">
-                            📍 ${event.locationName}
-                        </div>
-                        ${event.description ? `<div style="font-size: 13px; color: #166534; margin-top: 10px; padding-top: 10px; border-top: 1px solid #bbf7d0;">${event.description}</div>` : ''}
-                        <div style="font-size: 12px; color: #6b7280; margin-top: 8px;">Organized by ${event.coordinatorName}</div>
+                        ${event.description ? `<div style="font-size: 12px; color: #166534; margin-top: 8px;">${event.description}</div>` : ''}
+                        <div style="font-size: 11px; color: #6b7280; margin-top: 6px;">Organized by ${event.coordinatorName}</div>
                     </div>`;
                 });
 
@@ -2748,7 +3035,18 @@
 
             } catch (error) {
                 console.error('Load upcoming events error:', error);
-                list.innerHTML = '<div style="text-align: center; color: #dc2626; padding: 20px;">Error loading events</div>';
+                list.innerHTML = '<div style="text-align: center; color: #dc2626; padding: 30px;">Error loading events</div>';
+            }
+        }
+
+        function updateUpcomingBanner(events) {
+            const banner = document.getElementById('upcomingBannerText');
+            if (events && events.length > 0) {
+                const next = events[0];
+                const dateStr = next.eventDate ? new Date(next.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                banner.innerHTML = `<strong>${next.title}</strong> — ${dateStr} • Tap for details`;
+            } else {
+                banner.textContent = 'No upcoming events • Tap to view';
             }
         }
 
@@ -2761,11 +3059,18 @@
             return `${h12}:${minutes} ${suffix}`;
         }
 
-        // Check coordinator status when user logs in
-        const originalOnLogin = window.onLogin;
-        window.checkCoordinatorOnLogin = function() {
-            setTimeout(checkCoordinatorStatus, 500);
-        };
+        // Load upcoming events on main screen
+        async function loadUpcomingBanner() {
+            try {
+                const response = await fetch(CONFIG.appsScriptUrl + '?action=get_upcoming_events');
+                const result = await response.json();
+                if (result.status === 'success') {
+                    updateUpcomingBanner(result.events || []);
+                }
+            } catch (e) {
+                console.error('Banner load error:', e);
+            }
+        }
     </script>
 </body>
 </html>
