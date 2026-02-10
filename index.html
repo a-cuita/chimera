@@ -45,6 +45,24 @@
             transition: transform 0.2s;
         }
         .hamburger:hover { transform: scale(1.1); }
+        .hamburger-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #dc2626;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 16px;
+            height: 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        .hamburger { position: relative; }
         
         .header-content { flex: 1; }
         .header h1 { font-size: 18px; font-weight: 600; }
@@ -978,7 +996,7 @@
     <div class="container">
         <!-- ==================== HEADER ==================== -->
         <div class="header">
-            <div class="hamburger hidden" id="hamburgerBtn">☰</div>
+            <div class="hamburger hidden" id="hamburgerBtn">☰<span class="hamburger-badge hidden" id="hamburgerBadge">0</span></div>
             <div class="header-content">
                 <h1>🌍 CHIMERA Tracker</h1>
                 <div class="subtitle">Data Hub for Litter Scouting, Collecting & Recycling • V5.4</div>
@@ -2056,6 +2074,53 @@
             loadUpcomingBanner();
             checkSunSchedule();
             checkCoordinatorStatus();
+            checkNotifications();
+        }
+        
+        // Notification badge management
+        async function checkNotifications() {
+            let count = 0;
+            
+            // For coordinators: check for status changes on their events
+            if (checkCoordinatorStatus()) {
+                try {
+                    const response = await fetch(CONFIG.appsScriptUrl + '?action=get_my_events&userId=' + currentUser.userId);
+                    const result = await response.json();
+                    if (result.status === 'success' && result.events) {
+                        // Count recently reviewed events (approved/rejected in last 24h could be a notification)
+                        // For now, just count events that need attention
+                        const needsAttention = result.events.filter(e => e.status === 'approved' && !e.reviewNotes);
+                        // This is a simple placeholder - could be enhanced
+                    }
+                } catch (e) {}
+            }
+            
+            // Check for upcoming events in next 24 hours
+            try {
+                const response = await fetch(CONFIG.appsScriptUrl + '?action=get_upcoming_events');
+                const result = await response.json();
+                if (result.status === 'success' && result.events) {
+                    const now = new Date();
+                    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+                    const soonEvents = result.events.filter(e => {
+                        const eventDate = new Date(e.eventDate);
+                        return eventDate >= now && eventDate <= tomorrow;
+                    });
+                    count += soonEvents.length;
+                }
+            } catch (e) {}
+            
+            updateNotificationBadge(count);
+        }
+        
+        function updateNotificationBadge(count) {
+            const badge = document.getElementById('hamburgerBadge');
+            if (count > 0) {
+                badge.textContent = count > 9 ? '9+' : count;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
         }
 
         // ==========================================
@@ -2825,7 +2890,7 @@
                     body: JSON.stringify({
                         action: 'proposeEvent',
                         userId: currentUser.userId,
-                        coordinatorName: currentUser.name,
+                        coordinatorName: currentUser.handle,
                         title,
                         eventDate,
                         startTime,
