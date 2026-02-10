@@ -830,9 +830,53 @@
             color: #6b7280;
             line-height: 1.6;
         }
+
+        /* Site Pause Overlay */
+        .site-pause-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .site-pause-overlay.show { display: flex; }
+        .site-pause-content {
+            text-align: center;
+            padding: 40px;
+            max-width: 400px;
+        }
+        .site-pause-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        .site-pause-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fbbf24;
+            margin-bottom: 12px;
+        }
+        .site-pause-message {
+            font-size: 16px;
+            color: #e5e7eb;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
+    <!-- ==================== SITE PAUSE OVERLAY ==================== -->
+    <div class="site-pause-overlay" id="sitePauseOverlay">
+        <div class="site-pause-content">
+            <div class="site-pause-icon">🚧</div>
+            <div class="site-pause-title">CHIMERA is Temporarily Unavailable</div>
+            <div class="site-pause-message" id="sitePauseMessage">We'll be back soon.</div>
+        </div>
+    </div>
+
     <!-- ==================== HAMBURGER MENU ==================== -->
     <div class="menu-overlay" id="menuOverlay"></div>
     <div class="slide-menu" id="slideMenu">
@@ -1651,6 +1695,12 @@
         // SUN CHECK
         // ==========================================
         async function checkSunSchedule() {
+            // Check for sun_override first
+            if (currentUser && currentUser.overrides && currentUser.overrides.includes('sun_override')) {
+                sunLocked = false;
+                return;
+            }
+
             try {
                 const response = await fetch(CONFIG.appsScriptUrl + '?action=sun_check');
                 const result = await response.json();
@@ -1727,7 +1777,8 @@
                         userId: result.userId, handle: result.handle, organization: result.organization,
                         addresses: result.addresses || [],
                         safetyLegalAccepted: result.safetyLegalAccepted || false,
-                        lastSafetyLegalCheck: result.lastSafetyLegalCheck || null
+                        lastSafetyLegalCheck: result.lastSafetyLegalCheck || null,
+                        overrides: result.overrides || []
                     };
                     saveSession();
                     enterApp();
@@ -1759,7 +1810,8 @@
                 if (result.status === 'success') {
                     currentUser = {
                         userId: result.userId, handle: result.handle, organization: org,
-                        addresses: [], safetyLegalAccepted: false, lastSafetyLegalCheck: null
+                        addresses: [], safetyLegalAccepted: false, lastSafetyLegalCheck: null,
+                        overrides: []
                     };
                     saveSession();
                     showToast('Profile created!', 'success');
@@ -2340,11 +2392,40 @@
         // ==========================================
         // PAGE LOAD
         // ==========================================
-        window.addEventListener('load', function() {
+        async function checkSitePause() {
+            // Users with bypass override skip this check
+            if (currentUser && currentUser.overrides && currentUser.overrides.includes('site_pause_bypass')) {
+                return false;
+            }
+
+            try {
+                const response = await fetch(CONFIG.appsScriptUrl + '?action=get_site_status');
+                const result = await response.json();
+                
+                if (result.status === 'success' && result.site_status === 'paused') {
+                    document.getElementById('sitePauseMessage').textContent = result.message || "We'll be back soon.";
+                    document.getElementById('sitePauseOverlay').classList.add('show');
+                    return true;
+                }
+            } catch (error) {
+                console.error('Site status check error:', error);
+            }
+            return false;
+        }
+
+        window.addEventListener('load', async function() {
             loadActivityFeed(false); // Pre-login feed
+
+            // Check site pause first (before login for everyone)
+            const isPaused = await checkSitePause();
+            if (isPaused) return; // Don't proceed if site is paused
             
             if (restoreSession() && currentUser.userId) {
-                enterApp();
+                // Re-check with user overrides
+                const stillPaused = await checkSitePause();
+                if (!stillPaused) {
+                    enterApp();
+                }
             } else {
                 document.getElementById('loginScreen').classList.remove('hidden');
             }
