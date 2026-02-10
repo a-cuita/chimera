@@ -2080,18 +2080,29 @@
                 if (data.unvalidatedScouts > 0) {
                     const sinceTime = data.oldestUnvalidated ? new Date(data.oldestUnvalidated) : new Date();
                     const timeStr = isLoggedIn ? formatRelativeTime(sinceTime) : 'Since earlier today';
+                    const tpl = data.stickyTemplates || {};
+                    const headerText = (tpl.unvalidated_header || '{count} rating{s} awaiting validation')
+                        .replace('{count}', data.unvalidatedScouts)
+                        .replace('{s}', data.unvalidatedScouts !== 1 ? 's' : '');
+                    const detailText = (tpl.unvalidated_detail || '{time}').replace('{time}', timeStr);
                     html += `<div class="feed-sticky-item">
-                        <div class="feed-sticky-header"><span>⏳</span> ${data.unvalidatedScouts} rating${data.unvalidatedScouts !== 1 ? 's' : ''} awaiting validation</div>
-                        <div class="feed-sticky-detail">${timeStr}</div>
+                        <div class="feed-sticky-header"><span>⏳</span> ${headerText}</div>
+                        <div class="feed-sticky-detail">${detailText}</div>
                     </div>`;
                 }
 
                 // Sticky: Daily Accuracy
                 if (data.dailyAccuracy !== undefined && data.dailyAccuracy !== null) {
+                    const tpl = data.stickyTemplates || {};
+                    const headerText = tpl.accuracy_header || "Today's Scout Accuracy";
+                    const valueText = (tpl.accuracy_value || '{accuracy}% spot on').replace('{accuracy}', data.dailyAccuracy);
+                    const detailText = (tpl.accuracy_detail || '{validated} of {total} scouts validated today')
+                        .replace('{validated}', data.validatedToday || 0)
+                        .replace('{total}', data.scoutsToday || 0);
                     html += `<div class="feed-sticky-item accuracy">
-                        <div class="feed-sticky-header"><span>📊</span> Today's Scout Accuracy</div>
-                        <div class="accuracy-value">${data.dailyAccuracy}% spot on</div>
-                        <div class="feed-sticky-detail">${data.validatedToday || 0} of ${data.scoutsToday || 0} scouts validated today</div>
+                        <div class="feed-sticky-header"><span>📊</span> ${headerText}</div>
+                        <div class="accuracy-value">${valueText}</div>
+                        <div class="feed-sticky-detail">${detailText}</div>
                     </div>`;
                 }
 
