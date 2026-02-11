@@ -1002,7 +1002,7 @@
         // ==========================================
         // CONFIG
         // ==========================================
-        const HUNT_VERSION = 'V0.4-260211-1245';
+        const HUNT_VERSION = 'V0.5-260211-1400';
         console.log('🎮 CHIMERA Hunt Version:', HUNT_VERSION);
 
         const CONFIG = {
@@ -1060,6 +1060,20 @@
 
                 screens.forEach(s => s.classList.remove('active'));
                 document.getElementById(targetId).classList.add('active');
+
+                // Fire API calls on tab switch
+                if (targetId === 'screenLedger' && gameState.userId && CONFIG.huntScriptUrl) {
+                    const activeFilter = document.querySelector('.ledger-filter-btn[data-filter].active');
+                    loadLedger(activeFilter ? activeFilter.dataset.filter : 'all');
+                }
+                if (targetId === 'screenRanks' && gameState.userId && CONFIG.huntScriptUrl) {
+                    const activeRank = document.querySelector('.ledger-filter-btn[data-rank].active');
+                    const activeScope = document.querySelector('.ledger-filter-btn[data-scope].active');
+                    loadLeaderboard(
+                        activeRank ? activeRank.dataset.rank : 'alltime',
+                        activeScope ? activeScope.dataset.scope : 'everyone'
+                    );
+                }
             });
         });
 
@@ -1070,7 +1084,9 @@
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.ledger-filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                // TODO: Filter ledger entries by time period
+                if (gameState.userId && CONFIG.huntScriptUrl) {
+                    loadLedger(btn.dataset.filter);
+                }
             });
         });
 
@@ -1087,7 +1103,10 @@
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.ledger-filter-btn[data-rank]').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                // TODO: Reload leaderboard with time filter
+                const activeScope = document.querySelector('.ledger-filter-btn[data-scope].active');
+                if (gameState.userId && CONFIG.huntScriptUrl) {
+                    loadLeaderboard(btn.dataset.rank, activeScope ? activeScope.dataset.scope : 'everyone');
+                }
             });
         });
 
@@ -1095,7 +1114,10 @@
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.ledger-filter-btn[data-scope]').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                // TODO: Reload leaderboard with scope filter
+                const activeRank = document.querySelector('.ledger-filter-btn[data-rank].active');
+                if (gameState.userId && CONFIG.huntScriptUrl) {
+                    loadLeaderboard(activeRank ? activeRank.dataset.rank : 'alltime', btn.dataset.scope);
+                }
             });
         });
 
@@ -1283,6 +1305,153 @@
                 'admin_announcement': '📢'
             };
             return map[iconType] || '🌿';
+        }
+
+        // ==========================================
+        // LEDGER: Load from API
+        // ==========================================
+        async function loadLedger(filter) {
+            console.log('📒 Loading ledger:', filter);
+            document.getElementById('ledgerEntries').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📒</div>
+                    <div class="empty-state-text">Loading...</div>
+                </div>
+            `;
+
+            const result = await huntGet('getXPLedger', { userId: gameState.userId, filter: filter });
+
+            if (result.status !== 'success') {
+                document.getElementById('ledgerEntries').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div class="empty-state-text">Could not load ledger</div>
+                    </div>
+                `;
+                return;
+            }
+
+            document.getElementById('ledgerTotal').textContent = (result.totalXP || 0).toLocaleString() + ' XP';
+
+            if (!result.entries || result.entries.length === 0) {
+                document.getElementById('ledgerEntries').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📒</div>
+                        <div class="empty-state-text">No XP entries for this period.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            document.getElementById('ledgerEntries').innerHTML = result.entries.map(e => {
+                const details = e.details || {};
+                let breakdownHTML = '';
+
+                if (e.source === 'scout_streak') {
+                    breakdownHTML = `
+                        Base XP: ${details.base || '—'}<br>
+                        Escalation: +${details.escalation || 0}<br>
+                        Calibration ×${(details.calibrationMultiplier || 1).toFixed(2)}: ${e.finalXP} XP
+                    `;
+                } else if (e.source === 'hunter_streak') {
+                    breakdownHTML = `
+                        Base XP: ${details.base || '—'}<br>
+                        Escalation: +${details.escalation || 0}<br>
+                        Calibration ×${(details.calibrationMultiplier || 1).toFixed(2)}: ${e.finalXP} XP
+                    `;
+                } else if (e.source === 'scout_validated') {
+                    breakdownHTML = `
+                        Scout rating: ${details.scoutRating || '—'}<br>
+                        √CPUE: ${details.sqrtCpue || '—'}<br>
+                        Divergence: ${details.divergence !== undefined ? details.divergence.toFixed(1) : '—'}<br>
+                        Accuracy band: ${details.accuracyBand || '—'}<br>
+                        Calibration ×${(details.calibrationMultiplier || 1).toFixed(2)}: ${e.finalXP} XP
+                    `;
+                } else if (e.source === 'multi_collection') {
+                    breakdownHTML = `Collection #${details.collectionNumber || '—'} this week`;
+                } else if (e.source === 'tier_unlock') {
+                    breakdownHTML = `Territory proven! Triangle validated.`;
+                } else {
+                    breakdownHTML = JSON.stringify(details);
+                }
+
+                const sourceLabels = {
+                    'scout_streak': '🔥 Scout Streak',
+                    'hunter_streak': '🗡️ Hunter Streak',
+                    'scout_validated': '✓ Scout Validated',
+                    'multi_collection': '📦 Multi-Collection',
+                    'tier_unlock': '⚔️ Tier Unlock',
+                    'event_bonus': '📯 Event Bonus'
+                };
+
+                return `
+                    <div class="ledger-entry">
+                        <div class="ledger-entry-top">
+                            <span class="ledger-entry-source">${sourceLabels[e.source] || e.source}</span>
+                            <span class="ledger-entry-xp">+${e.finalXP} XP</span>
+                        </div>
+                        <div class="ledger-entry-detail">${e.description}</div>
+                        <div class="ledger-entry-breakdown">${breakdownHTML}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ==========================================
+        // LEADERBOARD: Load from API
+        // ==========================================
+        async function loadLeaderboard(period, scope) {
+            console.log('🏆 Loading leaderboard:', period, scope);
+            document.getElementById('ranksList').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">🏆</div>
+                    <div class="empty-state-text">Loading...</div>
+                </div>
+            `;
+
+            const result = await huntGet('getLeaderboard', {
+                userId: gameState.userId,
+                period: period,
+                scope: scope
+            });
+
+            if (result.status !== 'success') {
+                document.getElementById('ranksList').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div class="empty-state-text">Could not load leaderboard</div>
+                    </div>
+                `;
+                return;
+            }
+
+            if (!result.rankings || result.rankings.length === 0) {
+                document.getElementById('ranksList').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🏆</div>
+                        <div class="empty-state-text">No rankings yet.<br>Be the first!</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const tierIcons = { scout: '🔍', hunter: '🗡️', tamer: '🐉', warden: '🛡️' };
+
+            document.getElementById('ranksList').innerHTML = result.rankings.map(r => {
+                const posClass = r.rank === 1 ? 'gold' : r.rank === 2 ? 'silver' : r.rank === 3 ? 'bronze' : '';
+                const selfClass = r.isSelf ? ' self' : '';
+
+                return `
+                    <div class="rank-entry${selfClass}">
+                        <span class="rank-position ${posClass}">${r.rank}</span>
+                        <div class="rank-user">
+                            <div class="rank-handle">${r.handle}</div>
+                            <div class="rank-tier">${tierIcons[r.tier] || '🔍'} ${(r.tier || 'scout').charAt(0).toUpperCase() + (r.tier || 'scout').slice(1)}</div>
+                        </div>
+                        <span class="rank-xp">${r.xp.toLocaleString()} XP</span>
+                    </div>
+                `;
+            }).join('');
         }
 
         // ==========================================
