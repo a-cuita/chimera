@@ -1734,7 +1734,7 @@
         // ==========================================
         // VERSION & CONFIG
         // ==========================================
-        const UI_VERSION = 'V5.5-260210-1215';
+        const UI_VERSION = 'V5.5-260211-1200';
         console.log('🔧 CHIMERA UI Version:', UI_VERSION);
 
         const CONFIG = {
@@ -1761,6 +1761,12 @@
         let bags = [];
         let bagCounter = 0;
         let sunLocked = false;
+
+        // Hunt Integration (query parameter handshake)
+        let huntIntegration = {
+            fromHunt: false,
+            action: null  // 'scout' or 'collect'
+        };
 
         // Rating descriptions (5 buckets)
         const ratingDescriptions = {
@@ -2347,6 +2353,26 @@
             checkSunSchedule();
             checkCoordinatorStatus();
             checkNotifications();
+            
+            // Hunt Integration: Check query params and redirect if needed
+            const urlParams = new URLSearchParams(window.location.search);
+            const fromHunt = urlParams.get('from') === 'hunt';
+            const action = urlParams.get('action');
+            
+            if (fromHunt) {
+                huntIntegration.fromHunt = true;
+                huntIntegration.action = action;
+                
+                // Clear query params from URL without reload
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                if (action === 'scout') {
+                    showScoutMode();
+                } else if (action === 'collect') {
+                    startCollection();
+                }
+                // If no action, just show normal CHIMERA
+            }
         }
         
         // Notification badge management
@@ -2480,7 +2506,15 @@
                 
                 if (result.status === 'success') {
                     showToast('Scout submitted!', 'success');
-                    setTimeout(() => showMainScreen(), 1500);
+                    
+                    // Hunt Integration: Redirect back to Hunt if came from there
+                    if (huntIntegration.fromHunt) {
+                        setTimeout(() => {
+                            window.location.href = 'chimera-hunt.html?completed=scout&sessionId=' + sessionState.sessionId;
+                        }, 1500);
+                    } else {
+                        setTimeout(() => showMainScreen(), 1500);
+                    }
                 } else {
                     showToast(result.message || 'Submission failed', 'error');
                 }
@@ -2685,7 +2719,15 @@
 
                 if (result.status === 'success') {
                     showToast('Collection submitted!', 'success');
-                    setTimeout(() => showMainScreen(), 1500);
+                    
+                    // Hunt Integration: Redirect back to Hunt if came from there
+                    if (huntIntegration.fromHunt) {
+                        setTimeout(() => {
+                            window.location.href = 'chimera-hunt.html?completed=collection&sessionId=' + sessionState.sessionId;
+                        }, 1500);
+                    } else {
+                        setTimeout(() => showMainScreen(), 1500);
+                    }
                 } else {
                     showToast(result.message || 'Submission failed', 'error');
                 }
