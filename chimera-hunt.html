@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>CHIMERA Hunt</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         /* ==================== RESET & BASE ==================== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -691,6 +693,120 @@
         }
         .triangle-btn:hover { background: #5ee0a0; }
 
+        /* ==================== TERRITORY MAP ==================== */
+        .territory-map-container {
+            display: none;
+        }
+        .territory-map-container.active {
+            display: block;
+        }
+
+        #territoryMap {
+            width: 100%;
+            height: 300px;
+            border-radius: 10px;
+            border: 2px solid var(--bg-elevated);
+            z-index: 1;
+        }
+
+        .map-selection-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .map-selection-count {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .map-selection-count strong {
+            color: var(--success);
+        }
+
+        .map-validate-btn {
+            padding: 10px 20px;
+            background: var(--success);
+            color: var(--bg-deep);
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            opacity: 0.4;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .map-validate-btn.ready {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .map-validate-btn.ready:hover { background: #5ee0a0; }
+
+        .map-back-btn {
+            padding: 8px 16px;
+            background: var(--bg-elevated);
+            color: var(--text-muted);
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .map-result {
+            margin-top: 10px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .map-result.success {
+            background: rgba(78,202,139,0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+        .map-result.fail {
+            background: rgba(239,68,68,0.1);
+            border: 1px solid #ef4444;
+            color: #fca5a5;
+        }
+
+        .map-side-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--bg-deep);
+            background: var(--success);
+            padding: 2px 6px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        .map-side-label.fail {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .map-legend {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .map-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .map-legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
         /* ==================== TOAST ==================== */
         .toast-container {
             position: fixed;
@@ -928,13 +1044,36 @@
 
                 <!-- Scout: Triangle Status (Hunter unlock gate) -->
                 <div id="trackerScoutSection">
-                    <div class="triangle-status">
+                    <!-- Intro view -->
+                    <div class="triangle-status" id="triangleIntro">
                         <div class="triangle-status-icon">📐</div>
                         <div class="triangle-status-title">Prove Your Territory</div>
                         <div class="triangle-status-desc">
                             Select 3 scouted locations that form a triangle (0.5–1.0 mi sides) to unlock Hunter class.
                         </div>
                         <button class="triangle-btn" id="startTriangleBtn">Map My Territory</button>
+                    </div>
+
+                    <!-- Map view (hidden until button tap) -->
+                    <div class="territory-map-container" id="territoryMapContainer">
+                        <div id="territoryMap"></div>
+
+                        <div class="map-legend">
+                            <div class="map-legend-item"><div class="map-legend-dot" style="background: #4eca8b;"></div> Available</div>
+                            <div class="map-legend-item"><div class="map-legend-dot" style="background: #e8b634;"></div> Selected</div>
+                        </div>
+
+                        <div class="map-selection-bar">
+                            <div>
+                                <div class="map-selection-count"><strong id="mapSelCount">0</strong> / 3 selected</div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="map-back-btn" id="mapBackBtn">← Back</button>
+                                <button class="map-validate-btn" id="mapValidateBtn">Validate Triangle</button>
+                            </div>
+                        </div>
+
+                        <div class="map-result" id="mapResult" style="display: none;"></div>
                     </div>
                 </div>
 
@@ -1002,7 +1141,7 @@
         // ==========================================
         // CONFIG
         // ==========================================
-        const HUNT_VERSION = 'V0.5-260211-1400';
+        const HUNT_VERSION = 'V0.5-260211-1430';
         console.log('🎮 CHIMERA Hunt Version:', HUNT_VERSION);
 
         const CONFIG = {
@@ -1630,6 +1769,247 @@
             document.getElementById('calBias').textContent = cal.bias !== null ? (cal.bias > 0 ? 'Over +' : 'Under ') + cal.bias.toFixed(1) : '—';
             document.getElementById('calMultiplier').textContent = cal.multiplier.toFixed(2) + '×';
         }
+
+        // ==========================================
+        // TERRITORY MAP (Leaflet + Triangle Selection)
+        // ==========================================
+        let territoryMap = null;
+        let scoutMarkers = [];
+        let selectedScouts = [];
+        let triangleLines = [];
+        let sideLabels = [];
+        let scoutHistory = [];
+
+        // Haversine for client-side distance preview
+        function clientHaversine(lat1, lon1, lat2, lon2) {
+            const R = 3959;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) ** 2 +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) ** 2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+
+        document.getElementById('startTriangleBtn').addEventListener('click', async () => {
+            console.log('📐 Opening territory map...');
+            document.getElementById('triangleIntro').style.display = 'none';
+            document.getElementById('territoryMapContainer').classList.add('active');
+            document.getElementById('mapResult').style.display = 'none';
+
+            // Load scout history if not cached
+            if (scoutHistory.length === 0 && gameState.userId && CONFIG.huntScriptUrl) {
+                try {
+                    const result = await huntGet('getUserScoutHistory', { userId: gameState.userId });
+                    if (result.status === 'success') {
+                        scoutHistory = result.scouts || [];
+                    }
+                } catch (err) {
+                    console.error('Failed to load scout history:', err);
+                }
+            }
+
+            if (scoutHistory.length === 0) {
+                document.getElementById('mapResult').style.display = 'block';
+                document.getElementById('mapResult').className = 'map-result fail';
+                document.getElementById('mapResult').innerHTML = 'No scout locations found. Go rate some locations first!';
+                return;
+            }
+
+            // Init map if not exists
+            if (!territoryMap) {
+                territoryMap = L.map('territoryMap', {
+                    zoomControl: true,
+                    attributionControl: false
+                });
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19
+                }).addTo(territoryMap);
+            }
+
+            // Clear old markers
+            scoutMarkers.forEach(m => territoryMap.removeLayer(m));
+            scoutMarkers = [];
+            selectedScouts = [];
+            clearTriangleVisuals();
+            updateSelectionUI();
+
+            // Create markers
+            const bounds = L.latLngBounds();
+
+            scoutHistory.forEach((scout, i) => {
+                const latlng = L.latLng(scout.lat, scout.lon);
+                bounds.extend(latlng);
+
+                const marker = L.circleMarker(latlng, {
+                    radius: 10,
+                    fillColor: '#4eca8b',
+                    fillOpacity: 0.8,
+                    color: '#1e3828',
+                    weight: 2
+                }).addTo(territoryMap);
+
+                // Rating tooltip
+                const ratingText = scout.rating ? `Rating: ${scout.rating}` : 'Scout';
+                const dateText = scout.timestamp ? new Date(scout.timestamp).toLocaleDateString() : '';
+                marker.bindTooltip(`${ratingText}<br>${dateText}`, { 
+                    direction: 'top', 
+                    offset: [0, -8],
+                    className: '' 
+                });
+
+                marker.scoutData = scout;
+                marker.scoutIndex = i;
+
+                marker.on('click', () => toggleScoutSelection(marker));
+
+                scoutMarkers.push(marker);
+            });
+
+            // Fit map to markers
+            if (bounds.isValid()) {
+                territoryMap.fitBounds(bounds.pad(0.3));
+            }
+
+            // Invalidate size after show (Leaflet needs this)
+            setTimeout(() => territoryMap.invalidateSize(), 100);
+        });
+
+        function toggleScoutSelection(marker) {
+            const idx = selectedScouts.indexOf(marker);
+
+            if (idx >= 0) {
+                // Deselect
+                selectedScouts.splice(idx, 1);
+                marker.setStyle({ fillColor: '#4eca8b', color: '#1e3828', radius: 10 });
+            } else if (selectedScouts.length < 3) {
+                // Select
+                selectedScouts.push(marker);
+                marker.setStyle({ fillColor: '#e8b634', color: '#c49a2b', radius: 13 });
+            }
+            // Ignore clicks if already 3 selected
+
+            clearTriangleVisuals();
+            if (selectedScouts.length >= 2) drawTrianglePreview();
+            updateSelectionUI();
+        }
+
+        function clearTriangleVisuals() {
+            triangleLines.forEach(l => territoryMap.removeLayer(l));
+            sideLabels.forEach(l => territoryMap.removeLayer(l));
+            triangleLines = [];
+            sideLabels = [];
+        }
+
+        function drawTrianglePreview() {
+            const pts = selectedScouts.map(m => m.getLatLng());
+            const data = selectedScouts.map(m => m.scoutData);
+
+            // Draw lines between all selected points
+            const pairs = selectedScouts.length === 3
+                ? [[0,1], [1,2], [2,0]]
+                : [[0,1]];
+
+            pairs.forEach(([a, b]) => {
+                const dist = clientHaversine(data[a].lat, data[a].lon, data[b].lat, data[b].lon);
+                const inRange = dist >= 0.5 && dist <= 1.0;
+
+                // Line
+                const line = L.polyline([pts[a], pts[b]], {
+                    color: inRange ? '#4eca8b' : '#ef4444',
+                    weight: 3,
+                    dashArray: inRange ? null : '8, 6',
+                    opacity: 0.8
+                }).addTo(territoryMap);
+                triangleLines.push(line);
+
+                // Distance label at midpoint
+                const midLat = (pts[a].lat + pts[b].lat) / 2;
+                const midLng = (pts[a].lng + pts[b].lng) / 2;
+
+                const label = L.marker([midLat, midLng], {
+                    icon: L.divIcon({
+                        className: '',
+                        html: `<span class="map-side-label ${inRange ? '' : 'fail'}">${dist.toFixed(2)} mi</span>`,
+                        iconSize: [60, 20],
+                        iconAnchor: [30, 10]
+                    })
+                }).addTo(territoryMap);
+                sideLabels.push(label);
+            });
+        }
+
+        function updateSelectionUI() {
+            document.getElementById('mapSelCount').textContent = selectedScouts.length;
+            const btn = document.getElementById('mapValidateBtn');
+            if (selectedScouts.length === 3) {
+                btn.classList.add('ready');
+            } else {
+                btn.classList.remove('ready');
+            }
+        }
+
+        // Back button
+        document.getElementById('mapBackBtn').addEventListener('click', () => {
+            document.getElementById('territoryMapContainer').classList.remove('active');
+            document.getElementById('triangleIntro').style.display = 'block';
+            document.getElementById('mapResult').style.display = 'none';
+        });
+
+        // Validate button
+        document.getElementById('mapValidateBtn').addEventListener('click', async () => {
+            if (selectedScouts.length !== 3) return;
+
+            const btn = document.getElementById('mapValidateBtn');
+            btn.textContent = 'Validating...';
+            btn.classList.remove('ready');
+
+            const points = selectedScouts.map(m => ({
+                sessionId: m.scoutData.sessionId,
+                lat: m.scoutData.lat,
+                lon: m.scoutData.lon
+            }));
+
+            try {
+                const result = await huntPost('validateTriangle', {
+                    userId: gameState.userId,
+                    points: points
+                });
+
+                const resultDiv = document.getElementById('mapResult');
+                resultDiv.style.display = 'block';
+
+                if (result.valid) {
+                    resultDiv.className = 'map-result success';
+                    resultDiv.innerHTML = `<strong>⚔️ Territory Proven!</strong><br>
+                        Sides: ${result.sides.map(s => s + ' mi').join(' • ')}<br>
+                        You've unlocked <strong>Hunter</strong> class!`;
+
+                    // Update local state
+                    gameState.tier = 'hunter';
+                    renderHall();
+                    renderTracker();
+                    renderGameState();
+
+                    // Re-enter the hunt to get fresh state
+                    if (CONFIG.huntScriptUrl) {
+                        setTimeout(() => fireEnterTheHunt(), 1500);
+                    }
+                } else {
+                    resultDiv.className = 'map-result fail';
+                    resultDiv.innerHTML = `<strong>Triangle invalid</strong><br>${(result.failReasons || []).join('<br>')}`;
+                }
+            } catch (err) {
+                console.error('Triangle validation error:', err);
+                document.getElementById('mapResult').style.display = 'block';
+                document.getElementById('mapResult').className = 'map-result fail';
+                document.getElementById('mapResult').innerHTML = 'Validation failed — check your connection.';
+            }
+
+            btn.textContent = 'Validate Triangle';
+            if (selectedScouts.length === 3) btn.classList.add('ready');
+        });
 
         // ==========================================
         // DEMO DATA (placeholder until endpoints exist)
