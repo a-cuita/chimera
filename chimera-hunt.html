@@ -530,9 +530,53 @@
         .game-activity-icon.event { background: rgba(232,182,52,0.15); }
         .game-activity-icon.material { background: rgba(167,139,250,0.1); }
         .game-activity-icon.announcement { background: var(--bg-elevated); }
+        .game-activity-icon.campfire { background: rgba(232,150,52,0.15); }
         .game-activity-body { flex: 1; }
         .game-activity-text { font-size: 13px; color: var(--text); line-height: 1.4; }
         .game-activity-meta { font-size: 11px; color: var(--text-faint); margin-top: 3px; }
+
+        /* Campfire: system messages (right-aligned) */
+        .game-activity.system-msg {
+            justify-content: flex-end;
+            padding: 6px 12px;
+            border-bottom: none;
+        }
+        .game-activity.system-msg .game-activity-icon { display: none; }
+        .game-activity.system-msg .game-activity-body {
+            flex: unset;
+            text-align: right;
+        }
+        .game-activity.system-msg .game-activity-text {
+            font-size: 11px;
+            color: var(--text-faint);
+            font-style: italic;
+        }
+        .game-activity.system-msg .game-activity-meta { font-size: 10px; }
+
+        /* Campfire: chat messages (left-aligned) */
+        .game-activity.chat-msg {
+            flex-direction: column;
+            gap: 2px;
+            padding: 8px 12px;
+        }
+        .chat-msg-header {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.2px;
+        }
+        .chat-msg-header .chat-tier { opacity: 0.7; }
+        .chat-msg-body {
+            font-size: 13px;
+            color: var(--text);
+            line-height: 1.5;
+            padding-left: 2px;
+        }
+        .chat-msg-meta {
+            font-size: 10px;
+            color: var(--text-faint);
+            margin-top: 1px;
+        }
         .game-activity-xp {
             font-size: 13px;
             font-weight: 700;
@@ -1512,7 +1556,7 @@
         // ==========================================
         // CONFIG
         // ==========================================
-        const HUNT_VERSION = 'V0.8.1-260212';
+        const HUNT_VERSION = 'V0.8.2-260212';
         console.log('🎮 CHIMERA Hunt Version:', HUNT_VERSION);
 
         const CONFIG = {
@@ -1756,8 +1800,12 @@
             // Apply live Hall feed
             hallFeed = (result.hallFeed || []).map(e => ({
                 icon: e.icon || 'realm',
+                type: e.type || e.icon || 'realm',
                 emoji: feedEmoji(e.icon || e.type),
                 text: e.text,
+                handle: e.handle || '',
+                senderTier: e.senderTier || null,
+                senderLevel: e.senderLevel != null ? e.senderLevel : null,
                 timestamp: e.timestamp
             }));
 
@@ -1841,6 +1889,8 @@
                 'material_trained': '🧪',
                 'announcement': '📢',
                 'admin_announcement': '📢',
+                'campfire': '🔥',
+                'campfire_message': '🔥',
                 'level': '⬆️',
                 'level_up': '⬆️'
             };
@@ -2056,9 +2106,13 @@
                 if (result.status === 'success' && result.entry) {
                     // Add to local feed and re-render
                     hallFeed.unshift({
-                        icon: result.entry.icon || 'announcement',
-                        emoji: feedEmoji(result.entry.icon || 'announcement'),
+                        icon: 'campfire',
+                        type: 'campfire_message',
+                        emoji: '🔥',
                         text: result.entry.text,
+                        handle: result.entry.handle || gameState.handle,
+                        senderTier: result.entry.senderTier || gameState.tier,
+                        senderLevel: result.entry.senderLevel != null ? result.entry.senderLevel : (gameState.level ? gameState.level.level : 0),
                         timestamp: result.entry.timestamp
                     });
                     renderFeedBar();
@@ -2084,6 +2138,9 @@
             }
         });
 
+        const tierIcons = { scout: '🔍', hunter: '🗡️', tamer: '🐉', warden: '🛡️' };
+        const tierLetters = { scout: 'S', hunter: 'H', tamer: 'T', warden: 'W' };
+
         function renderFeedBar() {
             const listEl = document.getElementById('feedBarList');
 
@@ -2092,28 +2149,36 @@
             } else {
                 // Chat-style: oldest at top, newest at bottom
                 const sorted = [...hallFeed].reverse();
-                listEl.innerHTML = sorted.map(entry => `
-                    <div class="game-activity">
-                        <div class="game-activity-icon ${entry.icon}">${entry.emoji}</div>
-                        <div class="game-activity-body">
-                            <div class="game-activity-text">${entry.text}</div>
-                            <div class="game-activity-meta">${getTimeAgo(entry.timestamp)}</div>
-                        </div>
-                    </div>
-                `).join('');
+                listEl.innerHTML = sorted.map(entry => {
+                    const isChatMsg = entry.type === 'campfire_message' || entry.icon === 'campfire';
+
+                    if (isChatMsg) {
+                        const t = entry.senderTier || 'scout';
+                        const icon = tierLetters[t] || 'S';
+                        const lvl = entry.senderLevel != null ? entry.senderLevel : '?';
+                        return `<div class="game-activity chat-msg">
+                            <div class="chat-msg-header"><span class="chat-tier">&lt;${icon}:${lvl}&gt;</span> ${entry.handle || '???'} says:</div>
+                            <div class="chat-msg-body">${entry.text}</div>
+                            <div class="chat-msg-meta">${getTimeAgo(entry.timestamp)}</div>
+                        </div>`;
+                    } else {
+                        return `<div class="game-activity system-msg">
+                            <div class="game-activity-body">
+                                <div class="game-activity-text">${entry.emoji} ${entry.text}</div>
+                                <div class="game-activity-meta">${getTimeAgo(entry.timestamp)}</div>
+                            </div>
+                        </div>`;
+                    }
+                }).join('');
 
                 // Auto-scroll to bottom (newest)
                 listEl.scrollTop = listEl.scrollHeight;
             }
 
-            // Show admin input if user has admin flag
+            // Show campfire input for all users
             const adminBar = document.getElementById('feedBarAdmin');
             if (adminBar) {
-                if (gameState.isAdmin) {
-                    adminBar.classList.add('visible');
-                } else {
-                    adminBar.classList.remove('visible');
-                }
+                adminBar.classList.add('visible');
             }
 
             updateFeedBadge();
@@ -2910,55 +2975,94 @@
             // Demo Hall feed (global events — no personal XP)
             hallFeed = [
                 {
+                    icon: 'campfire',
+                    type: 'campfire_message',
+                    emoji: '🔥',
+                    text: 'anyone hitting the east side today?',
+                    handle: 'Pirates17',
+                    senderTier: 'scout',
+                    senderLevel: 7,
+                    timestamp: new Date(now - 1 * 60000).toISOString()
+                },
+                {
                     icon: 'realm',
+                    type: 'realm_enter',
                     emoji: '🌿',
                     text: 'Pirates17 entered the realm',
                     timestamp: new Date(now - 3 * 60000).toISOString()
                 },
                 {
+                    icon: 'campfire',
+                    type: 'campfire_message',
+                    emoji: '🔥',
+                    text: 'just wrapped a collection run on Fairview — way worse than my rating predicted',
+                    handle: 'jejones',
+                    senderTier: 'hunter',
+                    senderLevel: 12,
+                    timestamp: new Date(now - 15 * 60000).toISOString()
+                },
+                {
                     icon: 'realm',
+                    type: 'realm_enter',
                     emoji: '🌿',
                     text: 'jejones entered the realm',
                     timestamp: new Date(now - 18 * 60000).toISOString()
                 },
                 {
                     icon: 'streak',
+                    type: 'streak_milestone',
                     emoji: '🔥',
                     text: 'MightyJeff hit a 14-day scout streak!',
                     timestamp: new Date(now - 35 * 60000).toISOString()
                 },
                 {
+                    icon: 'campfire',
+                    type: 'campfire_message',
+                    emoji: '🔥',
+                    text: 'morning crew checking in',
+                    handle: 'MightyJeff',
+                    senderTier: 'scout',
+                    senderLevel: 3,
+                    timestamp: new Date(now - 40 * 60000).toISOString()
+                },
+                {
                     icon: 'realm',
+                    type: 'realm_enter',
                     emoji: '🌿',
                     text: 'MightyJeff entered the realm',
                     timestamp: new Date(now - 42 * 60000).toISOString()
                 },
                 {
                     icon: 'validated',
+                    type: 'first_validated',
                     emoji: '✓',
                     text: 'Pirates17 had a scout rating validated',
                     timestamp: new Date(now - 2 * 3600000).toISOString()
                 },
                 {
                     icon: 'realm-exit',
+                    type: 'realm_exit',
                     emoji: '🚪',
                     text: 'CLTcollector departed the realm',
                     timestamp: new Date(now - 3 * 3600000).toISOString()
                 },
                 {
                     icon: 'tier',
+                    type: 'tier_unlock',
                     emoji: '⚔️',
                     text: 'MightyJeff has proven their territory — Hunter unlocked!',
                     timestamp: new Date(now - 5 * 3600000).toISOString()
                 },
                 {
                     icon: 'event',
+                    type: 'event_start',
                     emoji: '📯',
                     text: 'Cleanup event started: Fairview Ave Saturday Sweep',
                     timestamp: new Date(now - 24 * 3600000).toISOString()
                 },
                 {
                     icon: 'realm',
+                    type: 'realm_enter',
                     emoji: '🌿',
                     text: 'CLTcollector entered the realm',
                     timestamp: new Date(now - 26 * 3600000).toISOString()
