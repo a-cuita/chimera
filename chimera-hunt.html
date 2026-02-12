@@ -1390,7 +1390,7 @@
         // ==========================================
         // CONFIG
         // ==========================================
-        const HUNT_VERSION = 'V0.7.2-260212';
+        const HUNT_VERSION = 'V0.7.3-260212';
         console.log('🎮 CHIMERA Hunt Version:', HUNT_VERSION);
 
         const CONFIG = {
@@ -1462,6 +1462,16 @@
                         activeRank ? activeRank.dataset.rank : 'alltime',
                         activeScope ? activeScope.dataset.scope : 'everyone'
                     );
+                }
+                if (targetId === 'screenTracker') {
+                    // Leaflet maps need invalidateSize when container becomes visible
+                    setTimeout(() => {
+                        if (trackerTerritoryMap) {
+                            trackerTerritoryMap.invalidateSize();
+                        } else {
+                            renderTerritoryMap();
+                        }
+                    }, 150);
                 }
             });
         });
@@ -2209,6 +2219,7 @@
         }
 
         let trackerTerritoryMap = null;
+        let trackerTriangleLayers = [];
 
         function renderTerritoryMap() {
             const triData = gameState.triangles || { triangles: [], activeCount: 0 };
@@ -2262,13 +2273,19 @@
                 }).join('');
             }
 
-            // Init or reset map
-            if (trackerTerritoryMap) {
-                trackerTerritoryMap.remove();
-                trackerTerritoryMap = null;
-            }
+            // Check if Tracker tab is currently visible
+            const trackerScreen = document.getElementById('screenTracker');
+            const isVisible = trackerScreen && trackerScreen.classList.contains('active');
+            if (!isVisible) return; // Don't init map while hidden — tab switch will handle it
 
-            setTimeout(() => {
+            // Clear old triangle layers
+            trackerTriangleLayers.forEach(layer => {
+                if (trackerTerritoryMap) trackerTerritoryMap.removeLayer(layer);
+            });
+            trackerTriangleLayers = [];
+
+            // Init map once
+            if (!trackerTerritoryMap) {
                 trackerTerritoryMap = L.map(container, {
                     zoomControl: false,
                     attributionControl: false,
@@ -2281,36 +2298,42 @@
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     maxZoom: 18
                 }).addTo(trackerTerritoryMap);
+            }
 
-                const allBounds = [];
+            const allBounds = [];
 
-                for (const tri of tris) {
-                    const pts = tri.points.map(p => [p.lat, p.lon]);
-                    const isActive = tri.status === 'active';
+            for (const tri of tris) {
+                const pts = tri.points.map(p => [p.lat, p.lon]);
+                const isActive = tri.status === 'active';
 
-                    const polygon = L.polygon(pts, {
-                        color: isActive ? '#e8b634' : '#6b7280',
-                        weight: isActive ? 2 : 1,
+                const polygon = L.polygon(pts, {
+                    color: isActive ? '#e8b634' : '#6b7280',
+                    weight: isActive ? 2 : 1,
+                    fillColor: isActive ? '#e8b634' : '#6b7280',
+                    fillOpacity: isActive ? 0.12 : 0.05,
+                    dashArray: isActive ? null : '4 4'
+                }).addTo(trackerTerritoryMap);
+                trackerTriangleLayers.push(polygon);
+
+                pts.forEach(pt => {
+                    const marker = L.circleMarker(pt, {
+                        radius: isActive ? 6 : 4,
                         fillColor: isActive ? '#e8b634' : '#6b7280',
-                        fillOpacity: isActive ? 0.12 : 0.05,
-                        dashArray: isActive ? null : '4 4'
+                        color: '#fff',
+                        weight: isActive ? 2 : 1,
+                        fillOpacity: isActive ? 1 : 0.5
                     }).addTo(trackerTerritoryMap);
+                    trackerTriangleLayers.push(marker);
+                    allBounds.push(pt);
+                });
+            }
 
-                    pts.forEach(pt => {
-                        L.circleMarker(pt, {
-                            radius: isActive ? 6 : 4,
-                            fillColor: isActive ? '#e8b634' : '#6b7280',
-                            color: '#fff',
-                            weight: isActive ? 2 : 1,
-                            fillOpacity: isActive ? 1 : 0.5
-                        }).addTo(trackerTerritoryMap);
-                        allBounds.push(pt);
-                    });
-                }
+            if (allBounds.length > 0) {
+                trackerTerritoryMap.fitBounds(L.latLngBounds(allBounds).pad(0.2));
+            }
 
-                if (allBounds.length > 0) {
-                    trackerTerritoryMap.fitBounds(L.latLngBounds(allBounds).pad(0.2));
-                }
+            setTimeout(() => {
+                if (trackerTerritoryMap) trackerTerritoryMap.invalidateSize();
             }, 100);
         }
 
