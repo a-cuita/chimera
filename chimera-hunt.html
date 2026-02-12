@@ -59,6 +59,7 @@
             --header-bg: #0d1a12;
 
             --tab-height: 64px;
+            --feed-bar-height: 38px;
             --header-height: 56px;
         }
 
@@ -77,7 +78,7 @@
             background: var(--bg);
             min-height: 100vh;
             position: relative;
-            padding-bottom: calc(var(--tab-height) + 16px);
+            padding-bottom: calc(var(--tab-height) + var(--feed-bar-height) + 16px);
         }
 
         /* ==================== HEADER ==================== */
@@ -273,6 +274,106 @@
         }
         .who-bar-user-idle {
             color: var(--warning, #e8b634);
+        }
+
+        /* ==================== FEED BAR (bottom drop-up) ==================== */
+        .feed-bar {
+            position: fixed;
+            bottom: var(--tab-height);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            z-index: 99;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .feed-bar-collapsed {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            background: var(--bg-deep);
+            border-top: 1px solid var(--border);
+            cursor: pointer;
+        }
+        .feed-bar-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-faint);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .feed-bar-badge {
+            background: var(--xp-gold);
+            color: var(--bg-deep);
+            font-size: 10px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+        .feed-bar-badge.empty { display: none; }
+        .feed-bar-chevron {
+            font-size: 14px;
+            color: var(--text-faint);
+            transition: transform 0.2s;
+        }
+        .feed-bar.expanded .feed-bar-chevron {
+            transform: rotate(180deg);
+        }
+        .feed-bar-list {
+            display: none;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 100%;
+            background: var(--bg-deep);
+            border-top: 1px solid var(--border);
+            max-height: 55vh;
+            overflow-y: auto;
+            box-shadow: 0 -8px 24px rgba(0,0,0,0.4);
+            padding: 0 0 4px;
+        }
+        .feed-bar.expanded .feed-bar-list {
+            display: block;
+        }
+
+        /* ==================== LOADING OVERLAY ==================== */
+        .hunt-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 14, 20, 0.92);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .hunt-loading-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .hunt-loading-icon {
+            font-size: 36px;
+            animation: loadPulse 1.5s ease infinite;
+        }
+        @keyframes loadPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.15); opacity: 0.6; }
+        }
+        .hunt-loading-text {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
         }
 
         .exit-realm-btn {
@@ -1313,6 +1414,18 @@
         </div>
 
         <!-- ==================== TAB BAR ==================== -->
+        <!-- ==================== FEED BAR (bottom drop-up) ==================== -->
+        <div class="feed-bar" id="feedBar">
+            <div class="feed-bar-list" id="feedBarList"></div>
+            <div class="feed-bar-collapsed" id="feedBarToggle">
+                <div class="feed-bar-label">
+                    📜 <span id="feedBarLabel">The Hunt</span>
+                    <span class="feed-bar-badge empty" id="feedBarBadge">0</span>
+                </div>
+                <span class="feed-bar-chevron">▲</span>
+            </div>
+        </div>
+
         <div class="tab-bar">
             <div class="tab active" data-tab="screenHall">
                 <span class="tab-icon">🏠</span>
@@ -1386,11 +1499,17 @@
         </div>
     </div>
 
+    <!-- ==================== LOADING OVERLAY ==================== -->
+    <div class="hunt-loading-overlay" id="huntLoadingOverlay">
+        <div class="hunt-loading-icon" id="huntLoadingIcon">🌿</div>
+        <div class="hunt-loading-text" id="huntLoadingText">Entering the realm...</div>
+    </div>
+
     <script>
         // ==========================================
         // CONFIG
         // ==========================================
-        const HUNT_VERSION = 'V0.7.3-260212';
+        const HUNT_VERSION = 'V0.8-260212';
         console.log('🎮 CHIMERA Hunt Version:', HUNT_VERSION);
 
         const CONFIG = {
@@ -1591,6 +1710,7 @@
 
         async function fireEnterTheHunt() {
             console.log('🏰 Entering the Hunt...');
+            showHuntLoading('Entering the realm...', '🌿');
             const result = await huntPost('enterTheHunt', { userId: gameState.userId });
 
             if (result.status === 'error') {
@@ -1601,14 +1721,14 @@
                 renderWhoList();
                 renderHallFeed();
                 renderTracker();
+                hideHuntLoading();
                 return;
             }
 
             if (!result.enrolled) {
                 console.log('🆕 User not enrolled — show onboarding');
-                // TODO: Show onboarding screen
-                // For now, offer to enroll
                 showOnboarding();
+                hideHuntLoading();
                 return;
             }
 
@@ -1658,6 +1778,7 @@
             renderWhoList();
             renderHallFeed();
             renderTracker();
+            hideHuntLoading();
             console.log('✅ Hunt loaded. Tier:', gs.tier, 'XP:', gs.totalXP);
         }
 
@@ -1871,16 +1992,88 @@
         // WHO-LIST BAR
         // ==========================================
         document.getElementById('whoBarToggle').addEventListener('click', () => {
-            document.getElementById('whoBar').classList.toggle('expanded');
+            const whoBar = document.getElementById('whoBar');
+            const feedBar = document.getElementById('feedBar');
+            // Close feed if open
+            if (feedBar.classList.contains('expanded')) feedBar.classList.remove('expanded');
+            whoBar.classList.toggle('expanded');
         });
 
-        // Close who-list overlay on tap outside
+        // ==========================================
+        // FEED BAR (bottom drop-up)
+        // ==========================================
+        let lastFeedViewed = 0; // timestamp
+
+        // Try to restore from localStorage
+        try { lastFeedViewed = Number(localStorage.getItem('hunt_lastFeedViewed')) || 0; } catch(e) {}
+
+        document.getElementById('feedBarToggle').addEventListener('click', () => {
+            const feedBar = document.getElementById('feedBar');
+            const whoBar = document.getElementById('whoBar');
+            // Close who-list if open
+            if (whoBar.classList.contains('expanded')) whoBar.classList.remove('expanded');
+            feedBar.classList.toggle('expanded');
+
+            // Mark as viewed when opening
+            if (feedBar.classList.contains('expanded')) {
+                lastFeedViewed = Date.now();
+                try { localStorage.setItem('hunt_lastFeedViewed', lastFeedViewed); } catch(e) {}
+                updateFeedBadge();
+            }
+        });
+
+        // Close either overlay on tap outside
         document.addEventListener('click', (e) => {
             const whoBar = document.getElementById('whoBar');
+            const feedBar = document.getElementById('feedBar');
             if (whoBar.classList.contains('expanded') && !whoBar.contains(e.target)) {
                 whoBar.classList.remove('expanded');
             }
+            if (feedBar.classList.contains('expanded') && !feedBar.contains(e.target)) {
+                feedBar.classList.remove('expanded');
+            }
         });
+
+        function renderFeedBar() {
+            const listEl = document.getElementById('feedBarList');
+
+            if (hallFeed.length === 0) {
+                listEl.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-faint); font-size: 13px;">The realm is quiet...</div>`;
+            } else {
+                listEl.innerHTML = hallFeed.map(entry => `
+                    <div class="game-activity">
+                        <div class="game-activity-icon ${entry.icon}">${entry.emoji}</div>
+                        <div class="game-activity-body">
+                            <div class="game-activity-text">${entry.text}</div>
+                            <div class="game-activity-meta">${getTimeAgo(entry.timestamp)}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            updateFeedBadge();
+        }
+
+        function updateFeedBadge() {
+            const badge = document.getElementById('feedBarBadge');
+            const unread = hallFeed.filter(e => new Date(e.timestamp).getTime() > lastFeedViewed).length;
+            badge.textContent = unread;
+            badge.className = unread > 0 ? 'feed-bar-badge' : 'feed-bar-badge empty';
+        }
+
+        // ==========================================
+        // LOADING OVERLAY
+        // ==========================================
+        function showHuntLoading(text, icon) {
+            const overlay = document.getElementById('huntLoadingOverlay');
+            document.getElementById('huntLoadingText').textContent = text || 'Entering the realm...';
+            document.getElementById('huntLoadingIcon').textContent = icon || '🌿';
+            overlay.classList.add('active');
+        }
+
+        function hideHuntLoading() {
+            document.getElementById('huntLoadingOverlay').classList.remove('active');
+        }
 
         function renderWhoList() {
             const count = whoList.length;
@@ -1933,11 +2126,13 @@
         function exitRealm() {
             if (heartbeatInterval) clearInterval(heartbeatInterval);
             console.log('🚪 Exiting realm...');
+            showHuntLoading('Departing the realm...', '🚪');
             if (gameState.userId && CONFIG.huntScriptUrl) {
-                // Fire and forget — don't wait for response before navigating
                 huntPost('exitTheHunt', { userId: gameState.userId });
             }
-            window.location.href = CONFIG.chimeraUrl + '?from=hunt';
+            setTimeout(() => {
+                window.location.href = CONFIG.chimeraUrl + '?from=hunt';
+            }, 400);
         }
 
         // ==========================================
@@ -2099,18 +2294,20 @@
                         <div class="empty-state-text">The realm is quiet...<br>Be the first to enter.</div>
                     </div>
                 `;
-                return;
+            } else {
+                listEl.innerHTML = hallFeed.map(entry => `
+                    <div class="game-activity">
+                        <div class="game-activity-icon ${entry.icon}">${entry.emoji}</div>
+                        <div class="game-activity-body">
+                            <div class="game-activity-text">${entry.text}</div>
+                            <div class="game-activity-meta">${getTimeAgo(entry.timestamp)}</div>
+                        </div>
+                    </div>
+                `).join('');
             }
 
-            listEl.innerHTML = hallFeed.map(entry => `
-                <div class="game-activity">
-                    <div class="game-activity-icon ${entry.icon}">${entry.emoji}</div>
-                    <div class="game-activity-body">
-                        <div class="game-activity-text">${entry.text}</div>
-                        <div class="game-activity-meta">${getTimeAgo(entry.timestamp)}</div>
-                    </div>
-                </div>
-            `).join('');
+            // Also render feed bar
+            renderFeedBar();
         }
 
         // ==========================================
