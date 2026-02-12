@@ -276,7 +276,7 @@
             color: var(--warning, #e8b634);
         }
 
-        /* ==================== FEED BAR (bottom drop-up) ==================== */
+        /* ==================== CAMPFIRE (bottom drop-up) ==================== */
         .feed-bar {
             position: fixed;
             bottom: var(--tab-height);
@@ -337,6 +337,10 @@
             padding: 0 0 4px;
         }
         .feed-bar.expanded .feed-bar-list {
+            display: block;
+        }
+        .feed-bar-admin { display: none; }
+        .feed-bar.expanded .feed-bar-admin.visible {
             display: block;
         }
 
@@ -1212,16 +1216,8 @@
                     </div>
                 </div>
 
-                <!-- Global Hall Feed -->
-                <div class="game-card">
-                    <div class="game-card-header">The Hunt</div>
-                    <div id="hallActivityList">
-                        <div class="empty-state">
-                            <div class="empty-state-icon">🌲</div>
-                            <div class="empty-state-text">The realm is quiet...<br>Be the first to enter.</div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Onboarding container (hidden by default, used by enrollment flow) -->
+                <div id="hallActivityList" style="display: none;"></div>
             </div>
 
             <!-- ==================== SCREEN: LEDGER ==================== -->
@@ -1414,12 +1410,19 @@
         </div>
 
         <!-- ==================== TAB BAR ==================== -->
-        <!-- ==================== FEED BAR (bottom drop-up) ==================== -->
+        <!-- ==================== CAMPFIRE (bottom drop-up activity feed) ==================== -->
         <div class="feed-bar" id="feedBar">
             <div class="feed-bar-list" id="feedBarList"></div>
+            <div class="feed-bar-admin" id="feedBarAdmin">
+                <div style="display: flex; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--border); background: var(--bg-elevated);">
+                    <input type="text" id="campfireInput" placeholder="Post to the campfire..." style="flex:1; background: var(--bg-deep); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text); font-size: 13px; outline: none;">
+                    <button id="campfireSendBtn" style="background: var(--xp-gold); color: var(--bg-deep); border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;">Send</button>
+                </div>
+            </div>
             <div class="feed-bar-collapsed" id="feedBarToggle">
                 <div class="feed-bar-label">
-                    📜 <span id="feedBarLabel">The Hunt</span>
+                    🔥 <span id="feedBarLabel">Campfire</span>
+                    <span style="font-size: 10px; font-weight: 400; color: var(--text-faint); opacity: 0.6;">(live activity log)</span>
                     <span class="feed-bar-badge empty" id="feedBarBadge">0</span>
                 </div>
                 <span class="feed-bar-chevron">▲</span>
@@ -1509,7 +1512,7 @@
         // ==========================================
         // CONFIG
         // ==========================================
-        const HUNT_VERSION = 'V0.8-260212';
+        const HUNT_VERSION = 'V0.8.1-260212';
         console.log('🎮 CHIMERA Hunt Version:', HUNT_VERSION);
 
         const CONFIG = {
@@ -1530,7 +1533,8 @@
             scoutStreak: { count: 0, status: 'active' },
             hunterStreak: { count: 0, status: 'locked' },
             calibration: { divergence: null, bias: null, multiplier: 1.0 },
-            triangleComplete: false
+            triangleComplete: false,
+            isAdmin: false
         };
 
         let whoList = [];
@@ -1747,6 +1751,7 @@
             gameState.triangleComplete = gs.triangleComplete;
             gameState.triangles = gs.triangles || { triangles: [], activeCount: 0 };
             gameState.profile = gs.profile || { characterTitle: '', characterBio: '' };
+            gameState.isAdmin = result.isAdmin || false;
 
             // Apply live Hall feed
             hallFeed = (result.hallFeed || []).map(e => ({
@@ -1794,8 +1799,9 @@
         }
 
         function showOnboarding() {
-            // Simple onboarding prompt — will be replaced with full UI later
+            // Show onboarding in the Hall screen
             const hallList = document.getElementById('hallActivityList');
+            hallList.style.display = 'block';
             hallList.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-state-icon">🌲</div>
@@ -2000,7 +2006,7 @@
         });
 
         // ==========================================
-        // FEED BAR (bottom drop-up)
+        // CAMPFIRE (bottom drop-up)
         // ==========================================
         let lastFeedViewed = 0; // timestamp
 
@@ -2019,8 +2025,52 @@
                 lastFeedViewed = Date.now();
                 try { localStorage.setItem('hunt_lastFeedViewed', lastFeedViewed); } catch(e) {}
                 updateFeedBadge();
+                // Scroll to bottom (newest)
+                const listEl = document.getElementById('feedBarList');
+                setTimeout(() => { listEl.scrollTop = listEl.scrollHeight; }, 50);
             }
         });
+
+        // Campfire admin posting
+        document.getElementById('campfireSendBtn').addEventListener('click', () => sendCampfireMessage());
+        document.getElementById('campfireInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') sendCampfireMessage();
+        });
+
+        async function sendCampfireMessage() {
+            const input = document.getElementById('campfireInput');
+            const text = input.value.trim();
+            if (!text || !gameState.userId || !CONFIG.huntScriptUrl) return;
+
+            input.value = '';
+            const btn = document.getElementById('campfireSendBtn');
+            btn.textContent = '...';
+            btn.disabled = true;
+
+            try {
+                const result = await huntPost('campfirePost', {
+                    userId: gameState.userId,
+                    text: text
+                });
+
+                if (result.status === 'success' && result.entry) {
+                    // Add to local feed and re-render
+                    hallFeed.unshift({
+                        icon: result.entry.icon || 'announcement',
+                        emoji: feedEmoji(result.entry.icon || 'announcement'),
+                        text: result.entry.text,
+                        timestamp: result.entry.timestamp
+                    });
+                    renderFeedBar();
+                }
+            } catch (err) {
+                console.error('Campfire post failed:', err);
+                showToast('Failed to post', 'warning');
+            }
+
+            btn.textContent = 'Send';
+            btn.disabled = false;
+        }
 
         // Close either overlay on tap outside
         document.addEventListener('click', (e) => {
@@ -2038,9 +2088,11 @@
             const listEl = document.getElementById('feedBarList');
 
             if (hallFeed.length === 0) {
-                listEl.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-faint); font-size: 13px;">The realm is quiet...</div>`;
+                listEl.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-faint); font-size: 13px;">The campfire crackles quietly...</div>`;
             } else {
-                listEl.innerHTML = hallFeed.map(entry => `
+                // Chat-style: oldest at top, newest at bottom
+                const sorted = [...hallFeed].reverse();
+                listEl.innerHTML = sorted.map(entry => `
                     <div class="game-activity">
                         <div class="game-activity-icon ${entry.icon}">${entry.emoji}</div>
                         <div class="game-activity-body">
@@ -2049,6 +2101,19 @@
                         </div>
                     </div>
                 `).join('');
+
+                // Auto-scroll to bottom (newest)
+                listEl.scrollTop = listEl.scrollHeight;
+            }
+
+            // Show admin input if user has admin flag
+            const adminBar = document.getElementById('feedBarAdmin');
+            if (adminBar) {
+                if (gameState.isAdmin) {
+                    adminBar.classList.add('visible');
+                } else {
+                    adminBar.classList.remove('visible');
+                }
             }
 
             updateFeedBadge();
@@ -2285,28 +2350,6 @@
         // HALL FEED RENDERING
         // ==========================================
         function renderHallFeed() {
-            const listEl = document.getElementById('hallActivityList');
-
-            if (hallFeed.length === 0) {
-                listEl.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🌲</div>
-                        <div class="empty-state-text">The realm is quiet...<br>Be the first to enter.</div>
-                    </div>
-                `;
-            } else {
-                listEl.innerHTML = hallFeed.map(entry => `
-                    <div class="game-activity">
-                        <div class="game-activity-icon ${entry.icon}">${entry.emoji}</div>
-                        <div class="game-activity-body">
-                            <div class="game-activity-text">${entry.text}</div>
-                            <div class="game-activity-meta">${getTimeAgo(entry.timestamp)}</div>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            // Also render feed bar
             renderFeedBar();
         }
 
@@ -2817,6 +2860,7 @@
             gameState.scoutStreak = { count: 7, status: 'active' };
             gameState.hunterStreak = { count: 0, status: 'locked' };
             gameState.calibration = { divergence: 1.8, bias: -0.4, multiplier: 1.10 };
+            gameState.isAdmin = true;
 
             // Demo triangles
             const now24ago = new Date(Date.now() - 20 * 3600000).toISOString();
