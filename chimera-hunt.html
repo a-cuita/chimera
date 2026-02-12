@@ -1141,7 +1141,7 @@
         // ==========================================
         // CONFIG
         // ==========================================
-        const HUNT_VERSION = 'V0.5-260211-1430';
+        const HUNT_VERSION = 'V0.6-260212';
         console.log('🎮 CHIMERA Hunt Version:', HUNT_VERSION);
 
         const CONFIG = {
@@ -1158,6 +1158,7 @@
             handle: null,
             tier: 'scout', // scout | hunter | tamer | warden
             totalXP: 0,
+            level: { level: 0, xpIntoLevel: 0, xpForNextLevel: 100 },
             scoutStreak: { count: 0, status: 'active' },
             hunterStreak: { count: 0, status: 'locked' },
             calibration: { divergence: null, bias: null, multiplier: 1.0 },
@@ -1356,6 +1357,7 @@
             const gs = result.gameState;
             gameState.tier = gs.tier;
             gameState.totalXP = gs.totalXP;
+            gameState.level = gs.level || { level: 0, xpIntoLevel: 0, xpForNextLevel: 100 };
             gameState.scoutStreak = gs.scoutStreak;
             gameState.hunterStreak = gs.hunterStreak;
             gameState.calibration = {
@@ -1707,7 +1709,7 @@
         // UI RENDERING
         // ==========================================
         function renderHall() {
-            // Tier badge
+            // Tier badge with level
             const badge = document.getElementById('hallTierBadge');
             const tierConfig = {
                 scout: { icon: '🔍', label: 'Scout', class: 'scout' },
@@ -1716,11 +1718,23 @@
                 warden: { icon: '🛡️', label: 'Warden', class: 'warden' }
             };
             const tc = tierConfig[gameState.tier];
+            const lvl = gameState.level || { level: 0, xpIntoLevel: 0, xpForNextLevel: 100 };
             badge.className = `tier-badge ${tc.class}`;
-            badge.innerHTML = `<span class="tier-badge-icon">${tc.icon}</span><span>${tc.label}</span>`;
+            badge.innerHTML = `<span class="tier-badge-icon">${tc.icon}</span><span>${tc.label} • Lvl ${lvl.level}</span>`;
 
             // XP header
             document.getElementById('headerXP').textContent = gameState.totalXP.toLocaleString();
+
+            // Level progress bar
+            const pct = lvl.xpForNextLevel > 0 ? Math.round((lvl.xpIntoLevel / lvl.xpForNextLevel) * 100) : 0;
+            document.getElementById('hallProgressText').textContent = `${lvl.xpIntoLevel} / ${lvl.xpForNextLevel} XP to Lvl ${lvl.level + 1}`;
+            document.getElementById('hallProgressPct').textContent = pct + '%';
+            document.getElementById('hallProgressFill').style.width = pct + '%';
+
+            // Next tier hint
+            const nextTiers = { scout: 'Hunter', hunter: 'Tamer', tamer: 'Warden', warden: null };
+            const nextEl = document.getElementById('hallNextTier');
+            nextEl.textContent = nextTiers[gameState.tier] ? `Next tier: ${nextTiers[gameState.tier]}` : 'Max tier reached';
 
             // Streaks
             const ss = gameState.scoutStreak;
