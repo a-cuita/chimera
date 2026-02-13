@@ -124,8 +124,10 @@ window.addEventListener('load', async function () {
     // Admin menu click handler
     document.getElementById('menuAdmin')?.addEventListener('click', showAdminScreen);
 
-    // Pre-login feed
+    // Pre-login feed + public events
     loadActivityFeed(false);
+    loadPublicEvents();
+    initPublicEventsCollapsible();
 
     // Check site pause (before login)
     const isPaused = await checkSitePause();
