@@ -139,6 +139,8 @@ function showProposeEventScreen() {
     document.getElementById('eventContactName').value = '';
     document.getElementById('eventContactPhone').value = '';
     document.getElementById('eventContactEmail').value = '';
+    const publicNo = document.getElementById('eventPublicNo');
+    if (publicNo) publicNo.checked = true;
 }
 
 // ==================== SUPPLIES ====================
@@ -265,7 +267,64 @@ async function loadUpcomingBanner() {
         }
     } catch (e) { console.error('Banner load error:', e); }
 }
+// ==================== PUBLIC EVENTS (PRE-LOGIN) ====================
 
+async function loadPublicEvents() {
+    const section = document.getElementById('publicEventsSection');
+    const list = document.getElementById('publicEventsList');
+    const countBadge = document.getElementById('publicEventsCount');
+
+    try {
+        const response = await fetch(CONFIG.appsScriptUrl + '?action=get_public_events');
+        const result = await response.json();
+
+        if (result.status !== 'success' || !result.events || result.events.length === 0) {
+            section.style.display = 'none';
+            return;
+        }
+
+        const events = result.events;
+        section.style.display = 'block';
+        countBadge.style.display = 'inline-flex';
+        countBadge.textContent = events.length;
+
+        let html = '';
+        events.forEach(event => {
+            const dateStr = event.eventDate
+                ? new Date(event.eventDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+                : 'TBD';
+            const timeStr = event.startTime ? formatTime12Hour(event.startTime) : '';
+
+            html += `<div class="public-event-card">
+                <div class="public-event-name">${escapeHtml(event.title)}</div>
+                <div class="public-event-meta">
+                    📅 ${dateStr}${timeStr ? ' • 🕐 ' + timeStr : ''} • 📍 ${escapeHtml(event.locationName)}
+                </div>
+                ${event.description ? `<div class="public-event-desc">${escapeHtml(event.description)}</div>` : ''}
+                <div class="public-event-org">Organized by ${escapeHtml(event.organization || 'Community')}</div>
+            </div>`;
+        });
+
+        list.innerHTML = html;
+    } catch (error) {
+        console.error('Load public events error:', error);
+        section.style.display = 'none';
+    }
+}
+
+function initPublicEventsCollapsible() {
+    const toggle = document.getElementById('publicEventsToggle');
+    const body = document.getElementById('publicEventsBody');
+    const chevron = document.getElementById('publicEventsChevron');
+
+    if (toggle) {
+        toggle.addEventListener('click', () => {
+            const isOpen = body.style.display !== 'none';
+            body.style.display = isOpen ? 'none' : 'block';
+            chevron.classList.toggle('open', !isOpen);
+        });
+    }
+}
 // ==================== BIND EVENTS ====================
 
 function initEvents() {
@@ -306,7 +365,9 @@ function initEvents() {
                     description: document.getElementById('eventDescriptionInput').value.trim(),
                     contactName: document.getElementById('eventContactName').value.trim(),
                     contactPhone: document.getElementById('eventContactPhone').value.trim(),
-                    contactEmail: document.getElementById('eventContactEmail').value.trim()
+                    contactEmail: document.getElementById('eventContactEmail').value.trim(),
+                    requestPublic: document.querySelector('input[name="eventPublic"]:checked')?.value === 'yes'
+                    
                 })
             });
             const result = await response.json();
