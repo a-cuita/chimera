@@ -7,10 +7,10 @@ const CONFIG = {
     appsScriptUrl: 'https://script.google.com/macros/s/AKfycbxh-jfsyL6fQP_bjFqd6zRk1sFOYdd_C-A8Ojb5bM-ddax9F3rn9UN_nbuRZ5D34ucjzA/exec',
     gpsInterval: 10000,
     organizations: ['Baled It!', 'Help A Brother Out Foundation', 'West Montgomery Action Committee'],
-    urls: { fieldTestMap: 'mapping.html', demoGame: 'hunt/index.html' }
+    urls: { fieldTestMap: 'feb_3_fieldtest.html', demoGame: 'chimera-hunt.html' }
 };
 
-const PIN_REGEX = /^[a-zA-Z]{2}[0-9]{2}$/;
+const PASSWORD_REGEX = /^.{8,}$/;  // Minimum 8 characters
 
 const RATING_DESCRIPTIONS = {
     0: 'Clean/Minimal', 1: 'Clean/Minimal', 2: 'Clean/Minimal',
@@ -23,7 +23,8 @@ const RATING_DESCRIPTIONS = {
 const ALL_SCREEN_IDS = [
     'loginScreen', 'mainScreen', 'scoutScreen', 'activeTrackingScreen',
     'postTrackingScreen', 'editProfileScreen', 'recycleScreen',
-    'eventManagerScreen', 'proposeEventScreen', 'upcomingEventsScreen', 'eventDetailScreen'
+    'eventManagerScreen', 'proposeEventScreen', 'upcomingEventsScreen', 'eventDetailScreen',
+    'adminScreen'
 ];
 
 // ==================== GLOBAL STATE ====================
@@ -52,3 +53,6 @@ let huntIntegration = {
 // Event system
 let currentEventData = null;
 let currentSupplies = [];
+
+// API call tracker (for feedback context)
+let _lastApiCall = { action: null, result: null, timestamp: null };
