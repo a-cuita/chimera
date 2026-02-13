@@ -210,7 +210,7 @@ body {
 }
 
 .feed-scroll {
-    max-height: 60vh;
+    max-height: 65vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 }
@@ -761,6 +761,69 @@ body {
     font-weight: 600;
 }
 .login-toggle:hover { text-decoration: underline; }
+/* Login compact layout */
+.login-compact {
+    padding: 14px 16px;
+    margin-bottom: 12px;
+}
+.login-compact h3 { display: none; } /* hide if any leftover */
+
+.login-compact-header {
+    margin-bottom: 12px;
+}
+.login-compact-header strong {
+    font-size: 15px;
+    color: #1f2937;
+}
+.login-compact-header .login-sub {
+    margin-bottom: 0;
+    margin-top: 2px;
+}
+
+.login-fields-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+.login-field-handle {
+    flex: 1;
+    margin-bottom: 12px;
+}
+.login-field-pin {
+    flex: 0 0 105px;
+    margin-bottom: 12px;
+}
+
+.login-compact .btn-primary {
+    margin-bottom: 0;
+}
+
+.login-compact-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.login-help-text {
+    font-size: 11px;
+    color: #9ca3af;
+}
+.login-compact-footer .login-toggle {
+    margin-top: 0;
+    font-size: 12px;
+}
+
+.create-profile-hint {
+    font-size: 11px;
+    color: #92400e;
+    background: #fffbeb;
+    padding: 6px 10px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
 
 /* Custom org input */
 .custom-org-input {
