@@ -85,7 +85,7 @@ function initScout() {
             if (result.status === 'success') {
                 showToast('Scout submitted!', 'success');
                 if (huntIntegration.fromHunt) {
-                    setTimeout(() => { window.location.href = 'chimera-hunt.html?completed=scout&sessionId=' + sessionState.sessionId; }, 1500);
+                    setTimeout(() => { window.location.href = 'hunt/index.html?completed=scout&sessionId=' + sessionState.sessionId; }, 1500);
                 } else {
                     setTimeout(() => showMainScreen(), 1500);
                 }

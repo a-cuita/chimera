@@ -196,7 +196,7 @@ function initTracking() {
             if (result.status === 'success') {
                 showToast('Collection submitted!', 'success');
                 if (huntIntegration.fromHunt) {
-                    setTimeout(() => { window.location.href = 'chimera-hunt.html?completed=collection&sessionId=' + sessionState.sessionId; }, 1500);
+                    setTimeout(() => { window.location.href = 'hunt/index.html?completed=collection&sessionId=' + sessionState.sessionId; }, 1500);
                 } else {
                     setTimeout(() => showMainScreen(), 1500);
                 }
