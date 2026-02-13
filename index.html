@@ -2386,7 +2386,7 @@
             // For coordinators: check for status changes on their events
             if (checkCoordinatorStatus()) {
                 try {
-                    const response = await fetch(CONFIG.appsScriptUrl + '?action=get_my_events&userId=' + currentUser.userId + '&token=' + sessionStorage.getItem('rh_token');
+                    const response = await fetch(CONFIG.appsScriptUrl + '?action=get_my_events&userId=' + currentUser.userId + '&token=' + sessionStorage.getItem('rh_token'));
                     const result = await response.json();
                     if (result.status === 'success' && result.events) {
                         // Count recently reviewed events (approved/rejected in last 24h could be a notification)
