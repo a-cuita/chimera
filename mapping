@@ -79,22 +79,23 @@
         
         .back-button {
             position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 1000;
-            padding: 12px 20px;
+            top: 12px;
+            left: 12px;
+            z-index: 1100;
+            padding: 8px 14px;
             background: #2D5F3F;
             color: white;
             text-decoration: none;
             border-radius: 8px;
             font-weight: 600;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            font-size: 13px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             transition: all 0.2s;
         }
         
         .back-button:hover {
             background: #234a31;
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
         
         .loading {
@@ -119,117 +120,123 @@
             color: #6b7280;
         }
         
-        .legend {
+        /* ==================== COMPACT PANELS ==================== */
+        .map-panel {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
             z-index: 1000;
             background: white;
-            padding: 16px;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            min-width: 200px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            overflow: hidden;
+            max-width: 200px;
         }
         
-        .legend-title {
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: #1f2937;
-            font-size: 14px;
-        }
-        
-        .gradient-bar {
-            width: 100%;
-            height: 20px;
-            background: linear-gradient(to right, #4CAF50, #FFEB3B, #FF9800, #F44336);
-            border-radius: 4px;
-            margin-bottom: 8px;
-        }
-        
-        .gradient-labels {
+        .panel-header {
             display: flex;
             justify-content: space-between;
-            font-size: 11px;
-            color: #6b7280;
-            margin-bottom: 12px;
-        }
-        
-        .legend-note {
-            font-size: 11px;
-            color: #6b7280;
-            font-style: italic;
-            line-height: 1.4;
-        }
-        
-        .legend-zones {
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid #e5e7eb;
-        }
-        
-        .legend-zones-title {
-            font-weight: 600;
-            font-size: 12px;
-            color: #1f2937;
-            margin-bottom: 6px;
-        }
-        
-        .zone-toggle {
-            display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            color: #6b7280;
+            padding: 8px 10px;
             cursor: pointer;
+            user-select: none;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
         }
         
-        .zone-toggle input {
-            cursor: pointer;
-        }
+        .panel-header:hover { background: #f3f4f6; }
         
-        .stats-panel {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: white;
-            padding: 16px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            min-width: 220px;
-        }
-        
-        .stats-title {
+        .panel-title {
             font-weight: 700;
-            margin-bottom: 10px;
-            color: #2D5F3F;
-            border-bottom: 2px solid #2D5F3F;
-            padding-bottom: 8px;
+            color: #1f2937;
+            font-size: 12px;
+        }
+        
+        .panel-chevron {
+            font-size: 10px;
+            color: #9ca3af;
+            transition: transform 0.2s;
+        }
+        .panel-chevron.collapsed { transform: rotate(-90deg); }
+        
+        .panel-body {
+            padding: 8px 10px;
+            font-size: 11px;
+        }
+        .panel-body.collapsed { display: none; }
+        
+        /* Stats panel — top right, below back button */
+        .stats-panel {
+            top: 12px;
+            right: 12px;
         }
         
         .stat-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 6px;
-            font-size: 13px;
+            margin-bottom: 3px;
         }
         
-        .stat-label {
-            color: #6b7280;
-        }
-        
-        .stat-value {
-            font-weight: 600;
-            color: #1f2937;
-        }
+        .stat-label { color: #6b7280; }
+        .stat-value { font-weight: 600; color: #1f2937; }
         
         .consent-notice {
-            font-size: 11px;
-            color: #6b7280;
-            margin-top: 12px;
-            padding-top: 10px;
+            font-size: 10px;
+            color: #9ca3af;
+            margin-top: 6px;
+            padding-top: 6px;
             border-top: 1px solid #e5e7eb;
             font-style: italic;
+            line-height: 1.3;
+        }
+        
+        /* Legend panel — bottom right */
+        .legend-panel {
+            bottom: 12px;
+            right: 12px;
+        }
+        
+        .gradient-bar {
+            width: 100%;
+            height: 14px;
+            background: linear-gradient(to right, #3b82f6, #22c55e, #eab308, #f97316, #ef4444, #d946ef);
+            border-radius: 3px;
+            margin-bottom: 4px;
+        }
+        
+        .gradient-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            color: #6b7280;
+            margin-bottom: 6px;
+        }
+        
+        .legend-note {
+            font-size: 10px;
+            color: #6b7280;
+            line-height: 1.3;
+        }
+        
+        .legend-toggles {
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .zone-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #6b7280;
+            cursor: pointer;
+            margin-bottom: 3px;
+        }
+        .zone-toggle:last-child { margin-bottom: 0; }
+        
+        .zone-toggle input {
+            cursor: pointer;
+            width: 13px;
+            height: 13px;
         }
     </style>
 </head>
@@ -243,7 +250,7 @@
         </div>
     </div>
     
-    <a href="index.html" class="back-button">← Back to Tracker</a>
+    <a href="index.html" class="back-button">← CHIMERA</a>
     
     <div class="loading" id="loading">
         <h2>Loading Map Data...</h2>
@@ -252,53 +259,69 @@
     
     <div id="map"></div>
     
-    <div class="stats-panel" id="statsPanel" style="display: none;">
-        <div class="stats-title">Session Stats</div>
-        <div class="stat-row">
-            <span class="stat-label">Scout Sessions:</span>
-            <span class="stat-value" id="scoutCount">0</span>
+    <!-- Stats Panel (collapsible) -->
+    <div class="map-panel stats-panel" id="statsPanel" style="display: none;">
+        <div class="panel-header" onclick="togglePanel('statsBody', this)">
+            <span class="panel-title">📊 Stats</span>
+            <span class="panel-chevron">▼</span>
         </div>
-        <div class="stat-row">
-            <span class="stat-label">Collection Sessions:</span>
-            <span class="stat-value" id="collectionCount">0</span>
-        </div>
-        <div class="stat-row">
-            <span class="stat-label">Total Weight:</span>
-            <span class="stat-value" id="totalWeight">0 lbs</span>
-        </div>
-        <div class="stat-row">
-            <span class="stat-label">Total Distance:</span>
-            <span class="stat-value" id="totalDistance">0 mi</span>
-        </div>
-        <div class="stat-row">
-            <span class="stat-label">Zones:</span>
-            <span class="stat-value" id="zoneCount">0</span>
-        </div>
-        <div class="consent-notice">
-            Only showing sessions with activity feed consent enabled
+        <div class="panel-body" id="statsBody">
+            <div class="stat-row">
+                <span class="stat-label">Scouts:</span>
+                <span class="stat-value" id="scoutCount">0</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Collections:</span>
+                <span class="stat-value" id="collectionCount">0</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Weight:</span>
+                <span class="stat-value" id="totalWeight">0 lbs</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Distance:</span>
+                <span class="stat-value" id="totalDistance">0 mi</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Zones:</span>
+                <span class="stat-value" id="zoneCount">0</span>
+            </div>
+            <div class="consent-notice">
+                Only sessions with feed consent enabled
+            </div>
         </div>
     </div>
     
-    <div class="legend">
-        <div class="legend-title">Litter Density</div>
-        <div class="gradient-bar"></div>
-        <div class="gradient-labels">
-            <span>0</span>
-            <span>2.5</span>
-            <span>5</span>
-            <span>7.5</span>
-            <span>10</span>
+    <!-- Legend Panel (collapsible) -->
+    <div class="map-panel legend-panel" id="legendPanel">
+        <div class="panel-header" onclick="togglePanel('legendBody', this)">
+            <span class="panel-title">🎨 Legend</span>
+            <span class="panel-chevron">▼</span>
         </div>
-        <div class="legend-note">
-            <strong>Scout circles:</strong> Visual litter rating (0-10)<br>
-            <strong>Collection paths:</strong> √CPUE (catch per unit effort)
-        </div>
-        <div class="legend-zones">
-            <div class="legend-zones-title">Zones</div>
-            <label class="zone-toggle">
-                <input type="checkbox" id="toggleZones" checked>
-                Show zone boundaries
-            </label>
+        <div class="panel-body" id="legendBody">
+            <div class="gradient-bar"></div>
+            <div class="gradient-labels">
+                <span>0</span>
+                <span>2</span>
+                <span>4</span>
+                <span>6</span>
+                <span>8</span>
+                <span>10</span>
+            </div>
+            <div class="legend-note">
+                <strong>Circles:</strong> Scout rating (72h, fading)<br>
+                <strong>Zones:</strong> Weekly avg √CPUE
+            </div>
+            <div class="legend-toggles">
+                <label class="zone-toggle">
+                    <input type="checkbox" id="toggleZones" checked>
+                    Zone boundaries
+                </label>
+                <label class="zone-toggle">
+                    <input type="checkbox" id="toggleLabels">
+                    Zone labels
+                </label>
+            </div>
         </div>
     </div>
     
@@ -336,28 +359,54 @@
         }
         
         // ==========================================
-        // GRADIENT COLOR FUNCTION
+        // PANEL TOGGLE
+        // ==========================================
+        function togglePanel(bodyId, headerEl) {
+            const body = document.getElementById(bodyId);
+            const chevron = headerEl.querySelector('.panel-chevron');
+            body.classList.toggle('collapsed');
+            chevron.classList.toggle('collapsed');
+        }
+        
+        // ==========================================
+        // NEW GRADIENT: blue → green → yellow → orange → red → magenta
+        // 0=blue  2=green  4=yellow  6=orange  8=red  10=magenta
         // ==========================================
         function getGradientColor(value) {
             value = Math.max(0, Math.min(10, value));
             
             let r, g, b;
             
-            if (value <= 3) {
-                const t = value / 3;
-                r = Math.round(76 + (255 - 76) * t);
-                g = Math.round(175 + (235 - 175) * t);
-                b = Math.round(80 + (59 - 80) * t);
+            if (value <= 2) {
+                // blue (59,130,246) → green (34,197,94)
+                const t = value / 2;
+                r = Math.round(59 + (34 - 59) * t);
+                g = Math.round(130 + (197 - 130) * t);
+                b = Math.round(246 + (94 - 246) * t);
+            } else if (value <= 4) {
+                // green (34,197,94) → yellow (234,179,8)
+                const t = (value - 2) / 2;
+                r = Math.round(34 + (234 - 34) * t);
+                g = Math.round(197 + (179 - 197) * t);
+                b = Math.round(94 + (8 - 94) * t);
             } else if (value <= 6) {
-                const t = (value - 3) / 3;
-                r = 255;
-                g = Math.round(235 + (152 - 235) * t);
-                b = Math.round(59 + (0 - 59) * t);
+                // yellow (234,179,8) → orange (249,115,22)
+                const t = (value - 4) / 2;
+                r = Math.round(234 + (249 - 234) * t);
+                g = Math.round(179 + (115 - 179) * t);
+                b = Math.round(8 + (22 - 8) * t);
+            } else if (value <= 8) {
+                // orange (249,115,22) → red (239,68,68)
+                const t = (value - 6) / 2;
+                r = Math.round(249 + (239 - 249) * t);
+                g = Math.round(115 + (68 - 115) * t);
+                b = Math.round(22 + (68 - 22) * t);
             } else {
-                const t = (value - 6) / 4;
-                r = Math.round(255 + (244 - 255) * t);
-                g = Math.round(152 + (67 - 152) * t);
-                b = Math.round(0 + (54 - 0) * t);
+                // red (239,68,68) → magenta (217,70,239)
+                const t = (value - 8) / 2;
+                r = Math.round(239 + (217 - 239) * t);
+                g = Math.round(68 + (70 - 68) * t);
+                b = Math.round(68 + (239 - 68) * t);
             }
             
             return `rgb(${r}, ${g}, ${b})`;
@@ -378,18 +427,11 @@
         }
         
         // ==========================================
-        // ZONE COLORS
+        // ZONE BORDER COLORS (neutral, for boundaries)
         // ==========================================
         const ZONE_COLORS = [
-            '#3b82f6', // blue
-            '#8b5cf6', // purple
-            '#ec4899', // pink
-            '#f97316', // orange
-            '#14b8a6', // teal
-            '#84cc16', // lime
-            '#f59e0b', // amber
-            '#6366f1', // indigo
-            '#ef4444'  // red
+            '#3b82f6', '#8b5cf6', '#ec4899', '#f97316',
+            '#14b8a6', '#84cc16', '#f59e0b', '#6366f1', '#ef4444'
         ];
         
         function getZoneColor(index) {
@@ -401,6 +443,8 @@
         // ==========================================
         let map;
         let zoneLayerGroup;
+        let labelLayerGroup;
+        let zonePolygons = [];
         
         function initMap() {
             map = L.map('map').setView([32.356, -86.306], 13);
@@ -410,8 +454,8 @@
                 maxZoom: 19
             }).addTo(map);
             
-            // Create layer group for zones
             zoneLayerGroup = L.layerGroup().addTo(map);
+            labelLayerGroup = L.layerGroup(); // NOT added to map by default
         }
         
         // ==========================================
@@ -430,37 +474,41 @@
                 const zones = result.zones || [];
                 document.getElementById('zoneCount').textContent = zones.length;
                 
-                // Render zones
                 zones.forEach((zone, index) => {
                     if (!zone.polygon || zone.polygon.length < 3) return;
                     
-                    // Convert [lon, lat] to [lat, lon] for Leaflet
                     const coordinates = zone.polygon.map(p => [p[1], p[0]]);
-                    
-                    const color = getZoneColor(index);
+                    const borderColor = getZoneColor(index);
                     
                     const polygon = L.polygon(coordinates, {
-                        color: color,
+                        color: borderColor,
                         weight: 2,
-                        fillColor: color,
-                        fillOpacity: 0.1,
+                        fillColor: '#999',
+                        fillOpacity: 0.05,
                         dashArray: '5, 5'
                     });
                     
+                    polygon._chimeraZoneId = zone.id;
+                    polygon._chimeraBorderColor = borderColor;
+                    
                     polygon.bindPopup(`
                         <div style="font-family: sans-serif;">
-                            <strong style="color: ${color};">${zone.name}</strong><br>
-                            <span style="color: #6b7280; font-size: 12px;">Zone ID: ${zone.id}</span>
+                            <strong style="color: ${borderColor};">${zone.name}</strong><br>
+                            <span style="color: #6b7280; font-size: 12px;">Zone ID: ${zone.id}</span><br>
+                            <span style="color: #6b7280; font-size: 12px;" class="zone-cpue-popup" data-zone="${zone.id}">Weekly √CPUE: calculating...</span>
                         </div>
                     `);
                     
-                    // Add label at centroid
+                    zonePolygons.push(polygon);
+                    zoneLayerGroup.addLayer(polygon);
+                    
+                    // Labels in separate layer (hidden by default)
                     const centroid = polygon.getBounds().getCenter();
                     const label = L.marker(centroid, {
                         icon: L.divIcon({
                             className: 'zone-label',
                             html: `<div style="
-                                background: ${color};
+                                background: ${borderColor};
                                 color: white;
                                 padding: 2px 6px;
                                 border-radius: 4px;
@@ -472,9 +520,7 @@
                             iconSize: null
                         })
                     });
-                    
-                    zoneLayerGroup.addLayer(polygon);
-                    zoneLayerGroup.addLayer(label);
+                    labelLayerGroup.addLayer(label);
                 });
                 
                 return zones;
@@ -486,18 +532,77 @@
         }
         
         // ==========================================
+        // COLOR ZONES BY WEEKLY AVG √CPUE
+        // ==========================================
+        function colorZonesByCpue(collections) {
+            const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+            
+            // Build zone → cpue values map
+            const zoneCpueMap = {};
+            
+            collections.forEach(c => {
+                if (!c.zone || !c.timestamp) return;
+                const ts = new Date(c.timestamp).getTime();
+                if (ts < oneWeekAgo) return;
+                
+                const sqrtCpue = calculateSqrtCpue(c.weight || 0, c.distance || 0, c.duration || 0);
+                if (sqrtCpue <= 0) return;
+                
+                if (!zoneCpueMap[c.zone]) zoneCpueMap[c.zone] = [];
+                zoneCpueMap[c.zone].push(sqrtCpue);
+            });
+            
+            // Apply colors to zone polygons
+            zonePolygons.forEach(polygon => {
+                const zoneId = polygon._chimeraZoneId;
+                const values = zoneCpueMap[zoneId];
+                
+                if (values && values.length > 0) {
+                    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+                    const color = getGradientColor(avg);
+                    polygon.setStyle({
+                        fillColor: color,
+                        fillOpacity: 0.3
+                    });
+                    
+                    // Update popup if it exists
+                    const popup = polygon.getPopup();
+                    if (popup) {
+                        const content = popup.getContent();
+                        const updated = content.replace(
+                            /Weekly √CPUE: calculating\.\.\./,
+                            `Weekly avg √CPUE: ${avg.toFixed(2)} (${values.length} session${values.length > 1 ? 's' : ''})`
+                        );
+                        popup.setContent(updated);
+                    }
+                } else {
+                    polygon.setStyle({
+                        fillColor: '#999',
+                        fillOpacity: 0.05
+                    });
+                    
+                    const popup = polygon.getPopup();
+                    if (popup) {
+                        const content = popup.getContent();
+                        const updated = content.replace(
+                            /Weekly √CPUE: calculating\.\.\./,
+                            'Weekly avg √CPUE: No data'
+                        );
+                        popup.setContent(updated);
+                    }
+                }
+            });
+        }
+        
+        // ==========================================
         // LOAD AND DISPLAY DATA
         // ==========================================
         async function loadMapData() {
             try {
-                // Load zones first
                 await loadZones();
                 
-                // Then load session data
                 const response = await fetch(CONFIG.appsScriptUrl + '?action=map_data');
                 const result = await response.json();
-                
-                console.log('API Response:', result);
                 
                 if (result.status !== 'success') {
                     throw new Error('Failed to load data');
@@ -508,28 +613,17 @@
                 let totalDistance = 0;
                 const bounds = [];
                 
-                console.log('Map data loaded:', {
-                    scouts: data.scouts.length,
-                    collections: data.collections.length,
-                    sampleScout: data.scouts[0]
-                });
-                
-                // Add scout markers with gradient coloring
-                let scoutsRendered = 0;
-               const now = Date.now();
+                const now = Date.now();
                 const HOUR_24 = 24 * 60 * 60 * 1000;
                 
+                // Add scout markers (72h window, fading opacity)
+                let scoutsRendered = 0;
                 data.scouts.forEach(scout => {
-                    if (!scout.lat || !scout.lon) {
-                        console.log('Scout missing coordinates:', scout);
-                        return;
-                    }
+                    if (!scout.lat || !scout.lon) return;
                     
-                    // Only show scouts from last 72 hours
                     const ageMs = now - new Date(scout.timestamp).getTime();
                     if (ageMs > HOUR_24 * 3) return;
                     
-                    // Fade: 0-24h = 100%, 24-48h = 75%, 48-72h = 50%
                     const ageDays = Math.floor(ageMs / HOUR_24);
                     const opacity = 0.5 * (1 - (ageDays * 0.25));
                     
@@ -545,78 +639,43 @@
                         fillOpacity: opacity
                     }).addTo(map);
                     
-                    const popupContent = `
+                    const ageLabel = ageDays === 0 ? 'Today' : ageDays === 1 ? 'Yesterday' : `${ageDays}d ago`;
+                    
+                    marker.bindPopup(`
                         <div style="font-family: sans-serif;">
-                            <strong style="color: ${color};">Scout Session</strong><br>
+                            <strong style="color: ${color};">Scout Session</strong> <span style="color:#9ca3af; font-size:11px;">(${ageLabel})</span><br>
                             <strong>Rating:</strong> ${scout.rating}/10<br>
                             <strong>Volunteer:</strong> ${scout.volunteer}<br>
                             <strong>Organization:</strong> ${scout.organization}<br>
                             <strong>Date:</strong> ${new Date(scout.timestamp).toLocaleDateString()}<br>
                             ${scout.notes ? `<strong>Notes:</strong> ${scout.notes}` : ''}
                         </div>
-                    `;
+                    `);
                     
-                    marker.bindPopup(popupContent);
                     bounds.push([scout.lat, scout.lon]);
                 });
                 
-                console.log('Scouts rendered:', scoutsRendered, 'Bounds points:', bounds.length);
-                
-                // Add collection paths with gradient coloring based on √CPUE
+                // Tally collection stats (no paths drawn — zones handle visualization)
                 data.collections.forEach(collection => {
                     totalWeight += (collection.weight || 0);
                     totalDistance += (collection.distance || 0);
-                    
-                    if (!data.gpsPaths || !data.gpsPaths[collection.sessionId]) return;
-                    
-                    const path = data.gpsPaths[collection.sessionId];
-                    if (!path || path.length === 0) return;
-                    
-                    const coordinates = path.map(p => [p.lat, p.lon]);
-                    
-                    const sqrtCpue = calculateSqrtCpue(collection.weight, collection.distance, collection.duration);
-                    const color = getGradientColor(sqrtCpue);
-                    
-                    const polyline = L.polyline(coordinates, {
-                        color: color,
-                        weight: 4,
-                        opacity: 0.6
-                    }).addTo(map);
-                    
-                    const popupContent = `
-                        <div style="font-family: sans-serif;">
-                            <strong style="color: ${color};">Collection Session</strong><br>
-                            <strong>Weight:</strong> ${collection.weight.toFixed(1)} lbs<br>
-                            <strong>Distance:</strong> ${collection.distance.toFixed(2)} mi<br>
-                            <strong>Duration:</strong> ${Math.floor(collection.duration / 60)} min<br>
-                            <strong>√CPUE:</strong> ${sqrtCpue.toFixed(2)}<br>
-                            <strong>Volunteer:</strong> ${collection.volunteer}<br>
-                            <strong>Organization:</strong> ${collection.organization}<br>
-                            <strong>Date:</strong> ${new Date(collection.timestamp).toLocaleDateString()}
-                        </div>
-                    `;
-                    
-                    polyline.bindPopup(popupContent);
-                    coordinates.forEach(coord => bounds.push(coord));
                 });
                 
+                // Color zones by weekly √CPUE
+                colorZonesByCpue(data.collections);
+                
                 // Update stats
-                document.getElementById('scoutCount').textContent = data.scouts.length;
+                document.getElementById('scoutCount').textContent = scoutsRendered;
                 document.getElementById('collectionCount').textContent = data.collections.length;
                 document.getElementById('totalWeight').textContent = totalWeight.toFixed(1) + ' lbs';
                 document.getElementById('totalDistance').textContent = totalDistance.toFixed(2) + ' mi';
                 
-                // Fit map to bounds or use default center
-                console.log('Final bounds length:', bounds.length);
                 if (bounds.length > 0) {
-                    console.log('Fitting to bounds:', bounds[0], '...', bounds[bounds.length-1]);
                     map.fitBounds(bounds, { padding: [50, 50] });
                 } else {
-                    console.log('No bounds, using default view');
                     map.setView([32.356, -86.306], 13);
                 }
                 
-                // Hide loading, show stats
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('statsPanel').style.display = 'block';
                 
@@ -630,13 +689,21 @@
         }
         
         // ==========================================
-        // ZONE TOGGLE
+        // TOGGLES
         // ==========================================
         document.getElementById('toggleZones').addEventListener('change', (e) => {
             if (e.target.checked) {
                 map.addLayer(zoneLayerGroup);
             } else {
                 map.removeLayer(zoneLayerGroup);
+            }
+        });
+        
+        document.getElementById('toggleLabels').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                map.addLayer(labelLayerGroup);
+            } else {
+                map.removeLayer(labelLayerGroup);
             }
         });
         
