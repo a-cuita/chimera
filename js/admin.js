@@ -807,17 +807,32 @@ async function loadAdminContentEditors() {
             adminContentCache = result.content || {};
             populateContentEditor('getting_started', 'adminContentGettingStarted');
             populateContentEditor('safety_legal', 'adminContentSafetyLegal');
-            populateContentEditor('wiki_cpue', 'adminContentWikiCpue');
-            populateContentEditor('wiki_zones', 'adminContentWikiZones');
-            populateContentEditor('wiki_validation', 'adminContentWikiValidation');
-            populateContentEditor('wiki_safety', 'adminContentWikiSafety');
-            populateContentEditor('wiki_privacy', 'adminContentWikiPrivacy');
+
+            // Build dynamic wiki editors
+            var container = document.getElementById('dynamicWikiEditors');
+            if (container) {
+                container.innerHTML = '';
+                Object.keys(adminContentCache).forEach(function(key) {
+                    if (!key.startsWith('wiki_')) return;
+                    var topic = key.replace('wiki_', '');
+                    var capTopic = topic.charAt(0).toUpperCase() + topic.slice(1);
+                    var data = adminContentCache[key];
+
+                    var div = document.createElement('div');
+                    div.style.cssText = 'margin-bottom:12px; padding:10px; background:#f9fafb; border-radius:8px;';
+                    div.innerHTML =
+                        '<input id="adminTitleWiki' + capTopic + '" value="' + escapeHtml(data.title || '') + '" placeholder="Title" style="width:100%; padding:4px 8px; border:1px solid #d1d5db; border-radius:4px; font-size:12px; margin-bottom:4px;">' +
+                        '<input id="adminSubtitleWiki' + capTopic + '" value="' + escapeHtml(data.subtitle || '') + '" placeholder="Subtitle" style="width:100%; padding:4px 8px; border:1px solid #d1d5db; border-radius:4px; font-size:12px; margin-bottom:4px;">' +
+                        '<textarea id="adminContentWiki' + capTopic + '" rows="5" style="width:100%; border:1px solid #d1d5db; border-radius:6px; padding:8px; font-size:12px; font-family:monospace; resize:vertical;" placeholder="Topic content (HTML)">' + escapeHtml(data.html || '') + '</textarea>' +
+                        '<button onclick="saveWikiContent(\'' + key + '\')" style="margin-top:4px; padding:4px 12px; background:#2D5F3F; color:white; border:none; border-radius:6px; font-size:12px; cursor:pointer;">Save</button>';
+                    container.appendChild(div);
+                });
+            }
         }
     } catch (error) {
         console.error('Content load error:', error);
     }
 }
-
 function populateContentEditor(key, textareaId) {
     var el = document.getElementById(textareaId);
     if (el && adminContentCache[key]) {
@@ -881,6 +896,46 @@ async function saveWikiContent(key) {
         var result = await response.json();
         trackApiCall('updateContent', result);
         showToast(result.status === 'success' ? 'Saved!' : 'Failed', result.status === 'success' ? 'success' : 'error');
+    } catch (error) {
+        showToast('Connection error', 'error');
+    }
+}
+async function addNewWikiTopic() {
+    var topicId = prompt('Topic ID (lowercase, no spaces, e.g. "recycling"):');
+    if (!topicId) return;
+    topicId = topicId.trim().toLowerCase().replace(/\s+/g, '_');
+
+    var title = prompt('Display title (e.g. "♻️ Recycling Guide"):');
+    if (!title) return;
+
+    var subtitle = prompt('Subtitle (e.g. "How to recycle in Montgomery"):') || '';
+
+    var key = 'wiki_' + topicId;
+    var token = sessionStorage.getItem('rh_token');
+
+    try {
+        var response = await fetch(CONFIG.appsScriptUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({
+                action: 'updateContent',
+                token: token,
+                contentKey: key,
+                contentHtml: '',
+                contentTitle: title,
+                contentSubtitle: subtitle,
+                updatedBy: currentUser?.handle || 'admin'
+            })
+        });
+        var result = await response.json();
+        trackApiCall('updateContent', result);
+
+        if (result.status === 'success') {
+            showToast('Topic created! Reload admin to see editor.', 'success');
+            loadAdminContentEditors();
+        } else {
+            showToast(result.message || 'Failed', 'error');
+        }
     } catch (error) {
         showToast('Connection error', 'error');
     }
