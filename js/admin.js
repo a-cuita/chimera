@@ -653,9 +653,9 @@ async function runAdminEvaluateRules() {
 // ==================== USER OVERRIDES MANAGEMENT ====================
 
 const AVAILABLE_OVERRIDES = [
-  { id: 'sunlock_override', label: 'Sunlock Override', desc: 'Bypass sunrise/sunset restrictions' },
-  { id: 'gps_override', label: 'GPS Override', desc: 'Bypass GPS accuracy requirements' },
-  { id: 'distance_override', label: 'Distance Override', desc: 'Bypass distance validation' }
+  { id: 'sun_override', label: 'Sun Override', desc: 'Bypass sunrise/sunset restrictions' },
+  { id: 'site_pause_bypass', label: 'Site Pause Bypass', desc: 'Access site during maintenance pause' },
+  { id: 'event_coordinator', label: 'Event Coordinator', desc: 'Can propose and manage events' }
 ];
 
 let adminUserList = [];
