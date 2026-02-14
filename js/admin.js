@@ -819,9 +819,17 @@ async function loadAdminContentEditors() {
 }
 
 function populateContentEditor(key, textareaId) {
-    const el = document.getElementById(textareaId);
+    var el = document.getElementById(textareaId);
     if (el && adminContentCache[key]) {
         el.value = adminContentCache[key].html || '';
+    }
+    if (key.startsWith('wiki_')) {
+        var topic = key.replace('wiki_', '');
+        var capTopic = topic.charAt(0).toUpperCase() + topic.slice(1);
+        var titleEl = document.getElementById('adminTitleWiki' + capTopic);
+        var subEl = document.getElementById('adminSubtitleWiki' + capTopic);
+        if (titleEl && adminContentCache[key]) titleEl.value = adminContentCache[key].title || '';
+        if (subEl && adminContentCache[key]) subEl.value = adminContentCache[key].subtitle || '';
     }
 }
 
@@ -848,7 +856,35 @@ async function saveAdminContent(key, textareaId) {
         showToast('Connection error', 'error');
     }
 }
+async function saveWikiContent(key) {
+    var topic = key.replace('wiki_', '');
+    var capTopic = topic.charAt(0).toUpperCase() + topic.slice(1);
+    var title = document.getElementById('adminTitleWiki' + capTopic).value;
+    var subtitle = document.getElementById('adminSubtitleWiki' + capTopic).value;
+    var html = document.getElementById('adminContentWiki' + capTopic).value;
+    var token = sessionStorage.getItem('rh_token');
 
+    try {
+        var response = await fetch(CONFIG.appsScriptUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({
+                action: 'updateContent',
+                token: token,
+                contentKey: key,
+                contentHtml: html,
+                contentTitle: title,
+                contentSubtitle: subtitle,
+                updatedBy: currentUser?.handle || 'admin'
+            })
+        });
+        var result = await response.json();
+        trackApiCall('updateContent', result);
+        showToast(result.status === 'success' ? 'Saved!' : 'Failed', result.status === 'success' ? 'success' : 'error');
+    } catch (error) {
+        showToast('Connection error', 'error');
+    }
+}
 // Load content into modals on app start
 async function loadDynamicContent() {
     try {
