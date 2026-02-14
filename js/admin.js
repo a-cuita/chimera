@@ -179,6 +179,7 @@ function showAdminScreen() {
     loadAdminSiteStatus();
     loadAdminBanners();
     loadAdminPendingEvents();
+    loadAdminUserOverrides();
 }
 
 function toggleAdminSection(headerEl) {
