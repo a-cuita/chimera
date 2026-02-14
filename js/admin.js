@@ -908,3 +908,301 @@ function showWikiTopic(topic) {
         _originalShowWikiTopic(topic);
     }
 }
+// ==================== ZONE MANAGER (Leaflet Draw) ====================
+
+let zoneMap = null;
+let zoneDrawControl = null;
+let zoneLayersGroup = null;
+let zoneEditingId = null;
+let zoneDrawnLayer = null;
+let adminZonesList = [];
+
+function initZoneManager() {
+    if (zoneMap) return; // already initialized
+
+    // Load Leaflet Draw CSS
+    if (!document.querySelector('link[href*="leaflet.draw"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css';
+        document.head.appendChild(link);
+    }
+
+    // Load Leaflet Draw JS
+    if (!window.L || !window.L.Draw) {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js';
+        script.onload = function() { setupZoneMap(); };
+        document.body.appendChild(script);
+    } else {
+        setupZoneMap();
+    }
+}
+
+function setupZoneMap() {
+    const container = document.getElementById('zoneMapContainer');
+    if (!container) return;
+
+    // Set explicit height
+    container.style.height = '350px';
+    container.style.borderRadius = '8px';
+    container.style.overflow = 'hidden';
+
+    zoneMap = L.map('zoneMapContainer').setView([32.356, -86.306], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OSM',
+        maxZoom: 19
+    }).addTo(zoneMap);
+
+    zoneLayersGroup = new L.FeatureGroup();
+    zoneMap.addLayer(zoneLayersGroup);
+
+    zoneDrawControl = new L.Control.Draw({
+        draw: {
+            polygon: {
+                allowIntersection: false,
+                shapeOptions: { color: '#2D5F3F', weight: 2 }
+            },
+            polyline: false,
+            rectangle: false,
+            circle: false,
+            circlemarker: false,
+            marker: false
+        },
+        edit: {
+            featureGroup: zoneLayersGroup,
+            remove: true
+        }
+    });
+    zoneMap.addControl(zoneDrawControl);
+
+    // Handle new polygon drawn
+    zoneMap.on(L.Draw.Event.CREATED, function(e) {
+        if (zoneDrawnLayer) {
+            zoneLayersGroup.removeLayer(zoneDrawnLayer);
+        }
+        zoneDrawnLayer = e.layer;
+        zoneLayersGroup.addLayer(zoneDrawnLayer);
+
+        // Extract coordinates [lon, lat] for backend
+        const coords = zoneDrawnLayer.getLatLngs()[0].map(function(ll) {
+            return [parseFloat(ll.lng.toFixed(4)), parseFloat(ll.lat.toFixed(4))];
+        });
+
+        document.getElementById('zonePolygonData').value = JSON.stringify(coords);
+        document.getElementById('zoneEditorPanel').style.display = 'block';
+        document.getElementById('zoneEditorTitle').textContent = 'New Zone';
+        document.getElementById('zoneNameInput').value = '';
+        document.getElementById('zoneActiveToggle').checked = true;
+        document.getElementById('deleteZoneBtn').style.display = 'none';
+        zoneEditingId = null;
+    });
+
+    // Handle polygon edited
+    zoneMap.on(L.Draw.Event.EDITED, function(e) {
+        e.layers.eachLayer(function(layer) {
+            if (layer._chimeraZoneId) {
+                const coords = layer.getLatLngs()[0].map(function(ll) {
+                    return [parseFloat(ll.lng.toFixed(4)), parseFloat(ll.lat.toFixed(4))];
+                });
+                updateZonePolygon(layer._chimeraZoneId, coords);
+            }
+        });
+    });
+
+    // Handle polygon deleted
+    zoneMap.on(L.Draw.Event.DELETED, function(e) {
+        e.layers.eachLayer(function(layer) {
+            if (layer._chimeraZoneId) {
+                deleteZone(layer._chimeraZoneId);
+            }
+        });
+    });
+
+    // Fix map rendering in hidden containers
+    setTimeout(function() { zoneMap.invalidateSize(); }, 300);
+
+    loadZonesOnMap();
+}
+
+async function loadZonesOnMap() {
+    const token = sessionStorage.getItem('rh_token');
+    try {
+        const response = await fetch(CONFIG.appsScriptUrl + '?action=get_zones&token=' + token);
+        const result = await response.json();
+
+        if (result.status !== 'success') return;
+
+        adminZonesList = result.zones || [];
+        zoneLayersGroup.clearLayers();
+
+        const listEl = document.getElementById('zoneListItems');
+        if (adminZonesList.length === 0) {
+            listEl.innerHTML = '<div style="color:#9ca3af; text-align:center; font-size:13px; padding:10px;">No zones. Draw one on the map.</div>';
+            return;
+        }
+
+        listEl.innerHTML = adminZonesList.map(function(zone) {
+            return '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px; background:#f9fafb; border-radius:6px; margin-bottom:4px; cursor:pointer;" onclick="focusZone(\'' + zone.id + '\')">' +
+                '<div><span style="font-size:13px; font-weight:600; color:#374151;">' + escapeHtml(zone.name) + '</span>' +
+                '<span style="font-size:10px; color:#9ca3af; margin-left:6px;">' + (zone.polygon ? zone.polygon.length + ' pts' : '?') + '</span></div>' +
+                '<button onclick="event.stopPropagation(); editZone(\'' + zone.id + '\')" style="padding:2px 8px; background:#2D5F3F; color:white; border:none; border-radius:4px; font-size:11px; cursor:pointer;">Edit</button>' +
+                '</div>';
+        }).join('');
+
+        // Add polygons to map
+        adminZonesList.forEach(function(zone) {
+            if (!zone.polygon || zone.polygon.length < 3) return;
+            var coords = zone.polygon.map(function(p) { return [p[1], p[0]]; });
+            var polygon = L.polygon(coords, {
+                color: '#2D5F3F',
+                weight: 2,
+                fillColor: '#2D5F3F',
+                fillOpacity: 0.15
+            });
+            polygon._chimeraZoneId = zone.id;
+            polygon.bindTooltip(zone.name, { permanent: false });
+            zoneLayersGroup.addLayer(polygon);
+        });
+
+    } catch (error) {
+        console.error('Zone load error:', error);
+    }
+}
+
+function focusZone(zoneId) {
+    var zone = adminZonesList.find(function(z) { return z.id === zoneId; });
+    if (!zone || !zone.polygon) return;
+    var coords = zone.polygon.map(function(p) { return [p[1], p[0]]; });
+    zoneMap.fitBounds(coords, { padding: [30, 30] });
+}
+
+function editZone(zoneId) {
+    var zone = adminZonesList.find(function(z) { return z.id === zoneId; });
+    if (!zone) return;
+
+    zoneEditingId = zoneId;
+    document.getElementById('zoneEditorPanel').style.display = 'block';
+    document.getElementById('zoneEditorTitle').textContent = 'Edit: ' + zone.name;
+    document.getElementById('zoneNameInput').value = zone.name;
+    document.getElementById('zoneActiveToggle').checked = zone.active !== false;
+    document.getElementById('zonePolygonData').value = JSON.stringify(zone.polygon);
+    document.getElementById('deleteZoneBtn').style.display = 'inline-block';
+
+    focusZone(zoneId);
+}
+
+function cancelZoneEdit() {
+    document.getElementById('zoneEditorPanel').style.display = 'none';
+    zoneEditingId = null;
+    if (zoneDrawnLayer) {
+        zoneLayersGroup.removeLayer(zoneDrawnLayer);
+        zoneDrawnLayer = null;
+    }
+}
+
+async function saveZone() {
+    var name = document.getElementById('zoneNameInput').value.trim();
+    if (!name) { showToast('Zone name required', 'error'); return; }
+
+    var polygonStr = document.getElementById('zonePolygonData').value;
+    var polygon;
+    try { polygon = JSON.parse(polygonStr); } catch(e) { showToast('Invalid polygon data', 'error'); return; }
+
+    var active = document.getElementById('zoneActiveToggle').checked;
+    var token = sessionStorage.getItem('rh_token');
+
+    var action, body;
+    if (zoneEditingId) {
+        action = 'updateZone';
+        body = { action: action, token: token, zoneId: zoneEditingId, name: name, polygon: polygon, active: active };
+    } else {
+        action = 'createZone';
+        body = { action: action, token: token, name: name, polygon: polygon };
+    }
+
+    try {
+        var response = await fetch(CONFIG.appsScriptUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify(body)
+        });
+        var result = await response.json();
+        trackApiCall(action, result);
+
+        if (result.status === 'success') {
+            showToast(zoneEditingId ? 'Zone updated' : 'Zone created', 'success');
+            cancelZoneEdit();
+            loadZonesOnMap();
+        } else {
+            showToast(result.message || 'Failed', 'error');
+        }
+    } catch (error) {
+        showToast('Connection error', 'error');
+    }
+}
+
+async function updateZonePolygon(zoneId, polygon) {
+    var token = sessionStorage.getItem('rh_token');
+    try {
+        await fetch(CONFIG.appsScriptUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ action: 'updateZone', token: token, zoneId: zoneId, polygon: polygon })
+        });
+        showToast('Zone boundary updated', 'success');
+    } catch (error) {
+        showToast('Failed to update zone', 'error');
+    }
+}
+
+async function deleteZone(zoneId) {
+    if (zoneId === undefined) zoneId = zoneEditingId;
+    if (!zoneId) return;
+    if (!confirm('Delete this zone? This cannot be undone.')) return;
+
+    var token = sessionStorage.getItem('rh_token');
+    try {
+        var response = await fetch(CONFIG.appsScriptUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ action: 'deleteZone', token: token, zoneId: zoneId })
+        });
+        var result = await response.json();
+        trackApiCall('deleteZone', result);
+
+        if (result.status === 'success') {
+            showToast('Zone deleted', 'success');
+            cancelZoneEdit();
+            loadZonesOnMap();
+        } else {
+            showToast(result.message || 'Failed', 'error');
+        }
+    } catch (error) {
+        showToast('Connection error', 'error');
+    }
+}
+
+async function recalculateAllZones() {
+    var btn = document.getElementById('recalcZonesBtn');
+    btn.disabled = true;
+    btn.textContent = 'Recalculating...';
+
+    var token = sessionStorage.getItem('rh_token');
+    try {
+        var response = await fetch(CONFIG.appsScriptUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ action: 'seedZones', token: token })
+        });
+        var result = await response.json();
+        trackApiCall('seedZones', result);
+        showToast(result.status === 'success' ? 'Zones recalculated' : 'Failed', result.status === 'success' ? 'success' : 'error');
+    } catch (error) {
+        showToast('Connection error', 'error');
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Recalculate All Session Zones';
+}
