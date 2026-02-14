@@ -973,7 +973,7 @@ async function loadDynamicContent() {
         // Wiki topics — store for showWikiTopic()
         window._wikiContent = {};
         window._wikiMeta = {};
-        var wikiKeys = ['wiki_cpue', 'wiki_zones', 'wiki_validation', 'wiki_safety', 'wiki_privacy'];
+        var wikiKeys = Object.keys(content).filter(function(k) { return k.startsWith('wiki_'); });
         wikiKeys.forEach(function(key) {
             if (content[key]) {
                 var topic = key.replace('wiki_', '');
