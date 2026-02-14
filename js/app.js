@@ -90,7 +90,6 @@ function showMainScreen() {
     checkSunSchedule();
     checkCoordinatorStatus();
     checkNotifications();
-    loadAdminContentEditors();
     
 
     // Hunt Integration: Check query params and redirect if needed
@@ -129,6 +128,7 @@ window.addEventListener('load', async function () {
     // Pre-login feed + public events
     loadActivityFeed(false);
     loadPublicEvents();
+    loadDynamicContent();
     initPublicEventsCollapsible();
 
     // Check site pause (before login)
