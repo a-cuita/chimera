@@ -112,6 +112,22 @@ const wikiTopics = {
 };
 
 function showWikiTopic(topicId) {
+    // Use dynamic content if available
+    if (window._wikiContent && window._wikiContent[topicId]) {
+        var titles = {
+            cpue: '📊 What is √CPUE?',
+            zones: '🗺️ Montgomery Zones',
+            validation: '✓ Scout Validation',
+            safety: '⚠️ Safety Guidelines',
+            privacy: '🔒 Privacy & Data'
+        };
+        document.getElementById('wikiTopicTitle').textContent = titles[topicId] || topicId;
+        document.getElementById('wikiTopicContent').innerHTML = window._wikiContent[topicId];
+        document.getElementById('wikiTopicModal').classList.add('show');
+        return;
+    }
+
+    // Fall back to hardcoded
     const topic = wikiTopics[topicId];
     if (!topic) return;
     document.getElementById('wikiTopicTitle').textContent = topic.title;
