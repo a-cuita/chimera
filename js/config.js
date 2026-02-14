@@ -7,7 +7,7 @@ const CONFIG = {
     appsScriptUrl: 'https://script.google.com/macros/s/AKfycbxh-jfsyL6fQP_bjFqd6zRk1sFOYdd_C-A8Ojb5bM-ddax9F3rn9UN_nbuRZ5D34ucjzA/exec',
     gpsInterval: 10000,
     organizations: ['Baled It!', 'Help A Brother Out Foundation', 'West Montgomery Action Committee'],
-    urls: { fieldTestMap: 'feb_3_fieldtest.html', demoGame: 'chimera-hunt.html' }
+    urls: { fieldTestMap: 'mapping.html', demoGame: 'chimera-hunt.html' }
 };
 
 const PASSWORD_REGEX = /^.{8,}$/;  // Minimum 8 characters
