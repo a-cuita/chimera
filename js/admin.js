@@ -648,3 +648,136 @@ async function runAdminEvaluateRules() {
         showToast('Connection error', 'error');
     }
 }
+
+// ==================== USER OVERRIDES MANAGEMENT ====================
+
+const AVAILABLE_OVERRIDES = [
+  { id: 'sunlock_override', label: 'Sunlock Override', desc: 'Bypass sunrise/sunset restrictions' },
+  { id: 'gps_override', label: 'GPS Override', desc: 'Bypass GPS accuracy requirements' },
+  { id: 'distance_override', label: 'Distance Override', desc: 'Bypass distance validation' }
+];
+
+let adminUserList = [];
+
+async function loadAdminUserOverrides() {
+    const token = sessionStorage.getItem('rh_token');
+    const container = document.getElementById('adminOverridesList');
+    container.innerHTML = '<div style="text-align:center; color:#9ca3af; font-size:13px; padding:10px;">Loading...</div>';
+
+    try {
+        const response = await fetch(CONFIG.appsScriptUrl + '?action=get_user_list&token=' + token);
+        const result = await response.json();
+        trackApiCall('get_user_list', result);
+
+        if (result.status !== 'success') {
+            container.innerHTML = '<div style="color:#dc2626; text-align:center; padding:10px;">Failed to load</div>';
+            return;
+        }
+
+        adminUserList = result.users || [];
+
+        if (adminUserList.length === 0) {
+            container.innerHTML = '<div style="color:#9ca3af; text-align:center; font-size:13px; padding:10px;">No users</div>';
+            return;
+        }
+
+        container.innerHTML = adminUserList.map(user => {
+            const overrideTags = user.overrides.length > 0
+                ? user.overrides.map(o => {
+                    const meta = AVAILABLE_OVERRIDES.find(a => a.id === o);
+                    const label = meta ? meta.label : o;
+                    return `<span style="display:inline-flex; align-items:center; gap:4px; background:#dbeafe; color:#1e40af; padding:2px 8px; border-radius:12px; font-size:11px; margin:2px;">
+                        ${escapeHtml(label)}
+                        <span onclick="removeUserOverride('${user.userId}', '${o}')" style="cursor:pointer; color:#dc2626; font-weight:bold; margin-left:2px;">&times;</span>
+                    </span>`;
+                }).join('')
+                : '<span style="font-size:11px; color:#9ca3af;">None</span>';
+
+            const roleColor = user.role === 'admin' ? '#7c3aed' : user.role === 'coordinator' ? '#2563eb' : '#6b7280';
+
+            return `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:#f9fafb; border-radius:8px; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+                <div style="min-width:0; flex:1;">
+                    <div style="font-size:13px; font-weight:600; color:#374151;">
+                        ${escapeHtml(user.handle)}
+                        <span style="font-size:10px; color:${roleColor}; font-weight:400; margin-left:4px;">${user.role}</span>
+                    </div>
+                    <div style="margin-top:4px;">${overrideTags}</div>
+                </div>
+                <button onclick="showAddOverrideMenu('${user.userId}')" style="padding:4px 10px; background:#2D5F3F; color:white; border:none; border-radius:6px; font-size:11px; cursor:pointer; white-space:nowrap;">+ Add</button>
+            </div>`;
+        }).join('');
+
+    } catch (error) {
+        console.error('User overrides error:', error);
+        container.innerHTML = '<div style="color:#dc2626; text-align:center; padding:10px;">Error loading</div>';
+    }
+}
+
+function showAddOverrideMenu(userId) {
+    const user = adminUserList.find(u => u.userId === userId);
+    if (!user) return;
+
+    const available = AVAILABLE_OVERRIDES.filter(o => !user.overrides.includes(o.id));
+
+    if (available.length === 0) {
+        showToast('All overrides already assigned', 'warning');
+        return;
+    }
+
+    const options = available.map(o => `${o.label} (${o.id})`).join('\n');
+    const choice = prompt('Add override for ' + user.handle + ':\n\nAvailable:\n' + options + '\n\nType override ID:');
+
+    if (!choice) return;
+    const trimmed = choice.trim();
+    const valid = AVAILABLE_OVERRIDES.find(o => o.id === trimmed);
+
+    if (!valid) {
+        showToast('Invalid override ID', 'error');
+        return;
+    }
+
+    if (user.overrides.includes(trimmed)) {
+        showToast('Already assigned', 'warning');
+        return;
+    }
+
+    const updated = [...user.overrides, trimmed];
+    saveUserOverrides(userId, updated);
+}
+
+async function removeUserOverride(userId, overrideId) {
+    const user = adminUserList.find(u => u.userId === userId);
+    if (!user) return;
+
+    if (!confirm('Remove "' + overrideId + '" from ' + user.handle + '?')) return;
+
+    const updated = user.overrides.filter(o => o !== overrideId);
+    saveUserOverrides(userId, updated);
+}
+
+async function saveUserOverrides(userId, overrides) {
+    const token = sessionStorage.getItem('rh_token');
+    try {
+        const response = await fetch(CONFIG.appsScriptUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({
+                action: 'setUserOverrides',
+                token: token,
+                userId: userId,
+                overrides: overrides
+            })
+        });
+        const result = await response.json();
+        trackApiCall('setUserOverrides', result);
+
+        if (result.status === 'success') {
+            showToast('Overrides updated', 'success');
+            loadAdminUserOverrides();
+        } else {
+            showToast(result.message || 'Failed', 'error');
+        }
+    } catch (error) {
+        showToast('Connection error', 'error');
+    }
+}
