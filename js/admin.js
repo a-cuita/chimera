@@ -180,6 +180,7 @@ function showAdminScreen() {
     loadAdminBanners();
     loadAdminPendingEvents();
     loadAdminUserOverrides();
+    loadAdminContentEditors();
 }
 
 function toggleAdminSection(headerEl) {
@@ -780,5 +781,130 @@ async function saveUserOverrides(userId, overrides) {
         }
     } catch (error) {
         showToast('Connection error', 'error');
+    }
+}
+// ==================== CONTENT EDITORS ====================
+
+let adminContentCache = {};
+
+async function loadAdminContentEditors() {
+    const token = sessionStorage.getItem('rh_token');
+    try {
+        const response = await fetch(CONFIG.appsScriptUrl + '?action=get_content&token=' + token);
+        const result = await response.json();
+        trackApiCall('get_content', result);
+
+        if (result.status === 'success') {
+            adminContentCache = result.content || {};
+            populateContentEditor('getting_started', 'adminContentGettingStarted');
+            populateContentEditor('safety_legal', 'adminContentSafetyLegal');
+            populateContentEditor('wiki_cpue', 'adminContentWikiCpue');
+            populateContentEditor('wiki_zones', 'adminContentWikiZones');
+            populateContentEditor('wiki_validation', 'adminContentWikiValidation');
+            populateContentEditor('wiki_safety', 'adminContentWikiSafety');
+            populateContentEditor('wiki_privacy', 'adminContentWikiPrivacy');
+        }
+    } catch (error) {
+        console.error('Content load error:', error);
+    }
+}
+
+function populateContentEditor(key, textareaId) {
+    const el = document.getElementById(textareaId);
+    if (el && adminContentCache[key]) {
+        el.value = adminContentCache[key].html || '';
+    }
+}
+
+async function saveAdminContent(key, textareaId) {
+    const html = document.getElementById(textareaId).value;
+    const token = sessionStorage.getItem('rh_token');
+
+    try {
+        const response = await fetch(CONFIG.appsScriptUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({
+                action: 'updateContent',
+                token: token,
+                contentKey: key,
+                contentHtml: html,
+                updatedBy: currentUser?.handle || 'admin'
+            })
+        });
+        const result = await response.json();
+        trackApiCall('updateContent', result);
+        showToast(result.status === 'success' ? 'Saved!' : 'Failed', result.status === 'success' ? 'success' : 'error');
+    } catch (error) {
+        showToast('Connection error', 'error');
+    }
+}
+
+// Load content into modals on app start
+async function loadDynamicContent() {
+    try {
+        const response = await fetch(CONFIG.appsScriptUrl + '?action=get_content');
+        const result = await response.json();
+
+        if (result.status !== 'success') return;
+        const content = result.content || {};
+
+        // Getting Started
+        if (content.getting_started && content.getting_started.html) {
+            const gs = document.querySelector('#gettingStartedModal .modal-content');
+            if (gs) gs.innerHTML = content.getting_started.html;
+        }
+
+        // Safety/Legal — only replace the info part, keep checkbox
+        if (content.safety_legal && content.safety_legal.html) {
+            const sl = document.querySelector('#safetyLegalModal .modal-content');
+            if (sl) {
+                sl.innerHTML = content.safety_legal.html +
+                    '<div class="safety-checkbox"><input type="checkbox" id="safetyLegalAck"><label for="safetyLegalAck">I understand and agree</label></div>';
+                // Re-attach checkbox listener
+                const ack = document.getElementById('safetyLegalAck');
+                const acceptBtn = document.getElementById('acceptSafetyLegal');
+                if (ack && acceptBtn) {
+                    ack.addEventListener('change', function() { acceptBtn.disabled = !this.checked; });
+                }
+            }
+        }
+
+        // Wiki topics — store for showWikiTopic()
+        window._wikiContent = {};
+        const wikiKeys = ['wiki_cpue', 'wiki_zones', 'wiki_validation', 'wiki_safety', 'wiki_privacy'];
+        wikiKeys.forEach(function(key) {
+            if (content[key] && content[key].html) {
+                var topic = key.replace('wiki_', '');
+                window._wikiContent[topic] = content[key].html;
+            }
+        });
+    } catch (error) {
+        console.error('Dynamic content load error:', error);
+    }
+}
+
+// Override showWikiTopic to use dynamic content
+var _originalShowWikiTopic = typeof showWikiTopic === 'function' ? showWikiTopic : null;
+
+function showWikiTopic(topic) {
+    // Try dynamic content first
+    if (window._wikiContent && window._wikiContent[topic]) {
+        var titles = {
+            cpue: '📊 What is √CPUE?',
+            zones: '🗺️ Montgomery Zones',
+            validation: '✓ Scout Validation',
+            safety: '⚠️ Safety Guidelines',
+            privacy: '🔒 Privacy & Data'
+        };
+        document.getElementById('wikiTopicTitle').textContent = titles[topic] || topic;
+        document.getElementById('wikiTopicContent').innerHTML = window._wikiContent[topic];
+        document.getElementById('wikiTopicModal').classList.add('show');
+        return;
+    }
+
+    // Fall back to original if exists
+    if (_originalShowWikiTopic) {
+        _originalShowWikiTopic(topic);
     }
 }
