@@ -768,41 +768,7 @@
 
         <!-- Wiki Topics -->
         <div style="font-weight:700; font-size:13px; color:#1f2937; margin:12px 0 8px; border-top:1px solid #e5e7eb; padding-top:12px;">📚 Wiki Topics</div>
-
-        <div style="margin-bottom:12px; padding:10px; background:#f9fafb; border-radius:8px;">
-            <input id="adminTitleWikiCpue" placeholder="Title (e.g. 📊 What is √CPUE?)" style="width:100%; padding:4px 8px; border:1px solid #d1d5db; border-radius:4px; font-size:12px; margin-bottom:4px;">
-            <input id="adminSubtitleWikiCpue" placeholder="Subtitle" style="width:100%; padding:4px 8px; border:1px solid #d1d5db; border-radius:4px; font-size:12px; margin-bottom:4px;">
-            <textarea id="adminContentWikiCpue" rows="5" style="width:100%; border:1px solid #d1d5db; border-radius:6px; padding:8px; font-size:12px; font-family:monospace; resize:vertical;" placeholder="Topic content (HTML)"></textarea>
-            <button onclick="saveWikiContent('wiki_cpue')" style="margin-top:4px; padding:4px 12px; background:#2D5F3F; color:white; border:none; border-radius:6px; font-size:12px; cursor:pointer;">Save</button>
-        </div>
-
-        <div style="margin-bottom:12px; padding:10px; background:#f9fafb; border-radius:8px;">
-            <input id="adminTitleWikiZones" placeholder="Title (e.g. 🗺️ Montgomery Zones)" style="width:100%; padding:4px 8px; border:1px solid #d1d5db; border-radius:4px; font-size:12px; margin-bottom:4px;">
-            <input id="adminSubtitleWikiZones" placeholder="Subtitle" style="width:100%; padding:4px 8px; border:1px solid #d1d5db; border-radius:4px; font-size:12px; margin-bottom:4px;">
-            <textarea id="adminContentWikiZones" rows="5" style="width:100%; border:1px solid #d1d5db; border-radius:6px; padding:8px; font-size:12px; font-family:monospace; resize:vertical;" placeholder="Topic content (HTML)"></textarea>
-            <button onclick="saveWikiContent('wiki_zones')" style="margin-top:4px; padding:4px 12px; background:#2D5F3F; color:white; border:none; border-radius:6px; font-size:12px; cursor:pointer;">Save</button>
-        </div>
-
-        <div style="margin-bottom:12px; padding:10px; background:#f9fafb; border-radius:8px;">
-            <input id="adminTitleWikiValidation" placeholder="Title (e.g. ✓ Scout Validation)" style="width:100%; padding:4px 8px; border:1px solid #d1d5db; border-radius:4px; font-size:12px; margin-bottom:4px;">
-            <input id="adminSubtitleWikiValidation" placeholder="Subtitle" style="width:100%; padding:4px 8px; border:1px solid #d1d5db; border-radius:4px; font-size:12px; margin-bottom:4px;">
-            <textarea id="adminContentWikiValidation" rows="5" style="width:100%; border:1px solid #d1d5db; border-radius:6px; padding:8px; font-size:12px; font-family:monospace; resize:vertical;" placeholder="Topic content (HTML)"></textarea>
-            <button onclick="saveWikiContent('wiki_validation')" style="margin-top:4px; padding:4px 12px; background:#2D5F3F; color:white; border:none; border-radius:6px; font-size:12px; cursor:pointer;">Save</button>
-        </div>
-
-        <div style="margin-bottom:12px; padding:10px; background:#f9fafb; border-radius:8px;">
-            <input id="adminTitleWikiSafety" placeholder="Title (e.g. ⚠️ Safety Guidelines)" style="width:100%; padding:4px 8px; border:1px solid #d1d5db; border-radius:4px; font-size:12px; margin-bottom:4px;">
-            <input id="adminSubtitleWikiSafety" placeholder="Subtitle" style="width:100%; padding:4px 8px; border:1px solid #d1d5db; border-radius:4px; font-size:12px; margin-bottom:4px;">
-            <textarea id="adminContentWikiSafety" rows="5" style="width:100%; border:1px solid #d1d5db; border-radius:6px; padding:8px; font-size:12px; font-family:monospace; resize:vertical;" placeholder="Topic content (HTML)"></textarea>
-            <button onclick="saveWikiContent('wiki_safety')" style="margin-top:4px; padding:4px 12px; background:#2D5F3F; color:white; border:none; border-radius:6px; font-size:12px; cursor:pointer;">Save</button>
-        </div>
-
-        <div style="margin-bottom:12px; padding:10px; background:#f9fafb; border-radius:8px;">
-            <input id="adminTitleWikiPrivacy" placeholder="Title (e.g. 🔒 Privacy & Data)" style="width:100%; padding:4px 8px; border:1px solid #d1d5db; border-radius:4px; font-size:12px; margin-bottom:4px;">
-            <input id="adminSubtitleWikiPrivacy" placeholder="Subtitle" style="width:100%; padding:4px 8px; border:1px solid #d1d5db; border-radius:4px; font-size:12px; margin-bottom:4px;">
-            <textarea id="adminContentWikiPrivacy" rows="5" style="width:100%; border:1px solid #d1d5db; border-radius:6px; padding:8px; font-size:12px; font-family:monospace; resize:vertical;" placeholder="Topic content (HTML)"></textarea>
-            <button onclick="saveWikiContent('wiki_privacy')" style="margin-top:4px; padding:4px 12px; background:#2D5F3F; color:white; border:none; border-radius:6px; font-size:12px; cursor:pointer;">Save</button>
-        </div>
+        <div id="dynamicWikiEditors"></div>
             <div style="border-top:1px solid #e5e7eb; padding-top:10px; margin-top:10px;">
             <button onclick="addNewWikiTopic()" style="padding:6px 14px; background:#2D5F3F; color:white; border:none; border-radius:6px; font-size:12px; cursor:pointer;">+ Add Wiki Topic</button>
         </div>
